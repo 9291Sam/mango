@@ -92,7 +92,7 @@ PPIndentWidth: -1
 PackConstructorInitializers: Never
 PointerAlignment: Left
 QualifierAlignment: Custom
-QualifierOrder: ['static', 'constexpr', 'inline', 'type', 'const', 'friend', 'volatile', 'restrict']
+QualifierOrder: ['static', 'constexpr', 'inline', 'const', 'type', 'friend', 'volatile', 'restrict']
 ReferenceAlignment: Pointer
 ReflowComments: true
 RemoveBracesLLVM: false

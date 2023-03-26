@@ -8,5 +8,6 @@ namespace gfx
         Renderer();
 
     private:
-    };
+        Window window;
+    }; // class Renderer
 } // namespace gfx

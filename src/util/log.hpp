@@ -32,7 +32,7 @@ namespace log
     struct logMessage
     {
         logMessage(
-            std::_Basic_format_string<T...> fmt,
+            std::_Fmt_string<T...> fmt,
             T&&... args,
             const std::source_location& location =
                 std::source_location::current()

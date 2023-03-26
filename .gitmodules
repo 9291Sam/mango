@@ -4,3 +4,9 @@
 [submodule "inc/glfw"]
 	path = inc/glfw
 	url = https://github.com/glfw/glfw
+[submodule "inc/fmt"]
+	path = inc/fmt
+	url = https://github.com/fmtlib/fmt
+[submodule "inc/concurrentqueue"]
+	path = inc/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue

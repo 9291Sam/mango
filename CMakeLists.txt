@@ -63,3 +63,16 @@ set_target_properties(glfw PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/glfw/include
 )
 target_link_libraries(mango glfw)
+
+add_library(fmt STATIC IMPORTED)
+set_target_properties(fmt PROPERTIES
+  IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/fmt.lib
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/fmt/include
+)
+target_link_libraries(mango fmt)
+
+add_library(concurrentQueue INTERFACE)
+set_target_properties(concurrentQueue PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/concurrentqueue
+)
+target_link_libraries(mango concurrentQueue)

@@ -8,9 +8,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
 
 add_executable(mango 
-   src/main.cpp
-   src/gfx/window.cpp
-)
+    src/main.cpp
+
+    src/gfx/window.cpp
+    
+    src/gfx/vulkan/includes.cpp
+   )
 target_compile_options(mango PUBLIC -std=c++2b)
 target_compile_options(mango PUBLIC -O0)
 target_compile_options(mango PUBLIC -g)
@@ -20,6 +23,7 @@ target_compile_options(mango PUBLIC -fvisibility=default)
 target_compile_options(mango PUBLIC -Weverything)
 
 target_compile_options(mango PUBLIC -Wno-c++98-compat)
+target_compile_options(mango PUBLIC -Wno-c++98-compat-pedantic)
 target_compile_options(mango PUBLIC -Wno-missing-prototypes)
 
 target_link_options(mango  PUBLIC -fsanitize=address)
@@ -52,3 +56,10 @@ target_link_libraries(mango vulkan)
 if(APPLE) 
   target_link_libraries(mango "-framework Cocoa -framework IOKit")
 endif()
+
+add_library(glfw STATIC IMPORTED)
+set_target_properties(glfw PROPERTIES
+  IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libglfw3.a
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/glfw/include
+)
+target_link_libraries(mango glfw)

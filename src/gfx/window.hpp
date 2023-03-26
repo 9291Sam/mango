@@ -2,11 +2,19 @@
 #include <memory>
 #include <semaphore>
 
+struct GLFWwindow;
+
 namespace vk
 {
+    template<class T, class Y>
+    class UniqueHandle;
+
+    class SurfaceKHR;
+    class DispatchLoaderDynamic;
+
     struct Extent2D;
-    struct UniqueSurfaceKHR;
-    struct Instance;
+    using UniqueSurfaceKHR = UniqueHandle<SurfaceKHR, DispatchLoaderDynamic>;
+    class Instance;
 } // namespace vk
 
 namespace gfx
@@ -49,7 +57,6 @@ namespace gfx
         void blockThisThreadWhileMinimized() const;
 
     private:
-        vkfw::
-
+        GLFWwindow* window;
     }; // class Window
 } // namespace gfx

@@ -3,7 +3,14 @@
 #include <format>
 #include <iostream>
 
+template<class... T>
+[[nodiscard]] std::string logg(T&&... args)
+{
+    return std::vformat(args...);
+}
+
 int main()
 {
-    std::cout << "Hello, World!" << std::endl;
+    std::cout << logg("{}", "asdf");
+    std::cout << std::format("asdf") << std::endl;
 }

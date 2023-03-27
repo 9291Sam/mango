@@ -1,5 +1,6 @@
 #include <array>
 #include <concurrentqueue.h>
+#include <ctime>
 #include <fmt/chrono.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -45,15 +46,38 @@ void logFormatted(Level l, const std::source_location& loc, std::string msg)
         "[{0}] [{1} @ {2}:{3}:{4}] [{5}] {6}\n",
         [&]
         {
-            auto const time = std::chrono::current_zone()->to_local(
-                std::chrono::system_clock::now()
-            );
-            std::string timeString =
-                std::format("{:%b %m/%d/%Y %I:%M:%S %p}", time);
+            std::time_t cTime = std::time(nullptr);
 
-            return timeString.substr(0, 27).append(":").append(
-                timeString.substr(28)
-            );
+            // LIFETIME:
+            // this is the only place in the project where std::localtime is
+            // used as a result this is a pointer to a static
+            std::tm* localTime = std::localtime(&cTime);
+
+            std::string bufferString {};
+            bufferString.resize(128);
+
+            if (std::strftime(
+                    bufferString.data(),
+                    bufferString.size(),
+                    "%b %m/%d/%Y %I:%M:%S %p",
+                    localTime
+                )
+                == 0)
+                {
+                    // panic! unable for
+                }
+
+            return bufferString;
+
+            // std::ti auto const time = std::chrono::current_zone()->to_local(
+            //     std::chrono::system_clock::now()
+            // );
+            // std::string timeString =
+            //     std::format("{:%b %m/%d/%Y %I:%M:%S %p}", time);
+
+            // return timeString.substr(0, 27).append(":").append(
+            //     timeString.substr(28)
+            // );
         }(), // 0
         loc.function_name(), // 1
         [&]
@@ -122,7 +146,6 @@ MAKE_LOGGER(Fatal)
 
 int main()
 {
-    std::stop_token asdf {};
     logLog("asdf");
 
     std::string str = std::string {"invalid"};
@@ -130,6 +153,4 @@ int main()
     stdoutStringQueue.try_dequeue(str);
 
     std::cout << str << std::endl;
-
-    std::cout << asdf.stop_requested() << std::endl;
 }

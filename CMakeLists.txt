@@ -22,12 +22,13 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -fsanitize=address)
     target_compile_options(mango PUBLIC -march=native)
     target_compile_options(mango PUBLIC -fvisibility=default)
-    # target_compile_options(mango PUBLIC -Weverything)
+    target_compile_options(mango PUBLIC -Weverything)
 
-    # target_compile_options(mango PUBLIC -Wno-c++98-compat)
-    # target_compile_options(mango PUBLIC -Wno-c++98-compat-pedantic)
-    # target_compile_options(mango PUBLIC -Wno-missing-prototypes)
-    # target_compile_options(mango PUBLIC -Wno-weak-vtables)
+    target_compile_options(mango PUBLIC -Wno-c++98-compat)
+    target_compile_options(mango PUBLIC -Wno-c++98-compat-pedantic)
+    target_compile_options(mango PUBLIC -Wno-missing-prototypes)
+    target_compile_options(mango PUBLIC -Wno-reserved-macro-identifier)
+    target_compile_options(mango PUBLIC -Wno-pre-c++20-compat)
     
     target_link_options(mango  PUBLIC -fsanitize=address)
 

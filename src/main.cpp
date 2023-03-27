@@ -1,5 +1,4 @@
 #include <array>
-#include <concurrentqueue.h>
 #include <ctime>
 #include <fmt/chrono.h>
 #include <fmt/core.h>
@@ -7,6 +6,11 @@
 #include <format>
 #include <iostream>
 #include <source_location>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+#include <concurrentqueue.h>
+#pragma clang diagnostic pop
 
 enum class Level
 {
@@ -17,7 +21,7 @@ enum class Level
     Fatal
 };
 
-const char* const levelAsString(Level l)
+const char* levelAsString(Level l)
 {
     using enum Level;
     switch (l)
@@ -38,7 +42,8 @@ const char* const levelAsString(Level l)
 static constexpr std::array<std::string_view, 2> FOLDER_IDENTIFIERS {
     "/src/", "/inc/"};
 
-static moodycamel::ConcurrentQueue<std::string> stdoutStringQueue {};
+[[clang::always_destroy]] static moodycamel::ConcurrentQueue<std::string>
+    stdoutStringQueue {};
 
 void logFormatted(Level l, const std::source_location& loc, std::string msg)
 {

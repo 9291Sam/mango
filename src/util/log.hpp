@@ -1,19 +1,16 @@
-#include <array>
-#include <format>
-#include <iostream>
+#ifndef SRC_UTIL_LOG_HPP
+#define SRC_UTIL_LOG_HPP
+
+#include <fmt/format.h>
 #include <source_location>
-#include <string_view>
 
-namespace log
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+#include <concurrentqueue.h>
+#pragma clang diagnostic pop
+
+namespace util
 {
-
-    class AsyncStdoutLogger
-    {
-        void logMessage(std::string);
-    };
-
-    static AsyncStdoutLogger LOGGER;
-
     enum class Level
     {
         Trace,
@@ -23,64 +20,73 @@ namespace log
         Fatal
     };
 
-    static constexpr std::array<std::string_view, 2> FOLDER_IDENTIFIERS {
-        "/src/", "/inc/"};
+    void logFormatted(Level, const std::source_location&, std::string);
 
-    // We dont talk about this "function" which is actually a struct because
-    // deduction guides
-    template<class... T>
-    struct logMessage
-    {
-        logMessage(
-            std::_Fmt_string<T...> fmt,
-            T&&... args,
-            const std::source_location& location =
-                std::source_location::current()
-        )
-        {
-            auto currentTime = std::chrono::system_clock::now();
+#define MAKE_LOGGER(LEVEL)                                                     \
+    template<class... T>                                                       \
+    struct log##LEVEL                                                          \
+    {                                                                          \
+        log##LEVEL(                                                            \
+            fmt::format_string<T...> fmt,                                      \
+            T&&... args,                                                       \
+            const std::source_location& location =                             \
+                std::source_location::current()                                \
+        ) noexcept                                                             \
+        {                                                                      \
+            using enum Level;                                                  \
+            logFormatted(                                                      \
+                LEVEL,                                                         \
+                location,                                                      \
+                fmt::vformat(fmt, fmt::make_format_args(args...))              \
+            );                                                                 \
+        }                                                                      \
+    };                                                                         \
+    template<class... J>                                                       \
+    log##LEVEL(fmt::format_string<J...>, J&&...)->log##LEVEL<J...>;
 
-            std::cout << fmt::format(
-                "[{0}] [{1}:{2}:{3}] [{4}] {5}\n",
-                [&] { // 0
-                    std::string time = fmt::format(
-                        "{:%b %m/%d/%Y} {:%I:%M:%S %p}",
-                        currentTime,
-                        std::chrono::duration_cast<std::chrono::microseconds>(
-                            currentTime.time_since_epoch()
-                        )
-                    );
-                    return time.substr(0, 27).append(":").append(time.substr(27)
-                    );
-                }(), // 0
-                [&] { // 1
-                    std::string raw_file_name = location.file_name();
+    MAKE_LOGGER(Trace)
+    MAKE_LOGGER(Debug)
+    MAKE_LOGGER(Log)
+    MAKE_LOGGER(Warn)
+    MAKE_LOGGER(Fatal)
 
-                    std::size_t index = std::string::npos;
+#define MAKE_ASSERT(LEVEL, THROW_ON_FAIL)                                      \
+    template<class... T>                                                       \
+    struct assert##LEVEL                                                       \
+    {                                                                          \
+        assert##LEVEL(                                                         \
+            bool                     condition,                                \
+            fmt::format_string<T...> fmt,                                      \
+            T&&... args,                                                       \
+            const std::source_location& location =                             \
+                std::source_location::current()                                \
+        )                                                                      \
+        {                                                                      \
+            if (!condition)                                                    \
+            {                                                                  \
+                using enum Level;                                              \
+                logFormatted(                                                  \
+                    LEVEL,                                                     \
+                    location,                                                  \
+                    fmt::vformat(fmt, fmt::make_format_args(args...))          \
+                );                                                             \
+                if constexpr (THROW_ON_FAIL)                                   \
+                {                                                              \
+                    throw std::runtime_error {                                 \
+                        fmt::vformat(fmt, fmt::make_format_args(args...))};    \
+                }                                                              \
+            }                                                                  \
+        }                                                                      \
+    };                                                                         \
+    template<class... J>                                                       \
+    assert##LEVEL(bool, fmt::format_string<J...>, J&&...)                      \
+        ->assert##LEVEL<J...>;
 
-                    for (std::string_view str : FOLDER_IDENTIFIERS)
-                        {
-                            if (index != std::string::npos)
-                                {
-                                    break;
-                                }
+    MAKE_ASSERT(Trace, false)
+    MAKE_ASSERT(Debug, false)
+    MAKE_ASSERT(Log, false)
+    MAKE_ASSERT(Warn, false)
+    MAKE_ASSERT(Fatal, true)
+} // namespace util
 
-                            index = raw_file_name.find(str);
-                        }
-
-                    return raw_file_name.substr(index + 1);
-                }(), // 1
-                location.line(), // 2
-                location.column(), // 3
-                static_cast<std::string>("Trace"), // 4
-                std::vformat(fmt, std::make_format_args(args...)) // 5
-            );
-        }
-    };
-    template<class... T>
-    logMessage(std::_Basic_format_string<T...>, T&&...) -> logMessage<T...>;
-
-    // template<class... T>
-    // using trace = logMessage<Level::Trace, T...>;
-
-} // namespace log
+#endif // SRC_UTIL_LOG_HPP

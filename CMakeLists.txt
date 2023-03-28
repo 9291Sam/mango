@@ -5,19 +5,26 @@ project(mango VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+if (WIN32)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
+endif()
 
 add_executable(mango 
   src/main.cpp
+
+  src/util/log.cpp
 
   src/gfx/window.cpp
     
   src/gfx/vulkan/includes.cpp
 )
 
+
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     target_compile_options(mango PUBLIC -std=c++2b)
-    target_compile_options(mango PUBLIC -O0)
+    target_compile_options(mango PUBLIC -O3)
     target_compile_options(mango PUBLIC -g)
     target_compile_options(mango PUBLIC -fsanitize=address)
     target_compile_options(mango PUBLIC -march=native)
@@ -33,15 +40,25 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_link_options(mango  PUBLIC -fsanitize=address)
 
     if (WIN32)    
-      set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
       target_compile_definitions(mango  PUBLIC _ITERATOR_DEBUG_LEVEL=0)
       target_compile_definitions(mango  PUBLIC _DISABLE_STRING_ANNOTATION _DISABLE_VECTOR_ANNOTATION)
-    endif() # If WIN$#
+    endif()
   else()
     message(FATAL_ERROR "Clang-cl is not supported")
   endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  target_compile_options(mango PUBLIC -std=c++2b)
+  target_compile_options(mango PUBLIC -O0)
+  target_compile_options(mango PUBLIC -g)
+  
+  target_compile_options(mango PUBLIC -march=native)
+  target_compile_options(mango PUBLIC -fvisibility=default)
+  target_compile_options(mango PUBLIC -fsanitize=address)
+  target_link_options(mango  PUBLIC -fsanitize=address)
+
 else()
-  message(FATAL_ERROR "Clang is the only supported compiler")
+message(FATAL_ERROR "Clang is the only supported compiler")
+
 endif()
 
 

@@ -1,14 +1,67 @@
 #include "window.hpp"
-#include "GLFW/glfw3.h"
 #include "vulkan/includes.hpp"
+#include <util/log.hpp>
 
+// clang-format off
+#include "GLFW/glfw3.h"
+// clang-format on
 namespace gfx
 {
-    // Window::Window(vk::Extent2D size, const char* name) {
-    //     glfwIn
-    //     if (glfwInit != )
-    //     glfwInit()}
+    Window::Window(vk::Extent2D size, const char* name)
+        : window {nullptr}
+        , was_resized {std::atomic_bool {false}}
+    {
+        if (glfwInit() != GLFW_TRUE)
+        {
+            util::panic("Failed to initialize GLFW");
+        }
 
-    // Window::~Window()
-    // {}
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+        this->window = glfwCreateWindow(
+            static_cast<int>(size.width),
+            static_cast<int>(size.height),
+            name,
+            nullptr,
+            nullptr
+        );
+
+        if (this->window == nullptr)
+        {
+            util::panic("Failed to create glfw window");
+        }
+
+        // Putting a reference to `this` inside of GLFW so that it can be passed
+        // to the callback function
+        glfwSetWindowUserPointer(this->window, static_cast<void*>(this));
+        std::ignore = glfwSetFramebufferSizeCallback(
+            this->window, Window::frameBufferResizeCallback
+        );
+    }
+
+    Window::~Window()
+    {
+        glfwDestroyWindow(this->window);
+        glfwTerminate();
+    }
+
+    bool Window::shouldClose() const
+    {
+        return static_cast<bool>(glfwWindowShouldClose(this->window));
+    }
+
+    void Window::frameBufferResizeCallback(
+        GLFWwindow* glfwWindow, int newWidth, int newHeight
+    )
+    {
+        gfx::Window* window =
+            static_cast<gfx::Window*>(glfwGetWindowUserPointer(glfwWindow));
+
+        window->was_resized.store(true);
+        window->width.store(newWidth);
+        window->height.store(newHeight);
+    }
+
 } // namespace gfx

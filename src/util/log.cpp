@@ -4,6 +4,11 @@
 #include <fmt/core.h>
 #include <iostream>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+#include <concurrentqueue.h>
+#pragma clang diagnostic pop
+
 namespace util
 {
 
@@ -49,6 +54,7 @@ namespace util
                             std::cout << temporary_string;
                         }
                     }
+                    util::logTrace("Logger's destructor called");
 
                     // Cleanup loop
                     while (this->message_queue.try_dequeue(temporary_string))

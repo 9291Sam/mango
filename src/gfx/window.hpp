@@ -1,3 +1,4 @@
+#include <atomic>
 #include <chrono>
 #include <memory>
 #include <semaphore>
@@ -55,8 +56,14 @@ namespace gfx
 
         // TODO: replace with a semaphore + spawning another thread?
         void blockThisThreadWhileMinimized() const;
-
     private:
-        GLFWwindow* window;
+        // this needs to be here so it can access members of the class
+        static void frameBufferResizeCallback(GLFWwindow*, int, int);
+
+        GLFWwindow*       window;
+        std::atomic<int>  width;
+        std::atomic<int>  height;
+        std::atomic<bool> was_resized;
+        std::byte         _padding[7];
     }; // class Window
 } // namespace gfx

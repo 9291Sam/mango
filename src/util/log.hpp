@@ -4,11 +4,6 @@
 #include <fmt/format.h>
 #include <source_location>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
-#include <concurrentqueue.h>
-#pragma clang diagnostic pop
-
 namespace util
 {
     enum class Level
@@ -22,6 +17,8 @@ namespace util
 
     void logFormatted(Level, const std::source_location&, std::string);
 
+/// Because C++ doesn't have partial template specification, this is the best we
+/// can do
 #define MAKE_LOGGER(LEVEL)                                                     \
     template<class... T>                                                       \
     struct log##LEVEL                                                          \
@@ -87,6 +84,29 @@ namespace util
     MAKE_ASSERT(Log, false)
     MAKE_ASSERT(Warn, false)
     MAKE_ASSERT(Fatal, true)
+
+    template<class... T>
+    struct panic
+    {
+        panic(
+            fmt::format_string<T...> fmt,
+            T&&... args,
+            const std::source_location& location =
+                std::source_location::current()
+        )
+        {
+            using enum Level;
+            logFormatted(
+                Fatal,
+                location,
+                fmt::vformat(fmt, fmt::make_format_args(args...))
+            );
+            throw std::runtime_error {
+                fmt::vformat(fmt, fmt::make_format_args(args...))};
+        }
+    };
+    template<class... J>
+    panic(fmt::format_string<J...>, J&&...) -> panic<J...>;
 } // namespace util
 
 #endif // SRC_UTIL_LOG_HPP

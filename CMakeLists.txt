@@ -14,10 +14,13 @@ add_executable(mango
 
   src/util/log.cpp
 
+  src/gfx/renderer.cpp
   src/gfx/window.cpp
     
   src/gfx/vulkan/includes.cpp
 )
+
+target_include_directories(mango PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
 
 
@@ -57,8 +60,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_link_options(mango  PUBLIC -fsanitize=address)
 
 else()
-message(FATAL_ERROR "Clang is the only supported compiler")
-
+  message(FATAL_ERROR "Clang is the only supported compiler")
 endif()
 
 

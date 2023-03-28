@@ -30,13 +30,13 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-reserved-macro-identifier)
     target_compile_options(mango PUBLIC -Wno-pre-c++20-compat)
     
-    target_link_options(mango  PUBLIC -fsanitize=address)
+    target_link_options(mango PUBLIC -fsanitize=address)
 
     if (WIN32)    
       set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
       target_compile_definitions(mango  PUBLIC _ITERATOR_DEBUG_LEVEL=0)
       target_compile_definitions(mango  PUBLIC _DISABLE_STRING_ANNOTATION _DISABLE_VECTOR_ANNOTATION)
-    endif() # If WIN$#
+    endif()
   else()
     message(FATAL_ERROR "Clang-cl is not supported")
   endif()

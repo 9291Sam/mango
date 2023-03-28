@@ -118,17 +118,6 @@ MAKE_LOGGER(Log)
 MAKE_LOGGER(Warn)
 MAKE_LOGGER(Fatal)
 
-// class AsyncStdoutLogger
-// {
-// public:
-//     AsyncStdoutLogger(const moodycamel::ConcurrentQueue<std::string>& queue)
-//     {}
-
-// private:
-//     std::thread thread;
-
-// }
-
 int main()
 {
     logLog("{}", "asdf");

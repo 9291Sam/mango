@@ -1,11 +1,16 @@
 #include <array>
-#include <concurrentqueue.h>
+#include <ctime>
 #include <fmt/chrono.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <format>
 #include <iostream>
 #include <source_location>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+#include <concurrentqueue.h>
+#pragma clang diagnostic pop
 
 enum class Level
 {
@@ -16,7 +21,7 @@ enum class Level
     Fatal
 };
 
-const char* const levelAsString(Level l)
+const char* levelAsString(Level l)
 {
     using enum Level;
     switch (l)
@@ -100,15 +105,18 @@ void logFormatted(Level l, const std::source_location& loc, std::string msg)
         "[{0}] [{1} @ {2}:{3}:{4}] [{5}] {6}\n",
         [&]
         {
-            auto const time = std::chrono::current_zone()->to_local(
+            std::string workingString {31, ' '};
+
+            workingString = fmt::format(
+                "{:0%b %m/%d/%Y %I:%M:}{:%S}",
+                fmt::localtime(std::time(nullptr)),
                 std::chrono::system_clock::now()
             );
-            std::string timeString =
-                std::format("{:%b %m/%d/%Y %I:%M:%S %p}", time);
 
-            return timeString.substr(0, 27).append(":").append(
-                timeString.substr(28)
-            );
+            workingString.at(workingString.size() - 7) = ':';
+            workingString.insert(workingString.size() - 3, ":");
+
+            return workingString;
         }(), // 0
         loc.function_name(), // 1
         [&]

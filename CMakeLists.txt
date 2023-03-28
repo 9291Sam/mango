@@ -5,31 +5,47 @@ project(mango VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
 
 add_executable(mango 
-    src/main.cpp
+  src/main.cpp
 
-    src/gfx/window.cpp
+  src/gfx/window.cpp
     
-    src/gfx/vulkan/includes.cpp
-   )
-target_compile_options(mango PUBLIC -std=c++2b)
-target_compile_options(mango PUBLIC -O0)
-target_compile_options(mango PUBLIC -g)
-target_compile_options(mango PUBLIC -fsanitize=address)
-target_compile_options(mango PUBLIC -march=native)
-target_compile_options(mango PUBLIC -fvisibility=default)
-target_compile_options(mango PUBLIC -Weverything)
+  src/gfx/vulkan/includes.cpp
+)
 
-target_compile_options(mango PUBLIC -Wno-c++98-compat)
-target_compile_options(mango PUBLIC -Wno-c++98-compat-pedantic)
-target_compile_options(mango PUBLIC -Wno-missing-prototypes)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+    target_compile_options(mango PUBLIC -std=c++2b)
+    target_compile_options(mango PUBLIC -O0)
+    target_compile_options(mango PUBLIC -g)
+    target_compile_options(mango PUBLIC -fsanitize=address)
+    target_compile_options(mango PUBLIC -march=native)
+    target_compile_options(mango PUBLIC -fvisibility=default)
+    target_compile_options(mango PUBLIC -Weverything)
 
-target_link_options(mango  PUBLIC -fsanitize=address)
+    target_compile_options(mango PUBLIC -Wno-c++98-compat)
+    target_compile_options(mango PUBLIC -Wno-c++98-compat-pedantic)
+    target_compile_options(mango PUBLIC -Wno-missing-prototypes)
+    target_compile_options(mango PUBLIC -Wno-reserved-macro-identifier)
+    target_compile_options(mango PUBLIC -Wno-pre-c++20-compat)
+    
+    target_link_options(mango  PUBLIC -fsanitize=address)
 
-target_compile_definitions(mango  PUBLIC _ITERATOR_DEBUG_LEVEL=0)
-target_compile_definitions(mango  PUBLIC _DISABLE_STRING_ANNOTATION _DISABLE_VECTOR_ANNOTATION)
+    if (WIN32)    
+      set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
+      target_compile_definitions(mango  PUBLIC _ITERATOR_DEBUG_LEVEL=0)
+      target_compile_definitions(mango  PUBLIC _DISABLE_STRING_ANNOTATION _DISABLE_VECTOR_ANNOTATION)
+    endif() # If WIN$#
+  else()
+    message(FATAL_ERROR "Clang-cl is not supported")
+  endif()
+else()
+  message(FATAL_ERROR "Clang is the only supported compiler")
+endif()
+
+
+
 
 # # detect compilers, enable warnings and standard conformance
 # set(msvc "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
@@ -66,7 +82,7 @@ target_link_libraries(mango glfw)
 
 add_library(fmt STATIC IMPORTED)
 set_target_properties(fmt PROPERTIES
-  IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/fmt.lib
+  IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libfmt.a
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/fmt/include
 )
 target_link_libraries(mango fmt)

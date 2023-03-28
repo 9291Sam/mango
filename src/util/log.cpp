@@ -110,8 +110,9 @@ namespace util
                     std::chrono::system_clock::now()
                 );
 
-                workingString.at(workingString.size() - 8) = ':';
-                workingString.pop_back();
+                workingString.erase(30, std::string::npos);
+
+                workingString.at(workingString.size() - 7) = ':';
                 workingString.insert(workingString.size() - 3, ":");
 
                 return workingString;

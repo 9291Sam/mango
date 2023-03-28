@@ -42,20 +42,21 @@ namespace gfx
         Window& operator= (Window&&)      = delete;
 
         [[nodiscard]] bool         shouldClose() const;
-        [[nodiscard]] bool         isKeyPressed() const;
+        // TODO: write a wrapper around these GLFW_KEYS
+        [[nodiscard]] bool         isKeyPressed(int) const;
         [[nodiscard]] vk::Extent2D size() const;
-        [[nodiscard]] double       getDeltaTimeSeconds() const;
-        [[nodiscard]] Delta        getMouseDelta() const;
+        // [[nodiscard]] double       getDeltaTimeSeconds() const;
+        // [[nodiscard]] Delta        getMouseDelta() const;
 
         [[nodiscard]] auto createSurface(vk::Instance) const
             -> vk::UniqueSurfaceKHR;
 
-        void attachCursor() const;
-        void detachCursor() const;
+        // void attachCursor() const;
+        // void detachCursor() const;
         void pollEvents() const;
 
         // TODO: replace with a semaphore + spawning another thread?
-        void blockThisThreadWhileMinimized() const;
+        // void blockThisThreadWhileMinimized() const;
     private:
         // this needs to be here so it can access members of the class
         static void frameBufferResizeCallback(GLFWwindow*, int, int);

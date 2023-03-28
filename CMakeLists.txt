@@ -39,6 +39,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-missing-prototypes)
     target_compile_options(mango PUBLIC -Wno-reserved-macro-identifier)
     target_compile_options(mango PUBLIC -Wno-pre-c++20-compat)
+    target_compile_options(mango PUBLIC -Wno-braced-scalar-init)
     
     target_link_options(mango PUBLIC -fsanitize=address)
 

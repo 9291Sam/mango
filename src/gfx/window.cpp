@@ -52,6 +52,50 @@ namespace gfx
         return static_cast<bool>(glfwWindowShouldClose(this->window));
     }
 
+    bool Window::isKeyPressed(int key) const
+    {
+        if (glfwGetKey(this->window, key) == GLFW_PRESS)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    vk::Extent2D Window::size() const
+    {
+        // TODO: add a mutex for the width and height components together
+        return vk::Extent2D {
+            .width {static_cast<std::uint32_t>(this->width.load())},
+            .height {static_cast<std::uint32_t>(this->height.load())}};
+    }
+
+    vk::UniqueSurfaceKHR Window::createSurface(vk::Instance instance) const
+    {
+        VkSurfaceKHR maybeSurface = nullptr;
+
+        const VkResult result = glfwCreateWindowSurface(
+            static_cast<VkInstance>(instance),
+            this->window,
+            nullptr,
+            &maybeSurface
+        );
+
+        util::assertFatal(
+            result == VK_SUCCESS,
+            "Failed to create window surface | {}",
+            vk::to_string(vk::Result {result})
+        );
+
+        util::assertFatal(
+            static_cast<bool>(maybeSurface), "Returned surface was a nullptr!"
+        );
+
+        return vk::UniqueSurfaceKHR {vk::SurfaceKHR {maybeSurface}, instance};
+    }
+
     void Window::frameBufferResizeCallback(
         GLFWwindow* glfwWindow, int newWidth, int newHeight
     )

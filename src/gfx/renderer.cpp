@@ -1,15 +1,23 @@
 #include "renderer.hpp"
 #include "util/log.hpp"
-#include "vulkan/includes.hpp"
 
 namespace gfx
 {
     Renderer::Renderer()
         : window {
             {1'200, 1'200},
-            "Mango"
-    }
+            "Mango"}, 
+         instance {nullptr}
     {
+        const vk::DynamicLoader         dl;
+        const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
+            dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"
+            );
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(dynVkGetInstanceProcAddr);
+
+        this->instance =
+            std::make_unique<vulkan::Instance>(dynVkGetInstanceProcAddr);
+
         util::logLog("Renderer initialization complete");
     }
 

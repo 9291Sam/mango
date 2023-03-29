@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(mango VERSION 0.1.0)
+project(mango VERSION 0.0.0.1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,16 +18,21 @@ add_executable(mango
   src/gfx/window.cpp
     
   src/gfx/vulkan/includes.cpp
+  src/gfx/vulkan/instance.cpp
 )
 
 target_include_directories(mango PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
+target_compile_definitions(mango PUBLIC VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
+target_compile_definitions(mango PUBLIC VERSION_MINOR=${PROJECT_VERSION_MINOR})
+target_compile_definitions(mango PUBLIC VERSION_PATCH=${PROJECT_VERSION_PATCH})
+target_compile_definitions(mango PUBLIC VERSION_TWEAK=${PROJECT_VERSION_TWEAK})
 
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     target_compile_options(mango PUBLIC -std=c++2b)
-    target_compile_options(mango PUBLIC -O3)
+    target_compile_options(mango PUBLIC -O0)
     target_compile_options(mango PUBLIC -g)
     target_compile_options(mango PUBLIC -fsanitize=address)
     target_compile_options(mango PUBLIC -march=native)
@@ -40,6 +45,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-reserved-macro-identifier)
     target_compile_options(mango PUBLIC -Wno-pre-c++20-compat)
     target_compile_options(mango PUBLIC -Wno-braced-scalar-init)
+    target_compile_options(mango PUBLIC -Wno-old-style-cast)
     
     target_link_options(mango PUBLIC -fsanitize=address)
 

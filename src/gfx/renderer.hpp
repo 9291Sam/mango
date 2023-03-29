@@ -1,7 +1,9 @@
 #ifndef SRC_GFX_RENDERER_HPP
 #define SRC_GFX_RENDERER_HPP
 
+#include "vulkan/instance.hpp"
 #include "window.hpp"
+#include <memory>
 
 namespace gfx
 {
@@ -17,7 +19,9 @@ namespace gfx
         Renderer& operator= (Renderer&&)      = delete;
 
     private:
-        Window window;
+        Window                            window;
+        std::unique_ptr<vulkan::Instance> instance;
+        vk::UniqueSurfaceKHR              draw_surface;
     }; // class Renderer
 } // namespace gfx
 

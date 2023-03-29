@@ -15,10 +15,13 @@ namespace gfx
             );
         VULKAN_HPP_DEFAULT_DISPATCHER.init(dynVkGetInstanceProcAddr);
 
-        this->instance =
-            std::make_unique<vulkan::Instance>(dynVkGetInstanceProcAddr);
-
-        VULKAN_HPP_DEFAULT_DISPATCHER.init(**this->instance);
+        this->instance = std::make_unique<vulkan::Instance>(
+            dynVkGetInstanceProcAddr,
+            [&](vk::Instance instance_)
+            {
+                VULKAN_HPP_DEFAULT_DISPATCHER.init(instance_);
+            }
+        );
 
         util::logLog("Renderer initialization complete");
     }

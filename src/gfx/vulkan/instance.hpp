@@ -2,6 +2,7 @@
 #define SRC_GFX_VULKAN_INSTANCE_HPP
 
 #include "includes.hpp"
+#include <functional>
 #include <utility>
 
 namespace gfx::vulkan
@@ -12,7 +13,10 @@ namespace gfx::vulkan
     class Instance
     {
     public:
-        Instance(PFN_vkGetInstanceProcAddr);
+        Instance(
+            PFN_vkGetInstanceProcAddr,
+            std::function<void(vk::Instance)> dynamicLoaderInitalizationCallback
+        );
         ~Instance();
 
         Instance(const Instance&)             = delete;

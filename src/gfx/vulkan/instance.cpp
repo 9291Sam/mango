@@ -73,7 +73,10 @@ static void dynVkDestroyDebugUtilsMessengerEXT(
 
 namespace gfx::vulkan
 {
-    Instance::Instance(PFN_vkGetInstanceProcAddr dyn_vk_get_instance_proc_addr_)
+    Instance::Instance(
+        PFN_vkGetInstanceProcAddr         dyn_vk_get_instance_proc_addr_,
+        std::function<void(vk::Instance)> dynamicLoaderInitalizationCallback
+    )
         : instance {nullptr}
         , dyn_vk_get_instance_proc_addr {dyn_vk_get_instance_proc_addr_}
         , debug_messenger {nullptr}
@@ -194,6 +197,8 @@ namespace gfx::vulkan
         };
 
         this->instance = vk::createInstanceUnique(instanceCreateInfo);
+
+        dynamicLoaderInitalizationCallback(*this->instance);
 
         if constexpr (ENABLE_VALIDATION_LAYERS)
         {

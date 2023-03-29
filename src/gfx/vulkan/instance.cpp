@@ -218,20 +218,12 @@ namespace gfx::vulkan
 
     Instance::~Instance()
     {
-        std::cerr << fmt::format(
-            "{} | {} | {}",
-            (void *)this->dyn_vk_get_instance_proc_addr,
-            (void *)(*this->instance),
-            (void *)(this->debug_messenger)
-        );
         dynVkDestroyDebugUtilsMessengerEXT(
             this->dyn_vk_get_instance_proc_addr,
             *this->instance,
             this->debug_messenger,
             nullptr
         );
-
-        std::cerr << "Arrived here!";
     }
 
     vk::Instance Instance::operator* () const

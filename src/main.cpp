@@ -7,20 +7,12 @@ int main()
 {
     try
     {
-        // gfx::Renderer renderer {};
-        const vk::DynamicLoader         dl;
-        const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
-            dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"
-            );
-        VULKAN_HPP_DEFAULT_DISPATCHER.init(dynVkGetInstanceProcAddr);
-
-        auto instance =
-            std::make_unique<gfx::vulkan::Instance>(dynVkGetInstanceProcAddr);
-
-        util::logTrace("mango exited successfully");
+        gfx::Renderer renderer {};
     }
     catch (const std::exception& e)
     {
         util::logFatal("Exception propagated to main {}", e.what());
     }
+
+    util::logTrace("mango exited successfully");
 }

@@ -27,11 +27,11 @@ namespace gfx::vulkan
         [[nodiscard]] vk::Instance operator* () const;
 
     private:
-        vk::UniqueInstance        instance;
-        PFN_vkGetInstanceProcAddr dyn_vk_get_instance_proc_addr;
-        VkDebugUtilsMessengerEXT  debug_messenger;
-        std::uint32_t             vulkan_api_version;
-        std::byte                 _padding[4];
+        vk::UniqueInstance         instance;
+        PFN_vkGetInstanceProcAddr  dyn_vk_get_instance_proc_addr;
+        VkDebugUtilsMessengerEXT   debug_messenger;
+        std::uint32_t              vulkan_api_version;
+        [[maybe_unused]] std::byte _padding[4];
     };
 
 } // namespace gfx::vulkan

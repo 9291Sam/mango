@@ -17,6 +17,7 @@ add_executable(mango
   src/gfx/renderer.cpp
   src/gfx/window.cpp
     
+  src/gfx/vulkan/device.cpp
   src/gfx/vulkan/includes.cpp
   src/gfx/vulkan/instance.cpp
 )

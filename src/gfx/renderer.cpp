@@ -23,6 +23,11 @@ namespace gfx
             }
         );
 
+        this->draw_surface = this->window.createSurface(**this->instance);
+
+        // this->device = std::make_unique<vulkan::Device>()
+        util::panic("Unimplemented");
+
         util::logLog("Renderer initialization complete");
     }
 

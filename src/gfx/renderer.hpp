@@ -1,6 +1,7 @@
 #ifndef SRC_GFX_RENDERER_HPP
 #define SRC_GFX_RENDERER_HPP
 
+#include "vulkan/device.hpp"
 #include "vulkan/instance.hpp"
 #include "window.hpp"
 #include <memory>
@@ -22,6 +23,7 @@ namespace gfx
         Window                            window;
         std::unique_ptr<vulkan::Instance> instance;
         vk::UniqueSurfaceKHR              draw_surface;
+        std::unique_ptr<vulkan::Device>   device;
     }; // class Renderer
 } // namespace gfx
 

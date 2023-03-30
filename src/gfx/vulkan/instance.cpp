@@ -33,10 +33,13 @@ static VkBool32 debugMessageCallback(
     VkDebugUtilsMessengerEXT                 *pMessenger
 ) -> VkResult
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-strict"
     const auto maybeVkCreateDebugUtilsMessengerExt =
         reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
             dynVkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT")
         );
+#pragma clang diagnostic pop
 
     util::assertFatal(
         maybeVkCreateDebugUtilsMessengerExt != nullptr,
@@ -55,12 +58,15 @@ static void dynVkDestroyDebugUtilsMessengerEXT(
     [[maybe_unused]] const VkAllocationCallbacks *pAllocator
 )
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-strict"
     const auto maybeVkDestroyDebugUtilsMessengerEXT =
         reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
             dynVkGetInstanceProcAddr(
                 instance, "vkDestroyDebugUtilsMessengerEXT"
             )
         );
+#pragma clang diagnostic pop
 
     util::assertFatal(
         maybeVkDestroyDebugUtilsMessengerEXT != nullptr,
@@ -149,6 +155,8 @@ namespace gfx::vulkan
                 temp.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
             const char *const *instanceExtensionsArray    = nullptr;
             std::uint32_t      numberOfInstanceExtensions = 0;
 
@@ -161,6 +169,7 @@ namespace gfx::vulkan
                 for (std::size_t i = 0; i < numberOfInstanceExtensions; ++i)
                 {
                     temp.push_back(instanceExtensionsArray[i]);
+#pragma clang diagnostic pop
                 }
             }
 

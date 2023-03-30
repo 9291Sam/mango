@@ -1,22 +1,10 @@
+#include "vulkan/includes.hpp"
 #include <atomic>
 #include <chrono>
 #include <memory>
 #include <semaphore>
 
 struct GLFWwindow;
-
-namespace vk
-{
-    template<class T, class Y>
-    class UniqueHandle;
-
-    class SurfaceKHR;
-    class DispatchLoaderDynamic;
-
-    struct Extent2D;
-    using UniqueSurfaceKHR = UniqueHandle<SurfaceKHR, DispatchLoaderDynamic>;
-    class Instance;
-} // namespace vk
 
 namespace gfx
 {

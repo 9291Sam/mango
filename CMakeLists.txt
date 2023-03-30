@@ -63,8 +63,11 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   
   target_compile_options(mango PUBLIC -march=native)
   target_compile_options(mango PUBLIC -fvisibility=default)
-  target_compile_options(mango PUBLIC -fsanitize=address)
-  target_link_options(mango  PUBLIC -fsanitize=address)
+
+  if (NOT WIN32)
+    target_compile_options(mango PUBLIC -fsanitize=address)
+    target_link_options(mango  PUBLIC -fsanitize=address)
+  endif()
 
 else()
   message(FATAL_ERROR "Clang is the only supported compiler")

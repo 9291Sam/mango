@@ -1,9 +1,17 @@
 #ifndef SRC_UTIL_THREADS_HPP
 #define SRC_UTIL_THREADS_HPP
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include "concurrentqueue.h"
+#pragma clang diagnostic pop
+
+#include "util/log.hpp"
 #include <concepts>
+#include <condition_variable>
+#include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <type_traits>
 #include <utility>
@@ -99,6 +107,58 @@ namespace util
             return {Sender<T> {queue}, Receiver<T> {std::move(queue)}};
         }
     } // namespace mpmc
+
+    template<class... T>
+    class Mutex
+    {
+    public:
+
+        Mutex(T... t)
+            : is_currently_locked {false}
+            , tuple {std::forward<T>(t)...}
+        {}
+        ~Mutex() = default;
+
+        Mutex(const Mutex&)             = delete;
+        Mutex(Mutex&&)                  = default;
+        Mutex& operator= (const Mutex&) = delete;
+        Mutex& operator= (Mutex&&)      = default;
+
+        void lock(std::function<void(T&...)> func)
+        {
+            std::unique_lock lock {this->mutex};
+            util::assertFatal(
+                this->is_currently_locked.exchange(true) == false,
+                "Invalid currently_locked state!"
+            );
+            std::apply(func, this->tuple);
+            util::assertFatal(
+                this->is_currently_locked.exchange(false) == true,
+                "Invalid currently_locked state!"
+            );
+        }
+
+        void lock(std::function<void(const T&...)> func) const
+        {
+            std::unique_lock lock {this->mutex};
+            util::assertFatal(
+                this->is_currently_locked.exchange(true) == false,
+                "Invalid currently_locked state!"
+            );
+            std::apply(func, this->tuple);
+            util::assertFatal(
+                this->is_currently_locked.exchange(false) == true,
+                "Invalid currently_locked state!"
+            );
+        }
+
+    private:
+        mutable std::mutex         mutex;
+        mutable std::atomic<bool>  is_currently_locked;
+        [[maybe_unused]] std::byte _padding[7];
+        std::tuple<T...>           tuple;
+    }; // class Mutex
+
 } // namespace util
 
 #endif // SRC_UTIL_THREADS_HPP

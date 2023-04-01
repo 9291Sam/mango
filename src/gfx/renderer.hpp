@@ -21,9 +21,9 @@ namespace gfx
 
     private:
         Window                            window;
-        std::unique_ptr<vulkan::Instance> instance;
+        std::shared_ptr<vulkan::Instance> instance;
         vk::UniqueSurfaceKHR              draw_surface;
-        std::unique_ptr<vulkan::Device>   device;
+        std::shared_ptr<vulkan::Device>   device;
     }; // class Renderer
 } // namespace gfx
 

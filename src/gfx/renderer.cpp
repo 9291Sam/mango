@@ -4,10 +4,9 @@
 namespace gfx
 {
     Renderer::Renderer()
-        : window {
-            {1'200, 1'200},
-            "Mango"}, 
-         instance {nullptr}
+        : window   {{1'200, 1'200}, "Mango"}
+        , instance {nullptr}
+        , device   {nullptr}
     {
         const vk::DynamicLoader         dl;
         const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
@@ -25,8 +24,9 @@ namespace gfx
 
         this->draw_surface = this->window.createSurface(**this->instance);
 
-        // this->device = std::make_unique<vulkan::Device>()
-        util::panic("Unimplemented");
+        this->device = std::make_shared<vulkan::Device>(
+            this->instance, *this->draw_surface
+        );
 
         util::logLog("Renderer initialization complete");
     }

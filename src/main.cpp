@@ -8,12 +8,6 @@ int main()
 {
     try
     {
-        auto [s, r] = util::mpmc::create<int>();
-
-        s.send(3);
-
-        util::logLog("{}", r.receive().value());
-
         gfx::Renderer renderer {};
     }
     catch (const std::exception& e)

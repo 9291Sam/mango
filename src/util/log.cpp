@@ -99,7 +99,7 @@ namespace util
     void logFormatted(Level l, const std::source_location& loc, std::string msg)
     {
         logger.sendMessage(fmt::format(
-            "[{0}] [{1} @ {2}:{3}:{4}] [{5}] {6}\n",
+            "[{0}] [{1}:{2}:{3}] [{4}] {5}\n",
             [&]
             {
                 std::string workingString {31, ' '};
@@ -117,8 +117,7 @@ namespace util
 
                 return workingString;
             }(), // 0
-            loc.function_name(), // 1
-            [&]
+            [&] // 1
             {
                 std::string raw_file_name = loc.file_name();
 
@@ -135,11 +134,11 @@ namespace util
                 }
 
                 return raw_file_name.substr(index + 1);
-            }(), // 2
-            loc.line(), // 3
-            loc.column(), // 4
-            levelAsString(l), // 5
-            msg
+            }(), // 1
+            loc.line(), // 2
+            loc.column(), // 3
+            levelAsString(l), // 4
+            msg // 5
         ));
     }
 

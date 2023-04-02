@@ -15,7 +15,7 @@ namespace util
         Fatal
     };
 
-    void logFormatted(Level, const std::source_location&, std::string);
+    void logFormatted(Level, const std::source_location &, std::string);
 
 /// Because C++ doesn't have partial template specification, this is the best we
 /// can do
@@ -25,8 +25,8 @@ namespace util
     {                                                                          \
         log##LEVEL(                                                            \
             fmt::format_string<T...> fmt,                                      \
-            T&&... args,                                                       \
-            const std::source_location& location =                             \
+            T &&...args,                                                       \
+            const std::source_location &location =                             \
                 std::source_location::current()                                \
         ) noexcept                                                             \
         {                                                                      \
@@ -39,7 +39,7 @@ namespace util
         }                                                                      \
     };                                                                         \
     template<class... J>                                                       \
-    log##LEVEL(fmt::format_string<J...>, J&&...)->log##LEVEL<J...>;
+    log##LEVEL(fmt::format_string<J...>, J &&...)->log##LEVEL<J...>;
 
     MAKE_LOGGER(Trace)
     MAKE_LOGGER(Debug)
@@ -54,8 +54,8 @@ namespace util
         assert##LEVEL(                                                         \
             bool                     condition,                                \
             fmt::format_string<T...> fmt,                                      \
-            T&&... args,                                                       \
-            const std::source_location& location =                             \
+            T &&...args,                                                       \
+            const std::source_location &location =                             \
                 std::source_location::current()                                \
         )                                                                      \
         {                                                                      \
@@ -76,7 +76,7 @@ namespace util
         }                                                                      \
     };                                                                         \
     template<class... J>                                                       \
-    assert##LEVEL(bool, fmt::format_string<J...>, J&&...)                      \
+    assert##LEVEL(bool, fmt::format_string<J...>, J &&...)                     \
         ->assert##LEVEL<J...>;
 
     MAKE_ASSERT(Trace, false)
@@ -88,10 +88,10 @@ namespace util
     template<class... T>
     struct panic
     {
-        panic [[noreturn]] (
+        panic(
             fmt::format_string<T...> fmt,
-            T&&... args,
-            const std::source_location& location =
+            T &&...args,
+            const std::source_location &location =
                 std::source_location::current()
         )
         {
@@ -106,7 +106,7 @@ namespace util
         }
     };
     template<class... J>
-    panic(fmt::format_string<J...>, J&&...) -> panic<J...>;
+    panic(fmt::format_string<J...>, J &&...) -> panic<J...>;
 } // namespace util
 
 #endif // SRC_UTIL_LOG_HPP

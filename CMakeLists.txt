@@ -50,6 +50,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-braced-scalar-init)
     target_compile_options(mango PUBLIC -Wno-old-style-cast)
     target_compile_options(mango PUBLIC -Wno-c++20-compat)
+    target_compile_options(mango PUBLIC -Wno-padded)
     
     target_link_options(mango PUBLIC -fsanitize=address)
 
@@ -125,3 +126,7 @@ set_target_properties(concurrentQueue PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/concurrentqueue
 )
 target_link_libraries(mango concurrentQueue)
+
+# message(CMAKE_RC_COMPILER="${CMAKE_RC_COMPILER}")
+
+# "-DCMAKE_RC_COMPILER:FILEPATH=C:/Program Files/LLVM/bin/llvm-rc.exe"

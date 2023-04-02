@@ -3,6 +3,7 @@
 #include <fmt/chrono.h>
 #include <fmt/core.h>
 #include <iostream>
+#include <string_view>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
@@ -117,7 +118,7 @@ namespace util
 
                 return workingString;
             }(), // 0
-            [&] // 1
+            [&]  // 1
             {
                 std::string raw_file_name = loc.file_name();
 
@@ -134,11 +135,11 @@ namespace util
                 }
 
                 return raw_file_name.substr(index + 1);
-            }(), // 1
-            loc.line(), // 2
-            loc.column(), // 3
+            }(),              // 1
+            loc.line(),       // 2
+            loc.column(),     // 3
             levelAsString(l), // 4
-            msg // 5
+            msg               // 5
         ));
     }
 

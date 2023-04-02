@@ -39,17 +39,15 @@ namespace gfx::vulkan
         std::vector<std::shared_ptr<Queue>> compute_queue;
         std::vector<std::shared_ptr<Queue>> transfer_queue;
         bool                                should_buffers_stage;
-        [[maybe_unused]] std::byte          _padding[7];
     }; // class Device
 
     // TODO: does this need to be in the header
     struct QueueCreateInfo
     {
-        vk::DeviceQueueCreateInfo  queue_create_info;
-        std::uint32_t              family_index;
-        vk::QueueFlags             flags;
-        bool                       supports_surface;
-        [[maybe_unused]] std::byte _padding[7];
+        vk::DeviceQueueCreateInfo queue_create_info;
+        std::uint32_t             family_index;
+        vk::QueueFlags            flags;
+        bool                      supports_surface;
     };
 
     /// A thread safe abstraction around a vk::Queue that allows for submission
@@ -73,14 +71,27 @@ namespace gfx::vulkan
         vk::QueueFlags getFlags() const;
         bool           getSurfaceSupport() const;
 
+        bool operator== (const Queue& o) const
+        {
+            return this->getNumberOfOperationsSupported()
+                == o.getNumberOfOperationsSupported();
+        }
         std::strong_ordering operator<=> (const Queue& o) const;
 
+        explicit operator std::string () const
+        {
+            return fmt::format(
+                "{} | {}",
+                vk::to_string(this->flags),
+                this->getNumberOfOperationsSupported()
+            );
+        }
+
     private:
-        vk::QueueFlags             flags;
+        vk::QueueFlags         flags;
         // std::uint32_t              index; // TODO: is this needed?
-        bool                       supports_surface;
-        [[maybe_unused]] std::byte _padding[3];
-        util::Mutex<vk::Queue>     queue_mutex;
+        bool                   supports_surface;
+        util::Mutex<vk::Queue> queue_mutex;
     };
 } // namespace gfx::vulkan
 

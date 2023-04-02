@@ -53,6 +53,5 @@ namespace gfx
         std::atomic<int>  width;
         std::atomic<int>  height;
         std::atomic<bool> was_resized;
-        std::byte         _padding[7];
     }; // class Window
 } // namespace gfx

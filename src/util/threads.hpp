@@ -126,7 +126,7 @@ namespace util
 
         void lock(std::function<void(T&...)> func)
         {
-            std::unique_lock lock {this->mutex};
+            std::unique_lock<std::mutex> lock {this->mutex};
             util::assertFatal(
                 this->is_currently_locked.exchange(true) == false,
                 "Invalid currently_locked state!"
@@ -140,7 +140,7 @@ namespace util
 
         void lock(std::function<void(const T&...)> func) const
         {
-            std::unique_lock lock {this->mutex};
+            std::unique_lock<std::mutex> lock {this->mutex};
             util::assertFatal(
                 this->is_currently_locked.exchange(true) == false,
                 "Invalid currently_locked state!"
@@ -153,10 +153,9 @@ namespace util
         }
 
     private:
-        mutable std::mutex         mutex;
-        mutable std::atomic<bool>  is_currently_locked;
-        [[maybe_unused]] std::byte _padding[7];
-        std::tuple<T...>           tuple;
+        mutable std::mutex        mutex;
+        mutable std::atomic<bool> is_currently_locked;
+        std::tuple<T...>          tuple;
     }; // class Mutex
 
 } // namespace util

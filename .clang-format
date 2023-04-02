@@ -7,12 +7,9 @@ AlignConsecutiveDeclarations: AcrossComments
 AlignConsecutiveMacros: AcrossComments 
 AlignEscapedNewlines: Right
 AlignOperands: AlignAfterOperator
-AlignTrailingComments:
-  Kind: Never
-  OverEmptyLines: 0
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
-ShortBlockStyle: Empty
+AllowShortBlocksOnASingleLine : Empty
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
@@ -26,7 +23,6 @@ BinPackArguments: false
 BinPackParameters: false
 BitFieldColonSpacing: Both
 BraceWrapping:
-  AfterCase:             true
   AfterClass:            true
   AfterControlStatement: Always
   AfterEnum:             true
@@ -44,13 +40,10 @@ BraceWrapping:
   SplitEmptyFunction:    false
   SplitEmptyRecord:      false
   SplitEmptyNamespace:   false
-BreakAfterAttributes: Never
 BreakAfterJavaFieldAnnotations: true
-BreakArrays: true
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Custom
 BreakBeforeConceptDeclarations: Always
-BreakBeforeInlineASMColon: Always
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeColon
@@ -76,32 +69,23 @@ IndentRequiresClause: true
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 InsertBraces: true
-InsertNewlineAtEOF: true
 InsertTrailingCommas: Wrapped
-IntegerLiteralSeparator:
-  Binary: 4
-  Decimal: 3
-  Hex: 4
 KeepEmptyLinesAtTheStartOfBlocks: false
 LambdaBodyIndentation: Signature
 Language: Cpp
-LineEnding: LF
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 PPIndentWidth: -1
 PackConstructorInitializers: Never
 PointerAlignment: Left
 QualifierAlignment: Custom
-QualifierOrder: ['static', 'constexpr', 'inline', 'const', 'type', 'friend', 'volatile', 'restrict']
+QualifierOrder: ['static', 'constexpr', 'inline', 'const', 'type', 'volatile', 'restrict']
 ReferenceAlignment: Pointer
 ReflowComments: true
 RemoveBracesLLVM: false
-RemoveSemicolon: true
 RequiresClausePosition: OwnLine
-RequiresExpressionIndentation: OuterScope
 SeparateDefinitionBlocks: Leave
 SortIncludes: CaseSensitive
-SortUsingDeclarations: Lexicographic
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false

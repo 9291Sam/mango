@@ -5,28 +5,7 @@
 #include <span>
 
 constexpr std::size_t                               MAX_QUEUE_COUNT {128};
-static constexpr std::array<float, MAX_QUEUE_COUNT> QueuePriorities =
-    [] consteval
-{
-    std::array<float, MAX_QUEUE_COUNT> workingQueue {NAN};
-
-    std::size_t idx = 0;
-
-    for (float& f : workingQueue)
-    {
-        f = util::map<float>(
-            static_cast<float>(idx),
-            0.0f,
-            static_cast<float>(workingQueue.size()),
-            1.0f,
-            0.0f
-        );
-
-        ++idx;
-    }
-
-    return workingQueue;
-}();
+static constexpr std::array<float, MAX_QUEUE_COUNT> QueuePriorities {1.0f};
 
 std::vector<gfx::vulkan::QueueCreateInfo>
 getDeviceQueueCreateInfos(vk::PhysicalDevice device, vk::SurfaceKHR surface)
@@ -205,9 +184,60 @@ namespace gfx::vulkan
             this->transfer_queue.size()
         );
 
-        std::ranges::sort(this->graphics_surface_queue);
-        std::ranges::sort(this->compute_queue);
-        std::ranges::sort(this->transfer_queue);
+        std::ranges::for_each(
+            this->graphics_surface_queue,
+            [](const std::shared_ptr<Queue>& q)
+            {
+                fmt::println("Queue: {}", static_cast<std::string>(*q));
+            }
+        );
+        fmt::println("|||");
+        std::ranges::for_each(
+            this->compute_queue,
+            [](const std::shared_ptr<Queue>& q)
+            {
+                fmt::println("Queue: {}", static_cast<std::string>(*q));
+            }
+        );
+        fmt::println("|||");
+        std::ranges::for_each(
+            this->transfer_queue,
+            [](const std::shared_ptr<Queue>& q)
+            {
+                fmt::println("Queue: {}", static_cast<std::string>(*q));
+            }
+        );
+
+        std::sort(
+            this->graphics_surface_queue.begin(),
+            this->graphics_surface_queue.end()
+        );
+        std::sort(this->compute_queue.begin(), this->compute_queue.end());
+        std::sort(this->transfer_queue.begin(), this->transfer_queue.end());
+
+        std::ranges::for_each(
+            this->graphics_surface_queue,
+            [](const std::shared_ptr<Queue>& q)
+            {
+                fmt::println("Queue: {}", static_cast<std::string>(*q));
+            }
+        );
+        fmt::println("|||");
+        std::ranges::for_each(
+            this->compute_queue,
+            [](const std::shared_ptr<Queue>& q)
+            {
+                fmt::println("Queue: {}", static_cast<std::string>(*q));
+            }
+        );
+        fmt::println("|||");
+        std::ranges::for_each(
+            this->transfer_queue,
+            [](const std::shared_ptr<Queue>& q)
+            {
+                fmt::println("Queue: {}", static_cast<std::string>(*q));
+            }
+        );
     }
 
     Queue::Queue(vk::Queue queue, vk::QueueFlags flags_, bool supportsSurface_)
@@ -245,6 +275,11 @@ namespace gfx::vulkan
             ++number;
         }
 
+        if (this->flags & vk::QueueFlagBits::eSparseBinding)
+        {
+            ++number;
+        }
+
         return number;
     }
 
@@ -260,24 +295,9 @@ namespace gfx::vulkan
 
     std::strong_ordering Queue::operator<=> (const Queue& o) const
     {
-        const std::size_t L = this->getNumberOfOperationsSupported();
-        const std::size_t R = o.getNumberOfOperationsSupported();
-
-        if (L < R)
-        {
-            return std::strong_ordering::less;
-        }
-        else if (L == R)
-        {
-            return std::strong_ordering::equal;
-        }
-        else if (L > R)
-        {
-            return std::strong_ordering::greater;
-        }
-
-        util::panic("non-orderable size_t!");
-
-        std::unreachable();
+        return std::strong_order(
+            this->getNumberOfOperationsSupported(),
+            o.getNumberOfOperationsSupported()
+        );
     }
 } // namespace gfx::vulkan

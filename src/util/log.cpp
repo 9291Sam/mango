@@ -55,7 +55,7 @@ namespace util
                             std::cout << temporary_string;
                         }
                     }
-                    util::logTrace("Logger's destructor called");
+                    // util::logTrace("Logger's destructor called");
 
                     // Cleanup loop
                     while (this->message_queue.try_dequeue(temporary_string))

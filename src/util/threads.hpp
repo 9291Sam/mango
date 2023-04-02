@@ -124,6 +124,11 @@ namespace util
         Mutex& operator= (const Mutex&) = delete;
         Mutex& operator= (Mutex&&)      = default;
 
+        bool isCurrentlyLocked() const
+        {
+            return this->is_currently_locked;
+        }
+
         void lock(std::function<void(T&...)> func)
         {
             std::unique_lock<std::mutex> lock {this->mutex};

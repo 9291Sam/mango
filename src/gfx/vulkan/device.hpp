@@ -27,9 +27,9 @@ namespace gfx::vulkan
         [[nodiscard]] vk::Device         asLogicalDevice() const;
         [[nodiscard]] vk::PhysicalDevice asPhysicalDevice() const;
 
-        [[nodiscard]] const Queue& getRenderQueue() const;
-        [[nodiscard]] const Queue& getComputeQueue() const;
-        [[nodiscard]] const Queue& getTransferQueue() const;
+        void accessGraphicsQueue(std::function<void(vk::Queue)>) const;
+        void accessComputeQueue(std::function<void(vk::Queue)>) const;
+        void accessTransferQueue(std::function<void(vk::Queue)>) const;
 
     private:
         std::shared_ptr<Instance>           instance;
@@ -40,15 +40,6 @@ namespace gfx::vulkan
         std::vector<std::shared_ptr<Queue>> transfer_queue;
         bool                                should_buffers_stage;
     }; // class Device
-
-    // TODO: does this need to be in the header
-    struct QueueCreateInfo
-    {
-        vk::DeviceQueueCreateInfo queue_create_info;
-        std::uint32_t             family_index;
-        vk::QueueFlags            flags;
-        bool                      supports_surface;
-    };
 
     /// A thread safe abstraction around a vk::Queue that allows for submission
     /// without
@@ -71,21 +62,7 @@ namespace gfx::vulkan
         vk::QueueFlags getFlags() const;
         bool           getSurfaceSupport() const;
 
-        bool operator== (const Queue& o) const
-        {
-            return this->getNumberOfOperationsSupported()
-                == o.getNumberOfOperationsSupported();
-        }
         std::strong_ordering operator<=> (const Queue& o) const;
-
-        explicit operator std::string () const
-        {
-            return fmt::format(
-                "{} | {}",
-                vk::to_string(this->flags),
-                this->getNumberOfOperationsSupported()
-            );
-        }
 
     private:
         vk::QueueFlags         flags;

@@ -1,8 +1,5 @@
 #include "gfx/renderer.hpp"
-#include "util/log.hpp"
-#include "util/threads.hpp"
 #include <exception>
-#include <thread>
 
 int main()
 {

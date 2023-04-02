@@ -7,10 +7,18 @@
 constexpr std::size_t                               MAX_QUEUE_COUNT {128};
 static constexpr std::array<float, MAX_QUEUE_COUNT> QueuePriorities {1.0f};
 
-std::vector<gfx::vulkan::QueueCreateInfo>
+struct QueueCreateInfo
+{
+    vk::DeviceQueueCreateInfo queue_create_info;
+    std::uint32_t             family_index;
+    vk::QueueFlags            flags;
+    bool                      supports_surface;
+};
+
+std::vector<QueueCreateInfo>
 getDeviceQueueCreateInfos(vk::PhysicalDevice device, vk::SurfaceKHR surface)
 {
-    std::vector<gfx::vulkan::QueueCreateInfo> tempCreateInfos;
+    std::vector<QueueCreateInfo> tempCreateInfos;
 
     std::size_t idx = 0;
     for (vk::QueueFamilyProperties p : device.getQueueFamilyProperties())
@@ -24,7 +32,7 @@ getDeviceQueueCreateInfos(vk::PhysicalDevice device, vk::SurfaceKHR surface)
             );
         }
 
-        tempCreateInfos.push_back(gfx::vulkan::QueueCreateInfo {
+        tempCreateInfos.push_back(QueueCreateInfo {
             .queue_create_info {vk::DeviceQueueCreateInfo {
                 .sType {vk::StructureType::eDeviceQueueCreateInfo},
                 .pNext {nullptr},
@@ -39,12 +47,12 @@ getDeviceQueueCreateInfos(vk::PhysicalDevice device, vk::SurfaceKHR surface)
                 static_cast<std::uint32_t>(idx), surface
             ))}});
 
-        util::logLog(
-            "Idx: {} | Count: {} | Flags: {}",
-            idx,
-            p.queueCount,
-            vk::to_string(p.queueFlags)
-        );
+        // util::logLog(
+        //     "Idx: {} | Count: {} | Flags: {}",
+        //     idx,
+        //     p.queueCount,
+        //     vk::to_string(p.queueFlags)
+        // );
 
         ++idx;
     }
@@ -53,12 +61,12 @@ getDeviceQueueCreateInfos(vk::PhysicalDevice device, vk::SurfaceKHR surface)
 }
 
 std::vector<vk::DeviceQueueCreateInfo> // std::span be damned
-convertToDeviceQueues(const std::vector<gfx::vulkan::QueueCreateInfo>& qS)
+convertToDeviceQueues(const std::vector<QueueCreateInfo>& qS)
 {
     std::vector<vk::DeviceQueueCreateInfo> tempCreateInfos {};
     tempCreateInfos.reserve(qS.size());
 
-    for (const gfx::vulkan::QueueCreateInfo& q : qS)
+    for (const QueueCreateInfo& q : qS)
     {
         tempCreateInfos.push_back(q.queue_create_info);
     }
@@ -91,8 +99,9 @@ namespace gfx::vulkan
         const auto physicalDevices =
             (**this->instance).enumeratePhysicalDevices();
 
-        this->physical_device = *std::ranges::max_element(
-            physicalDevices,
+        this->physical_device = *std::max_element(
+            physicalDevices.begin(),
+            physicalDevices.end(),
             [](vk::PhysicalDevice d1, vk::PhysicalDevice d2)
             {
                 return getDeviceRating(d1) < getDeviceRating(d2);
@@ -177,67 +186,51 @@ namespace gfx::vulkan
         }
 
         util::logLog(
-            "Size of device queues Graphics & Surface: {} | Compute: {} | "
-            "Transfer: {}",
+            "Found queues! | {} graphics & surface | {} compute | {} transfer",
             this->graphics_surface_queue.size(),
             this->compute_queue.size(),
             this->transfer_queue.size()
         );
 
-        std::ranges::for_each(
-            this->graphics_surface_queue,
-            [](const std::shared_ptr<Queue>& q)
-            {
-                fmt::println("Queue: {}", static_cast<std::string>(*q));
-            }
-        );
-        fmt::println("|||");
-        std::ranges::for_each(
-            this->compute_queue,
-            [](const std::shared_ptr<Queue>& q)
-            {
-                fmt::println("Queue: {}", static_cast<std::string>(*q));
-            }
-        );
-        fmt::println("|||");
-        std::ranges::for_each(
-            this->transfer_queue,
-            [](const std::shared_ptr<Queue>& q)
-            {
-                fmt::println("Queue: {}", static_cast<std::string>(*q));
-            }
-        );
+        const auto orderingFn =
+            [](const std::shared_ptr<Queue>& l, const std::shared_ptr<Queue>& r)
+        {
+            return (*l <=> *r) == std::strong_ordering::less;
+        };
 
-        std::sort(
-            this->graphics_surface_queue.begin(),
-            this->graphics_surface_queue.end()
-        );
-        std::sort(this->compute_queue.begin(), this->compute_queue.end());
-        std::sort(this->transfer_queue.begin(), this->transfer_queue.end());
+        std::ranges::sort(this->graphics_surface_queue, orderingFn);
+        std::ranges::sort(this->compute_queue, orderingFn);
+        std::ranges::sort(this->transfer_queue, orderingFn);
+    }
 
-        std::ranges::for_each(
-            this->graphics_surface_queue,
-            [](const std::shared_ptr<Queue>& q)
+    void accessFirstAvailableQueue(
+        const std::vector<std::shared_ptr<Queue>>& queues,
+        std::function<void(vk::Queue)>             func
+    )
+    {
+        for (const std::shared_ptr<Queue>& q : queues)
+        {
+            if (!q->isInUse())
             {
-                fmt::println("Queue: {}", static_cast<std::string>(*q));
+                q->access(func);
+                return;
             }
-        );
-        fmt::println("|||");
-        std::ranges::for_each(
-            this->compute_queue,
-            [](const std::shared_ptr<Queue>& q)
-            {
-                fmt::println("Queue: {}", static_cast<std::string>(*q));
-            }
-        );
-        fmt::println("|||");
-        std::ranges::for_each(
-            this->transfer_queue,
-            [](const std::shared_ptr<Queue>& q)
-            {
-                fmt::println("Queue: {}", static_cast<std::string>(*q));
-            }
-        );
+        }
+    }
+
+    void Device::accessGraphicsQueue(std::function<void(vk::Queue)> func) const
+    {
+        accessFirstAvailableQueue(this->graphics_surface_queue, func);
+    }
+
+    void Device::accessComputeQueue(std::function<void(vk::Queue)> func) const
+    {
+        accessFirstAvailableQueue(this->compute_queue, func);
+    }
+
+    void Device::accessTransferQueue(std::function<void(vk::Queue)> func) const
+    {
+        accessFirstAvailableQueue(this->transfer_queue, func);
     }
 
     Queue::Queue(vk::Queue queue, vk::QueueFlags flags_, bool supportsSurface_)
@@ -249,6 +242,11 @@ namespace gfx::vulkan
     void Queue::access(std::function<void(vk::Queue)> func) const
     {
         this->queue_mutex.lock(func);
+    }
+
+    bool Queue::isInUse() const
+    {
+        return this->queue_mutex.isCurrentlyLocked();
     }
 
     std::size_t Queue::getNumberOfOperationsSupported() const

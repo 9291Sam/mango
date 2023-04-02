@@ -88,7 +88,11 @@ std::size_t getDeviceRating(vk::PhysicalDevice device)
 
 namespace gfx::vulkan
 {
-    Device::Device(std::shared_ptr<Instance> instance_, vk::SurfaceKHR surface)
+    Device::Device(
+        std::shared_ptr<Instance>       instance_,
+        vk::SurfaceKHR                  surface,
+        std::function<void(vk::Device)> dynamicLoaderInitializationCallback
+    )
         : instance {std::move(instance_)}
         , physical_device {nullptr}
         , logical_device {nullptr}
@@ -142,6 +146,8 @@ namespace gfx::vulkan
 
         this->logical_device =
             this->physical_device.createDeviceUnique(deviceCreateInfo);
+
+        dynamicLoaderInitializationCallback(*this->logical_device);
 
         for (const QueueCreateInfo& q : queueCreateInfos)
         {
@@ -201,6 +207,15 @@ namespace gfx::vulkan
         std::ranges::sort(this->graphics_surface_queue, orderingFn);
         std::ranges::sort(this->compute_queue, orderingFn);
         std::ranges::sort(this->transfer_queue, orderingFn);
+    }
+
+    vk::Device Device::asLogicalDevice() const
+    {
+        return *this->logical_device;
+    }
+    vk::PhysicalDevice Device::asPhysicalDevice() const
+    {
+        return this->physical_device;
     }
 
     void accessFirstAvailableQueue(

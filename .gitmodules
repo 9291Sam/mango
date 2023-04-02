@@ -10,3 +10,6 @@
 [submodule "inc/concurrentqueue"]
 	path = inc/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue
+[submodule "inc/VulkanMemoryAllocator"]
+	path = inc/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator

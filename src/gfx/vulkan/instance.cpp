@@ -81,7 +81,7 @@ namespace gfx::vulkan
 {
     Instance::Instance(
         PFN_vkGetInstanceProcAddr         dyn_vk_get_instance_proc_addr_,
-        std::function<void(vk::Instance)> dynamicLoaderInitalizationCallback
+        std::function<void(vk::Instance)> dynamicLoaderInitializationCallback
     )
         : instance {nullptr}
         , dyn_vk_get_instance_proc_addr {dyn_vk_get_instance_proc_addr_}
@@ -207,7 +207,7 @@ namespace gfx::vulkan
 
         this->instance = vk::createInstanceUnique(instanceCreateInfo);
 
-        dynamicLoaderInitalizationCallback(*this->instance);
+        dynamicLoaderInitializationCallback(*this->instance);
 
         if constexpr (ENABLE_VALIDATION_LAYERS)
         {
@@ -238,6 +238,11 @@ namespace gfx::vulkan
             this->debug_messenger,
             nullptr
         );
+    }
+
+    std::uint32_t Instance::getVulkanVersion() const
+    {
+        return this->vulkan_api_version;
     }
 
     vk::Instance Instance::operator* () const

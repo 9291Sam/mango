@@ -18,6 +18,7 @@ add_executable(mango
   src/gfx/renderer.cpp
   src/gfx/window.cpp
     
+  src/gfx/vulkan/allocator.cpp
   src/gfx/vulkan/device.cpp
   src/gfx/vulkan/includes.cpp
   src/gfx/vulkan/instance.cpp
@@ -127,6 +128,12 @@ set_target_properties(concurrentQueue PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/concurrentqueue
 )
 target_link_libraries(mango concurrentQueue)
+
+add_library(VulkanMemoryAllocator INTERFACE)
+set_target_properties(VulkanMemoryAllocator PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/VulkanMemoryAllocator/include
+)
+target_link_libraries(mango VulkanMemoryAllocator)
 
 # message(CMAKE_RC_COMPILER="${CMAKE_RC_COMPILER}")
 

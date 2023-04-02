@@ -8,14 +8,13 @@
 namespace gfx::vulkan
 {
     /// @brief Abstraction over a vulkan instance with debug layers
-    /// conditionally enabled by the environment variable
-    /// MANGO_ENABLE_VULKAN_VALIDATION
     class Instance
     {
     public:
         Instance(
             PFN_vkGetInstanceProcAddr,
-            std::function<void(vk::Instance)> dynamicLoaderInitalizationCallback
+            std::function<void(vk::Instance)>
+                dynamicLoaderInitializationCallback
         );
         ~Instance();
 
@@ -24,6 +23,7 @@ namespace gfx::vulkan
         Instance& operator= (const Instance&) = delete;
         Instance& operator= (Instance&&)      = delete;
 
+        [[nodiscard]] std::uint32_t getVulkanVersion() const;
         [[nodiscard]] vk::Instance operator* () const;
 
     private:

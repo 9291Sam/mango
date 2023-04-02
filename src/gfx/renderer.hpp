@@ -1,10 +1,12 @@
 #ifndef SRC_GFX_RENDERER_HPP
 #define SRC_GFX_RENDERER_HPP
 
+#include "vulkan/allocator.hpp"
 #include "vulkan/device.hpp"
 #include "vulkan/instance.hpp"
 #include "window.hpp"
 #include <memory>
+
 
 namespace gfx
 {
@@ -24,6 +26,7 @@ namespace gfx
         std::shared_ptr<vulkan::Instance> instance;
         vk::UniqueSurfaceKHR              draw_surface;
         std::shared_ptr<vulkan::Device>   device;
+        std::shared_ptr<vulkan::Allocator> allocator;
     }; // class Renderer
 } // namespace gfx
 

@@ -14,7 +14,11 @@ namespace gfx::vulkan
     {
     public:
 
-        Device(std::shared_ptr<Instance>, vk::SurfaceKHR);
+        Device(
+            std::shared_ptr<Instance>,
+            vk::SurfaceKHR,
+            std::function<void(vk::Device)> dynamicLoaderInitializationCallback
+        );
         ~Device() = default;
 
         Device(const Device&)             = delete;

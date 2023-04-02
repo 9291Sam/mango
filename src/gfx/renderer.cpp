@@ -25,7 +25,19 @@ namespace gfx
         this->draw_surface = this->window.createSurface(**this->instance);
 
         this->device = std::make_shared<vulkan::Device>(
-            this->instance, *this->draw_surface
+            this->instance,
+            *this->draw_surface,
+            [&](vk::Device device_)
+            {
+                VULKAN_HPP_DEFAULT_DISPATCHER.init(**this->instance, device_);
+            }
+        );
+
+        this->allocator = std::make_shared<vulkan::Allocator>(
+            this->instance,
+            this->device,
+            dynVkGetInstanceProcAddr,
+            dl.getProcAddress<PFN_vkGetDeviceProcAddr>("vkGetDeviceProcAddr")
         );
 
         util::logLog("Renderer initialization complete");

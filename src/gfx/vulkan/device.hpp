@@ -41,8 +41,8 @@ namespace gfx::vulkan
         bool                                should_buffers_stage;
     }; // class Device
 
-    /// A thread safe abstraction around a vk::Queue that allows for submission
-    /// without
+    /// A fully thread safe abstraction around a vk::Queue that allows for
+    /// submission without
     class Queue
     {
     public:
@@ -55,7 +55,6 @@ namespace gfx::vulkan
         Queue& operator= (const Queue&) = delete;
         Queue& operator= (Queue&&)      = delete;
 
-        // thread safe
         void           access(std::function<void(vk::Queue)>) const;
         bool           isInUse() const;
         std::size_t    getNumberOfOperationsSupported() const;
@@ -66,7 +65,6 @@ namespace gfx::vulkan
 
     private:
         vk::QueueFlags         flags;
-        // std::uint32_t              index; // TODO: is this needed?
         bool                   supports_surface;
         util::Mutex<vk::Queue> queue_mutex;
     };

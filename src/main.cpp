@@ -7,7 +7,7 @@ int main()
     {
         gfx::Renderer renderer {};
     }
-    catch (const std::exception &e)
+    catch (const std::exception& e)
     {
         util::logFatal("Exception propagated to main {}", e.what());
     }

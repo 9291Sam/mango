@@ -4,6 +4,7 @@
 #include "includes.hpp"
 #include "util/threads.hpp"
 #include <compare>
+#include <memory>
 
 namespace gfx::vulkan
 {
@@ -31,9 +32,12 @@ namespace gfx::vulkan
         [[nodiscard]] vk::Device         asLogicalDevice() const;
         [[nodiscard]] vk::PhysicalDevice asPhysicalDevice() const;
 
-        void accessGraphicsQueue(std::function<void(vk::Queue)>) const;
-        void accessComputeQueue(std::function<void(vk::Queue)>) const;
-        void accessTransferQueue(std::function<void(vk::Queue)>) const;
+        void accessGraphicsBuffer(std::function<
+                                  void(vk::Queue, vk::CommandBuffer)>) const;
+        void accessComputeBuffer(std::function<
+                                 void(vk::Queue, vk::CommandBuffer)>) const;
+        void accessTransferBuffer(std::function<
+                                  void(vk::Queue, vk::CommandBuffer)>) const;
 
     private:
         std::shared_ptr<Instance>           instance;
@@ -51,7 +55,13 @@ namespace gfx::vulkan
     {
     public:
 
-        Queue(vk::Queue, vk::QueueFlags, bool supportsSurface);
+        Queue(
+            vk::Device,
+            vk::Queue,
+            vk::QueueFlags,
+            bool          supportsSurface,
+            std::uint32_t queueFamilyIndex
+        );
         ~Queue() = default;
 
         Queue(const Queue&)             = delete;
@@ -59,8 +69,10 @@ namespace gfx::vulkan
         Queue& operator= (const Queue&) = delete;
         Queue& operator= (Queue&&)      = delete;
 
-        void           access(std::function<void(vk::Queue)>) const;
-        bool           isInUse() const;
+        /// This function is guaranteed to be finished calling by the time
+        /// the access function returns.
+        void access(std::function<void(vk::Queue, vk::CommandBuffer)>) const;
+        bool isInUse() const;
         std::size_t    getNumberOfOperationsSupported() const;
         vk::QueueFlags getFlags() const;
         bool           getSurfaceSupport() const;
@@ -68,9 +80,11 @@ namespace gfx::vulkan
         std::strong_ordering operator<=> (const Queue& o) const;
 
     private:
-        vk::QueueFlags         flags;
-        bool                   supports_surface;
-        util::Mutex<vk::Queue> queue_mutex;
+        vk::QueueFlags        flags;
+        bool                  supports_surface;
+        vk::UniqueCommandPool command_pool;
+        std::unique_ptr<util::Mutex<vk::Queue, vk::UniqueCommandBuffer>>
+            queue_buffer_mutex;
     };
 } // namespace gfx::vulkan
 

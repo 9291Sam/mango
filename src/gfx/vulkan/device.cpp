@@ -154,11 +154,13 @@ namespace gfx::vulkan
             for (std::size_t i = 0; i < q.queue_create_info.queueCount; ++i)
             {
                 std::shared_ptr<Queue> queuePtr = std::make_shared<Queue>(
+                    *this->logical_device,
                     this->logical_device->getQueue(
                         q.family_index, static_cast<std::uint32_t>(i)
                     ),
                     q.flags,
-                    q.supports_surface
+                    q.supports_surface,
+                    q.family_index
                 );
 
                 if (queuePtr->getFlags() & vk::QueueFlagBits::eGraphics)
@@ -219,8 +221,8 @@ namespace gfx::vulkan
     }
 
     void accessFirstAvailableQueue(
-        const std::vector<std::shared_ptr<Queue>>& queues,
-        std::function<void(vk::Queue)>             func
+        const std::vector<std::shared_ptr<Queue>>&        queues,
+        std::function<void(vk::Queue, vk::CommandBuffer)> func
     )
     {
         for (const std::shared_ptr<Queue>& q : queues)
@@ -233,35 +235,84 @@ namespace gfx::vulkan
         }
     }
 
-    void Device::accessGraphicsQueue(std::function<void(vk::Queue)> func) const
+    void Device::accessGraphicsBuffer(
+        std::function<void(vk::Queue, vk::CommandBuffer)> func
+    ) const
     {
         accessFirstAvailableQueue(this->graphics_surface_queue, func);
     }
 
-    void Device::accessComputeQueue(std::function<void(vk::Queue)> func) const
+    void Device::accessComputeBuffer(
+        std::function<void(vk::Queue, vk::CommandBuffer)> func
+    ) const
     {
         accessFirstAvailableQueue(this->compute_queue, func);
     }
 
-    void Device::accessTransferQueue(std::function<void(vk::Queue)> func) const
+    void Device::accessTransferBuffer(
+        std::function<void(vk::Queue, vk::CommandBuffer)> func
+    ) const
     {
         accessFirstAvailableQueue(this->transfer_queue, func);
     }
 
-    Queue::Queue(vk::Queue queue, vk::QueueFlags flags_, bool supportsSurface_)
+    Queue::Queue(
+        vk::Device     device,
+        vk::Queue      queue,
+        vk::QueueFlags flags_,
+        bool           supportsSurface,
+        std::uint32_t  queueFamilyIndex
+    )
         : flags {flags_}
-        , supports_surface {supportsSurface_}
-        , queue_mutex {queue}
-    {}
-
-    void Queue::access(std::function<void(vk::Queue)> func) const
+        , supports_surface {supportsSurface}
+        , command_pool {nullptr}
+        , queue_buffer_mutex {nullptr}
     {
-        this->queue_mutex.lock(func);
+        const vk::CommandPoolCreateInfo commandPoolCreateInfo {
+            .sType {vk::StructureType::eCommandPoolCreateInfo},
+            .pNext {nullptr},
+            .flags {vk::CommandPoolCreateFlagBits::eResetCommandBuffer},
+            .queueFamilyIndex {queueFamilyIndex}};
+
+        this->command_pool =
+            device.createCommandPoolUnique(commandPoolCreateInfo);
+
+        const vk::CommandBufferAllocateInfo commandBufferAllocateInfo {
+            .sType {vk::StructureType::eCommandBufferAllocateInfo},
+            .pNext {nullptr},
+            .commandPool {*this->command_pool},
+            .level {vk::CommandBufferLevel::ePrimary},
+            .commandBufferCount {1}};
+
+        this->queue_buffer_mutex =
+            std::make_unique<util::Mutex<vk::Queue, vk::UniqueCommandBuffer>>(
+                queue,
+                std::move(
+                    device
+                        .allocateCommandBuffersUnique(commandBufferAllocateInfo)
+                        .at(0)
+                )
+            );
+
+        // initalize queue mutex
+    }
+
+    void Queue::access(std::function<void(vk::Queue, vk::CommandBuffer)> func
+    ) const
+    {
+        this->queue_buffer_mutex->lock(
+            [&](vk::Queue& queue, vk::UniqueCommandBuffer& commandBuffer)
+            {
+                commandBuffer->reset();
+
+                func(queue, *commandBuffer);
+            }
+        );
     }
 
     bool Queue::isInUse() const
     {
-        return this->queue_mutex.isCurrentlyLocked();
+        return this->queue_buffer_mutex->isCurrentlyLocked();
     }
 
     std::size_t Queue::getNumberOfOperationsSupported() const

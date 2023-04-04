@@ -86,7 +86,7 @@ namespace gfx::vulkan
         : instance {nullptr}
         , dyn_vk_get_instance_proc_addr {dyn_vk_get_instance_proc_addr_}
         , debug_messenger {nullptr}
-        , vulkan_api_version {VK_API_VERSION_1_3}
+        , vulkan_api_version {VK_API_VERSION_1_2}
     {
         const vk::DebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo {
             .sType {vk::StructureType::eDebugUtilsMessengerCreateInfoEXT},

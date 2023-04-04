@@ -7,7 +7,6 @@
 #include "window.hpp"
 #include <memory>
 
-
 namespace gfx
 {
     class Renderer
@@ -22,11 +21,18 @@ namespace gfx
         Renderer& operator= (Renderer&&)      = delete;
 
     private:
-        Window                            window;
-        std::shared_ptr<vulkan::Instance> instance;
-        vk::UniqueSurfaceKHR              draw_surface;
-        std::shared_ptr<vulkan::Device>   device;
+        Window window;
+
+        // Vulkan boilerplate objects ?? maybe combine into0 one bigger class?
+        std::shared_ptr<vulkan::Instance>  instance;
+        vk::UniqueSurfaceKHR               draw_surface;
+        std::shared_ptr<vulkan::Device>    device;
         std::shared_ptr<vulkan::Allocator> allocator;
+
+        // TODO: make a vulkan renderer class that owns references to these
+        // make a polymorphic pipeline class that has a constructor (initalize
+        // textures and stuff) a bind call/ and a draw thing class that
+
     }; // class Renderer
 } // namespace gfx
 

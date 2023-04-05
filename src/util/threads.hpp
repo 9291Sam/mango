@@ -123,8 +123,6 @@ namespace util
         Mutex& operator= (const Mutex&) = delete;
         Mutex& operator= (Mutex&&)      = default;
 
-        // TODO: exceptions!
-
         void lock(std::function<void(T&...)> func)
         {
             std::unique_lock lock {this->mutex};

@@ -235,7 +235,8 @@ namespace gfx::vulkan
                 }
             }
 
-            util::logWarn("Unable to assign queue job!");
+            util::logWarn("All submission queues of first type {} are full",
+                vk::to_string(queues.at(0)->getFlags()));
         }
     }
 

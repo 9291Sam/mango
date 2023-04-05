@@ -29,6 +29,16 @@ namespace gfx
         std::shared_ptr<vulkan::Device>    device;
         std::shared_ptr<vulkan::Allocator> allocator;
 
+        // vector of Polymorphic pipeline class
+        // do something to auto matically dont do as much binding
+
+        // Make the restriction that each pipeline can only be rendered from one
+        // thread at at time.
+
+        // array of frames to render.
+
+        //
+
         // TODO: make a vulkan renderer class that owns references to these
         // make a polymorphic pipeline class that has a constructor (initalize
         // textures and stuff) a bind call/ and a draw thing class that

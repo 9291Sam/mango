@@ -47,12 +47,12 @@ getDeviceQueueCreateInfos(vk::PhysicalDevice device, vk::SurfaceKHR surface)
                 static_cast<std::uint32_t>(idx), surface
             ))}});
 
-        // util::logLog(
-        //     "Idx: {} | Count: {} | Flags: {}",
-        //     idx,
-        //     p.queueCount,
-        //     vk::to_string(p.queueFlags)
-        // );
+        util::logLog(
+            "Idx: {} | Count: {} | Flags: {}",
+            idx,
+            p.queueCount,
+            vk::to_string(p.queueFlags)
+        );
 
         ++idx;
     }
@@ -225,13 +225,17 @@ namespace gfx::vulkan
         std::function<void(vk::Queue, vk::CommandBuffer)> func
     )
     {
-        for (const std::shared_ptr<Queue>& q : queues)
+        while (true)
         {
-            if (!q->isInUse())
+            for (const std::shared_ptr<Queue>& q : queues)
             {
-                q->access(func);
-                return;
+                if (q->try_access(func))
+                {
+                    return;
+                }
             }
+
+            util::logWarn("Unable to assign queue job!");
         }
     }
 
@@ -297,10 +301,11 @@ namespace gfx::vulkan
         // initalize queue mutex
     }
 
-    void Queue::access(std::function<void(vk::Queue, vk::CommandBuffer)> func
+    bool
+    Queue::try_access(std::function<void(vk::Queue, vk::CommandBuffer)> func
     ) const
     {
-        this->queue_buffer_mutex->lock(
+        return this->queue_buffer_mutex->try_lock(
             [&](vk::Queue& queue, vk::UniqueCommandBuffer& commandBuffer)
             {
                 commandBuffer->reset();
@@ -308,11 +313,6 @@ namespace gfx::vulkan
                 func(queue, *commandBuffer);
             }
         );
-    }
-
-    bool Queue::isInUse() const
-    {
-        return this->queue_buffer_mutex->isCurrentlyLocked();
     }
 
     std::size_t Queue::getNumberOfOperationsSupported() const

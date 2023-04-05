@@ -71,8 +71,9 @@ namespace gfx::vulkan
 
         /// This function is guaranteed to be finished calling by the time
         /// the access function returns.
-        void access(std::function<void(vk::Queue, vk::CommandBuffer)>) const;
-        bool isInUse() const;
+        bool
+            try_access(std::function<void(vk::Queue, vk::CommandBuffer)>) const;
+        bool           isInUse() const;
         std::size_t    getNumberOfOperationsSupported() const;
         vk::QueueFlags getFlags() const;
         bool           getSurfaceSupport() const;

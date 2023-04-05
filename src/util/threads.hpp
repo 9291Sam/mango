@@ -114,8 +114,7 @@ namespace util
     public:
 
         Mutex(T... t)
-            : is_currently_locked {false}
-            , tuple {std::forward<T>(t)...}
+            : tuple {std::forward<T>(t)...}
         {}
         ~Mutex() = default;
 
@@ -124,43 +123,53 @@ namespace util
         Mutex& operator= (const Mutex&) = delete;
         Mutex& operator= (Mutex&&)      = default;
 
-        bool isCurrentlyLocked() const
-        {
-            return this->is_currently_locked;
-        }
+        // TODO: exceptions!
 
         void lock(std::function<void(T&...)> func)
         {
-            std::unique_lock<std::mutex> lock {this->mutex};
-            util::assertFatal(
-                this->is_currently_locked.exchange(true) == false,
-                "Invalid currently_locked state!"
-            );
+            std::unique_lock lock {this->mutex};
+
             std::apply(func, this->tuple);
-            util::assertFatal(
-                this->is_currently_locked.exchange(false) == true,
-                "Invalid currently_locked state!"
-            );
         }
 
         void lock(std::function<void(const T&...)> func) const
         {
-            std::unique_lock<std::mutex> lock {this->mutex};
-            util::assertFatal(
-                this->is_currently_locked.exchange(true) == false,
-                "Invalid currently_locked state!"
-            );
+            std::unique_lock lock {this->mutex};
+
             std::apply(func, this->tuple);
-            util::assertFatal(
-                this->is_currently_locked.exchange(false) == true,
-                "Invalid currently_locked state!"
-            );
+        }
+
+        bool try_lock(std::function<void(T&...)> func)
+        {
+            std::unique_lock<std::mutex> lock {};
+
+            if (lock.try_lock(this->mutex))
+            {
+                std::apply(func, this->tuple);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        bool try_lock(std::function<void(const T&...)> func) const
+        {
+            std::unique_lock<std::mutex> lock {};
+
+            if (lock.try_lock(this->mutex))
+            {
+                std::apply(func, this->tuple);
+            }
+            else
+            {
+                return false;
+            }
         }
 
     private:
-        mutable std::mutex        mutex;
-        mutable std::atomic<bool> is_currently_locked;
-        std::tuple<T...>          tuple;
+        mutable std::mutex mutex;
+        std::tuple<T...>   tuple;
     }; // class Mutex
 
 } // namespace util

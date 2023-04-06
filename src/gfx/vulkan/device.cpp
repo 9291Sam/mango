@@ -47,12 +47,12 @@ getDeviceQueueCreateInfos(vk::PhysicalDevice device, vk::SurfaceKHR surface)
                 static_cast<std::uint32_t>(idx), surface
             ))}});
 
-        util::logLog(
-            "Idx: {} | Count: {} | Flags: {}",
-            idx,
-            p.queueCount,
-            vk::to_string(p.queueFlags)
-        );
+        // util::logLog(
+        //     "Idx: {} | Count: {} | Flags: {}",
+        //     idx,
+        //     p.queueCount,
+        //     vk::to_string(p.queueFlags)
+        // );
 
         ++idx;
     }
@@ -235,8 +235,10 @@ namespace gfx::vulkan
                 }
             }
 
-            util::logWarn("All submission queues of first type {} are full",
-                vk::to_string(queues.at(0)->getFlags()));
+            util::logWarn(
+                "All submission queues of first type {} are full",
+                vk::to_string(queues.at(0)->getFlags())
+            );
         }
     }
 

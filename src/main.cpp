@@ -1,4 +1,5 @@
 #include "gfx/renderer.hpp"
+#include "util/log.hpp"
 #include <exception>
 
 int main()

@@ -22,6 +22,7 @@ add_executable(mango
   src/gfx/vulkan/device.cpp
   src/gfx/vulkan/includes.cpp
   src/gfx/vulkan/instance.cpp
+  src/gfx/vulkan/swapchain.cpp
 )
 
 target_include_directories(mango PUBLIC ${CMAKE_SOURCE_DIR}/src)

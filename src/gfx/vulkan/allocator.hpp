@@ -2,6 +2,7 @@
 #define SRC_GFX_VULKAN_ALLOCATOR_HPP
 
 #include "includes.hpp"
+#include <memory>
 
 namespace gfx::vulkan
 {

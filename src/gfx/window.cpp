@@ -9,6 +9,8 @@ namespace gfx
 {
     Window::Window(vk::Extent2D size, const char* name)
         : window {nullptr}
+        , width {static_cast<int>(size.width)}
+        , height {static_cast<int>(size.height)}
         , was_resized {std::atomic_bool {false}}
     {
         if (glfwInit() != GLFW_TRUE)

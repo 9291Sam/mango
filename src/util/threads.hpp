@@ -139,11 +139,12 @@ namespace util
 
         bool try_lock(std::function<void(T&...)> func)
         {
-            std::unique_lock<std::mutex> lock {};
+            std::unique_lock<std::mutex> lock {this->mutex, std::defer_lock};
 
-            if (lock.try_lock(this->mutex))
+            if (lock.try_lock())
             {
                 std::apply(func, this->tuple);
+                return true;
             }
             else
             {
@@ -153,9 +154,9 @@ namespace util
 
         bool try_lock(std::function<void(const T&...)> func) const
         {
-            std::unique_lock<std::mutex> lock {};
+            std::unique_lock<std::mutex> lock {this->mutex, std::defer_lock};
 
-            if (lock.try_lock(this->mutex))
+            if (lock.try_lock())
             {
                 std::apply(func, this->tuple);
             }

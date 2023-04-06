@@ -1,14 +1,20 @@
 #ifndef SRC_GFX_RENDERER_HPP
 #define SRC_GFX_RENDERER_HPP
 
-#include "vulkan/allocator.hpp"
-#include "vulkan/device.hpp"
 #include "vulkan/instance.hpp"
 #include "window.hpp"
 #include <memory>
 
 namespace gfx
 {
+    namespace vulkan
+    {
+        class Instance;
+        class Device;
+        class Allocator;
+        class Swapchain;
+    } // namespace vulkan
+
     class Renderer
     {
     public:
@@ -21,13 +27,20 @@ namespace gfx
         Renderer& operator= (Renderer&&)      = delete;
 
     private:
+        void initializeRenderer();
+
         Window window;
 
-        // Vulkan boilerplate objects ?? maybe combine into0 one bigger class?
-        std::shared_ptr<vulkan::Instance>  instance;
-        vk::UniqueSurfaceKHR               draw_surface;
-        std::shared_ptr<vulkan::Device>    device;
-        std::shared_ptr<vulkan::Allocator> allocator;
+        // Vulkan Boilerplate
+        std::shared_ptr<vulkan::Instance>     instance;
+        std::shared_ptr<vk::UniqueSurfaceKHR> draw_surface;
+        std::shared_ptr<vulkan::Device>       device;
+        std::shared_ptr<vulkan::Allocator>    allocator;
+
+        // Rendering Boilerplate
+        std::unique_ptr<vulkan::Swapchain> swapchain;
+
+        // Pipelines!
 
         // vector of Polymorphic pipeline class
         // do something to auto matically dont do as much binding

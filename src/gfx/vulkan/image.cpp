@@ -69,6 +69,12 @@ namespace gfx::vulkan
             vk::to_string(vk::Result {result})
         );
 
+        util::assertFatal(
+            outputImage != nullptr, "Returned image was nullptr!"
+        );
+
+        this->image = vk::Image {outputImage};
+
         vk::ImageViewCreateInfo imageViewCreateInfo {
             .sType {vk::StructureType::eImageViewCreateInfo},
             .pNext {nullptr},

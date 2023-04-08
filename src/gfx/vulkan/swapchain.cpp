@@ -74,7 +74,7 @@ namespace gfx::vulkan
             if (std::ranges::find(
                     availablePresentModes, vk::PresentModeKHR::eMailbox
                 )
-                == availablePresentModes.cend())
+                != availablePresentModes.cend())
             {
                 return vk::PresentModeKHR::eMailbox;
             }

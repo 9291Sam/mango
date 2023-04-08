@@ -4,76 +4,6 @@
 #include <ranges>
 #include <span>
 
-constexpr std::size_t                               MAX_QUEUE_COUNT {128};
-static constexpr std::array<float, MAX_QUEUE_COUNT> QueuePriorities {1.0f};
-
-struct QueueCreateInfo
-{
-    vk::DeviceQueueCreateInfo queue_create_info;
-    std::uint32_t             family_index;
-    vk::QueueFlags            flags;
-    bool                      supports_surface;
-};
-
-std::vector<QueueCreateInfo>
-getDeviceQueueCreateInfos(vk::PhysicalDevice device, vk::SurfaceKHR surface)
-{
-    std::vector<QueueCreateInfo> tempCreateInfos;
-
-    std::size_t idx = 0;
-    for (vk::QueueFamilyProperties p : device.getQueueFamilyProperties())
-    {
-        if (p.queueCount > MAX_QUEUE_COUNT)
-        {
-            util::panic(
-                "Found device with too many queues | Found: {} | Max: {}",
-                p.queueCount,
-                MAX_QUEUE_COUNT
-            );
-        }
-
-        tempCreateInfos.push_back(QueueCreateInfo {
-            .queue_create_info {vk::DeviceQueueCreateInfo {
-                .sType {vk::StructureType::eDeviceQueueCreateInfo},
-                .pNext {nullptr},
-                .flags {},
-                .queueFamilyIndex {static_cast<std::uint32_t>(idx)},
-                .queueCount {p.queueCount},
-                .pQueuePriorities {QueuePriorities.data()},
-            }},
-            .family_index {static_cast<std::uint32_t>(idx)},
-            .flags {p.queueFlags},
-            .supports_surface {static_cast<bool>(device.getSurfaceSupportKHR(
-                static_cast<std::uint32_t>(idx), surface
-            ))}});
-
-        // util::logLog(
-        //     "Idx: {} | Count: {} | Flags: {}",
-        //     idx,
-        //     p.queueCount,
-        //     vk::to_string(p.queueFlags)
-        // );
-
-        ++idx;
-    }
-
-    return tempCreateInfos;
-}
-
-std::vector<vk::DeviceQueueCreateInfo> // std::span be damned
-convertToDeviceQueues(const std::vector<QueueCreateInfo>& qS)
-{
-    std::vector<vk::DeviceQueueCreateInfo> tempCreateInfos {};
-    tempCreateInfos.reserve(qS.size());
-
-    for (const QueueCreateInfo& q : qS)
-    {
-        tempCreateInfos.push_back(q.queue_create_info);
-    }
-
-    return tempCreateInfos;
-}
-
 std::size_t getDeviceRating(vk::PhysicalDevice device)
 {
     std::size_t score = 0;
@@ -86,6 +16,36 @@ std::size_t getDeviceRating(vk::PhysicalDevice device)
     return score;
 }
 
+std::uint32_t findFamilyIndexOfGraphicsAndPresentQueue(
+    vk::PhysicalDevice pD, vk::SurfaceKHR surface
+)
+{
+    std::uint32_t idx = 0;
+
+    for (auto q : pD.getQueueFamilyProperties())
+    {
+        if (!(q.queueFlags & vk::QueueFlagBits::eGraphics))
+        {
+            continue;
+        }
+
+        if (!(q.queueFlags & vk::QueueFlagBits::eTransfer))
+        {
+            continue;
+        }
+
+        if (!pD.getSurfaceSupportKHR(idx, surface))
+        {
+            continue;
+        }
+
+        return idx;
+    }
+
+    util::panic("Failed to find a suitable queue");
+    std::unreachable();
+}
+
 namespace gfx::vulkan
 {
     Device::Device(
@@ -96,9 +56,8 @@ namespace gfx::vulkan
         : instance {std::move(instance_)}
         , physical_device {nullptr}
         , logical_device {nullptr}
-        , graphics_surface_queue {}
-        , compute_queue {}
-        , transfer_queue {}
+        , queue_family_index {}
+        , queue {}
     {
         const auto physicalDevices =
             (**this->instance).enumeratePhysicalDevices();
@@ -112,11 +71,19 @@ namespace gfx::vulkan
             }
         );
 
-        std::vector<QueueCreateInfo> queueCreateInfos =
-            getDeviceQueueCreateInfos(this->physical_device, surface);
+        this->queue_family_index = findFamilyIndexOfGraphicsAndPresentQueue(
+            this->physical_device, surface
+        );
 
-        std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos =
-            convertToDeviceQueues(queueCreateInfos);
+        const float               One = 1.0f;
+        vk::DeviceQueueCreateInfo queueCreateInfo {
+            .sType {vk::StructureType::eDeviceQueueCreateInfo},
+            .pNext {nullptr},
+            .flags {},
+            .queueFamilyIndex {this->queue_family_index},
+            .queueCount {1},
+            .pQueuePriorities {&One},
+        };
 
         const std::vector<const char*> deviceExtensions {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -133,9 +100,8 @@ namespace gfx::vulkan
             .sType {vk::StructureType::eDeviceCreateInfo},
             .pNext {nullptr},
             .flags {},
-            .queueCreateInfoCount {
-                static_cast<std::uint32_t>(deviceQueueCreateInfos.size())},
-            .pQueueCreateInfos {deviceQueueCreateInfos.data()},
+            .queueCreateInfoCount {1},
+            .pQueueCreateInfos {&queueCreateInfo},
             .enabledLayerCount {0}, // deprecated
             .ppEnabledLayerNames {nullptr},
             .enabledExtensionCount {
@@ -149,66 +115,59 @@ namespace gfx::vulkan
 
         dynamicLoaderInitializationCallback(*this->logical_device);
 
-        for (const QueueCreateInfo& q : queueCreateInfos)
+        this->queue =
+            this->logical_device->getQueue(this->queue_family_index, 0);
+
+        this->should_buffers_stage = [this]
         {
-            for (std::size_t i = 0; i < q.queue_create_info.queueCount; ++i)
+            auto memoryProperties = this->physical_device.getMemoryProperties();
+
+            std::vector<vk::MemoryType> memoryTypes;
+            std::vector<vk::MemoryHeap> memoryHeaps;
+
+            std::optional<std::size_t> idx_of_gpu_main_memory = std::nullopt;
+
+            for (std::size_t i = 0; i < memoryProperties.memoryTypeCount; i++)
             {
-                std::shared_ptr<Queue> queuePtr = std::make_shared<Queue>(
-                    *this->logical_device,
-                    this->logical_device->getQueue(
-                        q.family_index, static_cast<std::uint32_t>(i)
-                    ),
-                    q.flags,
-                    q.supports_surface,
-                    q.family_index
-                );
-
-                if (queuePtr->getFlags() & vk::QueueFlagBits::eGraphics)
-                {
-                    if (!queuePtr->getSurfaceSupport())
-                    {
-                        util::panic(
-                            "Found graphics queue without surface support!"
-                        );
-                    }
-
-                    this->graphics_surface_queue.push_back(queuePtr);
-                }
-
-                if (queuePtr->getFlags() & vk::QueueFlagBits::eCompute)
-                {
-                    this->compute_queue.push_back(queuePtr);
-                }
-
-                if (queuePtr->getFlags() & vk::QueueFlagBits::eTransfer)
-                {
-                    this->transfer_queue.push_back(queuePtr);
-                }
-
-                util::assertFatal(
-                    queuePtr.use_count() > 1,
-                    "Queue was not allocated | Flags: {}",
-                    vk::to_string(queuePtr->getFlags())
-                );
+                memoryTypes.push_back(memoryProperties.memoryTypes.at(i));
             }
-        }
 
-        util::logLog(
-            "Found queues! | {} graphics & surface | {} compute | {} transfer",
-            this->graphics_surface_queue.size(),
-            this->compute_queue.size(),
-            this->transfer_queue.size()
-        );
+            for (std::size_t i = 0; i < memoryProperties.memoryHeapCount; i++)
+            {
+                memoryHeaps.push_back(memoryProperties.memoryHeaps.at(i));
+            }
 
-        const auto orderingFn =
-            [](const std::shared_ptr<Queue>& l, const std::shared_ptr<Queue>& r)
-        {
-            return (*l <=> *r) == std::strong_ordering::less;
-        };
+            const vk::MemoryPropertyFlags desiredFlags =
+                vk::MemoryPropertyFlagBits::eDeviceLocal
+                | vk::MemoryPropertyFlagBits::eHostVisible
+                | vk::MemoryPropertyFlagBits::eHostCoherent;
 
-        std::ranges::sort(this->graphics_surface_queue, orderingFn);
-        std::ranges::sort(this->compute_queue, orderingFn);
-        std::ranges::sort(this->transfer_queue, orderingFn);
+            for (auto t : memoryTypes)
+            {
+                if ((t.propertyFlags & desiredFlags) == desiredFlags)
+                {
+                    util::assertWarn(
+                        !idx_of_gpu_main_memory.has_value(),
+                        "There should only be one memory pool with "
+                        "`desiredFlags`!"
+                    );
+
+                    idx_of_gpu_main_memory = t.heapIndex;
+                }
+            }
+
+            if (idx_of_gpu_main_memory.has_value())
+            {
+                if (memoryProperties.memoryHeaps
+                        .at(idx_of_gpu_main_memory.value())
+                        .size
+                    > 257 * 1024 * 1024)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }();
     }
 
     vk::Device Device::asLogicalDevice() const
@@ -218,49 +177,6 @@ namespace gfx::vulkan
     vk::PhysicalDevice Device::asPhysicalDevice() const
     {
         return this->physical_device;
-    }
-
-    void accessFirstAvailableQueue(
-        const std::vector<std::shared_ptr<Queue>>&        queues,
-        std::function<void(vk::Queue, vk::CommandBuffer)> func
-    )
-    {
-        while (true)
-        {
-            for (const std::shared_ptr<Queue>& q : queues)
-            {
-                if (q->try_access(func))
-                {
-                    return;
-                }
-            }
-
-            util::logWarn(
-                "All submission queues of first type {} are full",
-                vk::to_string(queues.at(0)->getFlags())
-            );
-        }
-    }
-
-    void Device::accessGraphicsBuffer(
-        std::function<void(vk::Queue, vk::CommandBuffer)> func
-    ) const
-    {
-        accessFirstAvailableQueue(this->graphics_surface_queue, func);
-    }
-
-    void Device::accessComputeBuffer(
-        std::function<void(vk::Queue, vk::CommandBuffer)> func
-    ) const
-    {
-        accessFirstAvailableQueue(this->compute_queue, func);
-    }
-
-    void Device::accessTransferBuffer(
-        std::function<void(vk::Queue, vk::CommandBuffer)> func
-    ) const
-    {
-        accessFirstAvailableQueue(this->transfer_queue, func);
     }
 
     Queue::Queue(

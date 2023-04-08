@@ -11,18 +11,23 @@ if (WIN32)
 endif()
 
 add_executable(mango 
-  src/main.cpp
 
-  src/util/log.cpp
-
-  src/gfx/renderer.cpp
-  src/gfx/window.cpp
+  # pipelines
     
   src/gfx/vulkan/allocator.cpp
   src/gfx/vulkan/device.cpp
   src/gfx/vulkan/includes.cpp
   src/gfx/vulkan/instance.cpp
+  src/gfx/vulkan/pipeline.cpp
   src/gfx/vulkan/swapchain.cpp
+
+  src/gfx/renderer.cpp
+  src/gfx/window.cpp
+  
+  src/util/log.cpp
+
+  src/main.cpp
+
 )
 
 target_include_directories(mango PUBLIC ${CMAKE_SOURCE_DIR}/src)
@@ -36,7 +41,7 @@ target_compile_definitions(mango PUBLIC VERSION_TWEAK=${PROJECT_VERSION_TWEAK})
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     target_compile_options(mango PUBLIC -std=c++2b)
-    target_compile_options(mango PUBLIC -O0)
+    target_compile_options(mango PUBLIC -Og)
     target_compile_options(mango PUBLIC -g)
     target_compile_options(mango PUBLIC -fsanitize=address)
     target_compile_options(mango PUBLIC -march=native)
@@ -66,7 +71,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(mango PUBLIC -std=c++2b)
-  target_compile_options(mango PUBLIC -O0)
+  target_compile_options(mango PUBLIC -Og)
   target_compile_options(mango PUBLIC -g)
   
   target_compile_options(mango PUBLIC -march=native)

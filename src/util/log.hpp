@@ -88,7 +88,7 @@ namespace util
     template<class... T>
     struct panic
     {
-        panic(
+        [[noreturn]] panic(
             fmt::format_string<T...> fmt,
             T &&...args,
             const std::source_location &location =

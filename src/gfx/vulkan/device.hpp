@@ -11,6 +11,17 @@ namespace gfx::vulkan
     class Instance;
     class Queue;
 
+    // TODO: refactor to use thread ids to
+    // make sure each queue is only accessed by one thread at a time
+    // this alsp removes the requirement of mutexes (actually err no? idk (edge
+    // case of the os scheduler))
+    //
+    // EVENTUAL SPLIT:
+    // Best graphics queue family (swapchain submission)
+    //
+    // compute queues
+    // transfer queues
+    //
     class Device
     {
     public:
@@ -32,21 +43,16 @@ namespace gfx::vulkan
         [[nodiscard]] vk::Device         asLogicalDevice() const;
         [[nodiscard]] vk::PhysicalDevice asPhysicalDevice() const;
 
-        void accessGraphicsBuffer(std::function<
-                                  void(vk::Queue, vk::CommandBuffer)>) const;
-        void accessComputeBuffer(std::function<
-                                 void(vk::Queue, vk::CommandBuffer)>) const;
-        void accessTransferBuffer(std::function<
-                                  void(vk::Queue, vk::CommandBuffer)>) const;
+        [[nodiscard]] std::uint32_t geQueueFamilyIndex() const;
+        [[nodiscard]] vk::Queue     getQueue() const;
 
     private:
-        std::shared_ptr<Instance>           instance;
-        vk::PhysicalDevice                  physical_device;
-        vk::UniqueDevice                    logical_device;
-        std::vector<std::shared_ptr<Queue>> graphics_surface_queue;
-        std::vector<std::shared_ptr<Queue>> compute_queue;
-        std::vector<std::shared_ptr<Queue>> transfer_queue;
-        bool                                should_buffers_stage;
+        std::shared_ptr<Instance> instance;
+        vk::PhysicalDevice        physical_device;
+        vk::UniqueDevice          logical_device;
+        std::uint32_t             queue_family_index;
+        vk::Queue                 queue;
+        bool                      should_buffers_stage;
     }; // class Device
 
     /// A fully thread safe abstraction around a vk::Queue that allows for

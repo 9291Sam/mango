@@ -13,6 +13,7 @@ namespace gfx
         class Device;
         class Allocator;
         class Swapchain;
+        class Image2D;
     } // namespace vulkan
 
     class Renderer
@@ -39,6 +40,7 @@ namespace gfx
 
         // Rendering Boilerplate
         std::unique_ptr<vulkan::Swapchain> swapchain;
+        std::unique_ptr<vulkan::Image2D>   depth_buffer;
 
         // Pipelines!
 

@@ -43,6 +43,8 @@ namespace gfx
         std::shared_ptr<vulkan::Swapchain>  swapchain;
         std::shared_ptr<vulkan::Image2D>    depth_buffer;
         std::unique_ptr<vulkan::RenderPass> render_pass;
+        std::vector<vk::UniqueFrameBuffer>  frame_buffers;
+        // TODO: replace with frame drawers
 
         // Pipelines!
 

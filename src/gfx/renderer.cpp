@@ -4,6 +4,7 @@
 #include "vulkan/device.hpp"
 #include "vulkan/image.hpp"
 #include "vulkan/includes.hpp"
+#include "vulkan/pipeline.hpp"
 #include "vulkan/render_pass.hpp"
 #include "vulkan/swapchain.hpp"
 

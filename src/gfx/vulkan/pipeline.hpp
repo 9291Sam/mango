@@ -3,6 +3,7 @@
 
 #include "includes.hpp"
 #include <memory>
+#include <span>
 
 namespace gfx::vulkan
 {
@@ -17,12 +18,15 @@ namespace gfx::vulkan
             createShaderModule(vk::Device, std::span<const std::byte>);
     public:
 
-        virtual Pipeline(std::shared_ptr<Device>, std::shared_ptr<RenderPass>, std::shared_ptr<Swapchain>);
+        Pipeline(std::shared_ptr<Device>, std::shared_ptr<RenderPass>, std::shared_ptr<Swapchain>);
+        ~Pipeline();
 
     private:
         // lots of private functions for code reuse
 
     }; // class Pipeline
+
+    // concept PipelineClass;
 } // namespace gfx::vulkan
 
 #endif // SRC_GFX_VULKAN_PIPELINE_HPP

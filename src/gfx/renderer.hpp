@@ -44,8 +44,26 @@ namespace gfx
         std::shared_ptr<vulkan::Swapchain>  swapchain;
         std::shared_ptr<vulkan::Image2D>    depth_buffer;
         std::unique_ptr<vulkan::RenderPass> render_pass;
-        std::vector<vk::UniqueFramebuffer>  frame_buffers;
+
+        // std::vector<FlyingFrame>
+
+        // std::vector<impl Pipeline>
+
+        // pipeline.bind(size_t)
+
+        // decrementing bind calls
+
+        // FlyingFrameRenderer
+
+        // pipelines!
+
+        // size_t ucurrent
+
+        // std::size_
+        // std::vector<vk::UniqueFramebuffer>  frame_buffers;/=
         // TODO: replace with frame drawers
+
+        // void ()
 
         // Pipelines!
 

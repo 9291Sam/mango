@@ -16,6 +16,7 @@ namespace gfx
         class Image2D;
         class RenderPass;
         class Pipeline;
+        class DescriptorPool;
     } // namespace vulkan
 
     class Renderer
@@ -45,42 +46,10 @@ namespace gfx
         std::shared_ptr<vulkan::Image2D>    depth_buffer;
         std::unique_ptr<vulkan::RenderPass> render_pass;
 
-        // std::vector<FlyingFrame>
+        // Pipelines
+        std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
 
-        // std::vector<impl Pipeline>
-
-        // pipeline.bind(size_t)
-
-        // decrementing bind calls
-
-        // FlyingFrameRenderer
-
-        // pipelines!
-
-        // size_t ucurrent
-
-        // std::size_
-        // std::vector<vk::UniqueFramebuffer>  frame_buffers;/=
-        // TODO: replace with frame drawers
-
-        // void ()
-
-        // Pipelines!
-
-        // vector of Polymorphic pipeline class
-        // do something to auto matically dont do as much binding
-
-        // Make the restriction that each pipeline can only be rendered from one
-        // thread at at time.
-
-        // array of frames to render.
-
-        //
-
-        // TODO: make a vulkan renderer class that owns references to these
-        // make a polymorphic pipeline class that has a constructor (initalize
-        // textures and stuff) a bind call/ and a draw thing class that
-
+        // Rendering frames
     }; // class Renderer
 } // namespace gfx
 

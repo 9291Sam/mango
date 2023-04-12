@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 #include "util/log.hpp"
 #include "vulkan/allocator.hpp"
+#include "vulkan/descriptors.hpp"
 #include "vulkan/device.hpp"
 #include "vulkan/image.hpp"
 #include "vulkan/includes.hpp"
@@ -11,11 +12,14 @@
 namespace gfx
 {
     Renderer::Renderer()
-        : window    {{1'200, 1'200}, "Mango"}
-        , instance  {nullptr}
-        , device    {nullptr}
-        , allocator {nullptr}
-        , swapchain {nullptr}
+        : window          {{1'200, 1'200}, "Mango"}
+        , instance        {nullptr}
+        , device          {nullptr}
+        , allocator       {nullptr}
+        , swapchain       {nullptr}
+        , depth_buffer    {nullptr}
+        , render_pass     {nullptr}
+        , descriptor_pool {nullptr}
     {
         const vk::DynamicLoader         dl;
         const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
@@ -78,5 +82,14 @@ namespace gfx
         this->render_pass = std::make_unique<vulkan::RenderPass>(
             this->device, this->swapchain, this->depth_buffer
         );
+
+        std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
+        descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
+        descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
+        // TODO: make not magic numbers and based instead on pipelines and sizes
+        // and other dynamic stuff
+
+        this->descriptor_pool =
+            vulkan::DescriptorPool::create(this->device, descriptorMap);
     }
 } // namespace gfx

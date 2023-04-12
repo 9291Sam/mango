@@ -81,15 +81,9 @@ namespace gfx::vulkan
 
         for (auto [descriptor, number] : this->available_descriptors)
         {
-            util::logTrace("Number: {}", number);
-
             requestedPoolMembers.push_back(vk::DescriptorPoolSize {
                 .type {descriptor}, .descriptorCount {number}});
         }
-
-        util::logTrace(
-            "descriptor pool size : {}", requestedPoolMembers.size()
-        );
 
         const vk::DescriptorPoolCreateInfo poolCreateInfo {
             .sType {vk::StructureType::eDescriptorPoolCreateInfo},

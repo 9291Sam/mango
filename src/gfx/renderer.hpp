@@ -48,6 +48,7 @@ namespace gfx
 
         // Pipelines
         std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
+        std::unique_ptr<vulkan::Pipeline>       flat_pipeline; // TODO: bad
 
         // Rendering frames
     }; // class Renderer

@@ -5,7 +5,6 @@
 #include "util/log.hpp"
 #include <memory>
 #include <span>
-#include <type_traits>
 
 namespace gfx::vulkan
 {
@@ -15,70 +14,35 @@ namespace gfx::vulkan
     class Swapchain;
     class DescriptorPool; // TODO: do this first
 
-    // class PipelineBase
-    // {
-    // public:
-    //     static vk::UniqueShaderModule
-    //     createShaderModule(vk::Device device, std::span<const std::byte>
-    //     data)
-    //     {
-    //         util::assertFatal(data.size_bytes() % 4 == 0, "Data was not %
-    //         4");
+    // TODO: expand to be not shit
+    // TODO: this may be a good PipelineBase class that just needs to be
+    // specialized
+    class Pipeline
+    {
+    public:
+        static vk::UniqueShaderModule
+        createShaderFromFile(vk::Device, const std::string &filePath);
+    public:
+        Pipeline(std::shared_ptr<Device>, std::shared_ptr<Swapchain>, std::shared_ptr<RenderPass>, std::span<const vk::PipelineShaderStageCreateInfo>, vk::UniquePipelineLayout &&);
+        ~Pipeline() = default;
 
-    //         return device.createShaderModuleUnique(vk::ShaderModuleCreateInfo
-    //         {
-    //             .sType {vk::StructureType::eShaderModuleCreateInfo},
-    //             .pNext {nullptr},
-    //             .flags {},
-    //             .codeSize {data.size_bytes()},
-    //             .pCode {reinterpret_cast<const uint32_t*>(data.data())},
-    //             // the default allocator of std::vector ensures this is fine
-    //         });
-    //     }
-    // public:
+        Pipeline(const Pipeline &)             = delete;
+        Pipeline(Pipeline &&)                  = delete;
+        Pipeline &operator= (const Pipeline &) = delete;
+        Pipeline &operator= (Pipeline &&)      = delete;
 
-    //     PipelineBase(
-    //         std::shared_ptr<Device>         device_,
-    //         std::shared_ptr<RenderPass>     renderPass,
-    //         std::shared_ptr<Swapchain>      swapchain_,
-    //         std::shared_ptr<DescriptorPool> descriptorPool
-    //     )
-    //         : device {std::move(device_)}
-    //         , render_pass {std::move(renderPass)}
-    //         , swapchain {std::move(swapchain_)}
-    //         , descriptor_pool {std::move(descriptorPool)}
-    //     {}
-    //     ~PipelineBase() = default;
+        [[nodiscard]] vk::Pipeline       operator* () const;
+        [[nodiscard]] vk::PipelineLayout getLayout() const;
 
-    //     void bindPipeline(vk::CommandBuffer buffer, vk::PipelineBindPoint
-    //     point)
-    //     {
-    //         buffer.bindPipeline(point, *this->pipeline);
-    //     }
 
-    // private:
-    //     std::shared_ptr<Device>         device;
-    //     std::shared_ptr<RenderPass>     render_pass;
-    //     std::shared_ptr<Swapchain>      swapchain;
-    //     std::shared_ptr<DescriptorPool> descriptor_pool;
-    // }; // class PipelineBase
-
-    // class FlatPipeline : public PipelineBase<FlatPipeline>
-    // {
-    //     FlatPipeline();
-    // };
-    // static_assert(ValidPipeline<FlatPipeline>);
-
-    // // TODO: auto sorting based on hierarcicail pipeline layouts
-
-    // /// pipelines.sort()
-    // ///
-    // /// for each [pipeline, object] enumerate
-    // /// {
-    // ///  bindDifferences(previousPipeline, currentPipelinex)
-    // ///
-    // /// }
-    ///
+    private:
+        std::shared_ptr<Device>         device;
+        std::shared_ptr<RenderPass>     render_pass;
+        std::shared_ptr<Swapchain>      swapchain;
+        std::shared_ptr<DescriptorPool> descriptor_pool;
+        vk::UniquePipelineLayout        layout;
+        vk::UniquePipeline              pipeline;
+    };
 
 } // namespace gfx::vulkan
 

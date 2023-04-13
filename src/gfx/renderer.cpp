@@ -96,5 +96,71 @@ namespace gfx
         );
 
         // allocate pipelines with reference to pool
+
+        // the lifetime of this is that the must outlive the pipeline cration
+        // step
+        const vk::UniqueShaderModule flatVertex =
+            vulkan::Pipeline::createShaderFromFile(
+                this->device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/flat_pipeline.vert.bin"
+            );
+
+        const vk::UniqueShaderModule flatFragment =
+            vulkan::Pipeline::createShaderFromFile(
+                this->device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"
+            );
+
+        // clang-format off
+        const std::array<vk::PipelineShaderStageCreateInfo, 2>
+        flatPipelineShaders
+        {
+            vk::PipelineShaderStageCreateInfo
+            {
+                .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
+                .pNext {nullptr},
+                .flags {},
+                .stage {vk::ShaderStageFlagBits::eVertex},
+                .module {*flatVertex},
+                .pName {"main"},
+                .pSpecializationInfo {nullptr},
+            },
+            vk::PipelineShaderStageCreateInfo
+            {
+                .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
+                .pNext {nullptr},
+                .flags {},
+                .stage {vk::ShaderStageFlagBits::eFragment},
+                .module {*flatFragment},
+                .pName {"main"},
+                .pSpecializationInfo {nullptr},
+            },
+        };
+        // clang-format on
+
+        const vk::PushConstantRange pushConstantsInformation {
+            .stageFlags {vk::ShaderStageFlagBits::eAllGraphics},
+            .offset {0},
+            .size {sizeof(vulkan::PushConstants)},
+        };
+
+        // TODO: bad design move out of here
+        this->flat_pipeline = std::make_unique<vulkan::Pipeline>(
+            this->device,
+            this->swapchain,
+            this->render_pass,
+            flatPipelineShaders,
+            this->device->asLogicalDevice().createPipelineLayoutUnique(
+                vk::PipelineLayoutCreateInfo {
+                    .sType {vk::StructureType::ePipelineLayoutCreateInfo},
+                    .pNext {nullptr},
+                    .flags {},
+                    .setLayoutCount {0},
+                    .pSetLayouts {nullptr},
+                    .pushConstantRangeCount {1},
+                    .pPushConstantRanges {&pushConstantsInformation},
+                }
+            )
+        )
     }
 } // namespace gfx

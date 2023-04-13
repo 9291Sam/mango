@@ -23,7 +23,7 @@ namespace gfx
     {
     public:
         Renderer();
-        ~Renderer() = default;
+        ~Renderer();
 
         Renderer(const Renderer&)             = delete;
         Renderer(Renderer&&)                  = delete;

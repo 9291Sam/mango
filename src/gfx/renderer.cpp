@@ -60,6 +60,8 @@ namespace gfx
         util::logLog("Renderer initialization complete");
     }
 
+    Renderer::~Renderer() {}
+
     void Renderer::initializeRenderer()
     {
         this->swapchain = std::make_shared<vulkan::Swapchain>(
@@ -81,6 +83,8 @@ namespace gfx
             this->device, this->swapchain, this->depth_buffer
         );
 
+        // PRe-state pipelines
+
         std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
         descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
         descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
@@ -90,5 +94,7 @@ namespace gfx
         this->descriptor_pool = vulkan::DescriptorPool::create(
             this->device, std::move(descriptorMap)
         );
+
+        // allocate pipelines with reference to pool
     }
 } // namespace gfx

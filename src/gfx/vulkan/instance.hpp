@@ -14,8 +14,7 @@ namespace gfx::vulkan
         Instance(
             PFN_vkGetInstanceProcAddr,
             std::function<void(vk::Instance)>
-                dynamicLoaderInitializationCallback
-        );
+                dynamicLoaderInitializationCallback);
         ~Instance();
 
         Instance(const Instance&)             = delete;
@@ -24,7 +23,7 @@ namespace gfx::vulkan
         Instance& operator= (Instance&&)      = delete;
 
         [[nodiscard]] std::uint32_t getVulkanVersion() const;
-        [[nodiscard]] vk::Instance operator* () const;
+        [[nodiscard]] vk::Instance  operator* () const;
 
     private:
         vk::UniqueInstance        instance;

@@ -44,7 +44,7 @@ namespace gfx
         // Rendering Boilerplate
         std::shared_ptr<vulkan::Swapchain>  swapchain;
         std::shared_ptr<vulkan::Image2D>    depth_buffer;
-        std::unique_ptr<vulkan::RenderPass> render_pass;
+        std::shared_ptr<vulkan::RenderPass> render_pass;
 
         // Pipelines
         std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;

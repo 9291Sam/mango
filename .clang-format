@@ -1,5 +1,5 @@
 AccessModifierOffset: -4
-AlignAfterOpenBracket: BlockIndent 
+AlignAfterOpenBracket: AlwaysBreak 
 AlignArrayOfStructures: Left 
 AlignConsecutiveAssignments: AcrossComments
 AlignConsecutiveBitFields: AcrossComments 
@@ -53,7 +53,7 @@ CompactNamespaces: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
-DerivePointerAlignment: true
+# DerivePointerAlignment: true
 EmptyLineAfterAccessModifier: Leave
 EmptyLineBeforeAccessModifier: Leave
 ExperimentalAutoDetectBinPacking: true
@@ -69,7 +69,7 @@ IndentRequiresClause: true
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 InsertBraces: true
-InsertTrailingCommas: Wrapped
+# InsertTrailingCommas: Wrapped
 KeepEmptyLinesAtTheStartOfBlocks: false
 LambdaBodyIndentation: Signature
 Language: Cpp

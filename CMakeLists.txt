@@ -111,19 +111,11 @@ endif()
 #     $<${gcc_like}:-Wall -Wextra -pedantic-errors>
 # )
 
-add_library(vulkan INTERFACE)
-target_include_directories(vulkan INTERFACE ${CMAKE_SOURCE_DIR}/inc/Vulkan-Headers/include)
-target_link_libraries(mango vulkan)
-if(APPLE) 
-  target_link_libraries(mango "-framework Cocoa -framework IOKit")
-endif()
-
-add_library(glfw STATIC IMPORTED)
-set_target_properties(glfw PROPERTIES
-  IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libglfw3.a
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/glfw/include
+add_library(concurrentQueue INTERFACE)
+set_target_properties(concurrentQueue PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/concurrentqueue
 )
-target_link_libraries(mango glfw)
+target_link_libraries(mango concurrentQueue)
 
 add_library(fmt STATIC IMPORTED)
 set_target_properties(fmt PROPERTIES
@@ -132,11 +124,25 @@ set_target_properties(fmt PROPERTIES
 )
 target_link_libraries(mango fmt)
 
-add_library(concurrentQueue INTERFACE)
-set_target_properties(concurrentQueue PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/concurrentqueue
+add_library(glfw STATIC IMPORTED)
+set_target_properties(glfw PROPERTIES
+  IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libglfw3.a
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/glfw/include
 )
-target_link_libraries(mango concurrentQueue)
+target_link_libraries(mango glfw)
+
+add_library(glm INTERFACE)
+set_target_properties(glm PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/glm
+)
+target_link_libraries(mango glm)
+
+add_library(vulkan INTERFACE)
+target_include_directories(vulkan INTERFACE ${CMAKE_SOURCE_DIR}/inc/Vulkan-Headers/include)
+target_link_libraries(mango vulkan)
+if(APPLE) 
+  target_link_libraries(mango "-framework Cocoa -framework IOKit")
+endif()
 
 add_library(VulkanMemoryAllocator INTERFACE)
 set_target_properties(VulkanMemoryAllocator PROPERTIES

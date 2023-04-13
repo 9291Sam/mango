@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 #include "util/log.hpp"
 #include "vulkan/allocator.hpp"
+#include "vulkan/data.hpp"
 #include "vulkan/descriptors.hpp"
 #include "vulkan/device.hpp"
 #include "vulkan/image.hpp"
@@ -23,8 +24,8 @@ namespace gfx
     {
         const vk::DynamicLoader         dl;
         const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
-            dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"
-            );
+            dl.getProcAddress<PFN_vkGetInstanceProcAddr>(
+                "vkGetInstanceProcAddr");
         VULKAN_HPP_DEFAULT_DISPATCHER.init(dynVkGetInstanceProcAddr);
 
         this->instance = std::make_unique<vulkan::Instance>(
@@ -32,12 +33,10 @@ namespace gfx
             [&](vk::Instance instance_)
             {
                 VULKAN_HPP_DEFAULT_DISPATCHER.init(instance_);
-            }
-        );
+            });
 
         this->draw_surface = std::make_shared<vk::UniqueSurfaceKHR>(
-            this->window.createSurface(**this->instance)
-        );
+            this->window.createSurface(**this->instance));
 
         this->device = std::make_shared<vulkan::Device>(
             this->instance,
@@ -45,15 +44,13 @@ namespace gfx
             [&](vk::Device device_)
             {
                 VULKAN_HPP_DEFAULT_DISPATCHER.init(**this->instance, device_);
-            }
-        );
+            });
 
         this->allocator = std::make_shared<vulkan::Allocator>(
             this->instance,
             this->device,
             dynVkGetInstanceProcAddr,
-            dl.getProcAddress<PFN_vkGetDeviceProcAddr>("vkGetDeviceProcAddr")
-        );
+            dl.getProcAddress<PFN_vkGetDeviceProcAddr>("vkGetDeviceProcAddr"));
 
         this->initializeRenderer();
 
@@ -65,8 +62,7 @@ namespace gfx
     void Renderer::initializeRenderer()
     {
         this->swapchain = std::make_shared<vulkan::Swapchain>(
-            this->device, this->draw_surface, this->window.size()
-        );
+            this->device, this->draw_surface, this->window.size());
 
         this->depth_buffer = std::make_shared<vulkan::Image2D>(
             this->allocator,
@@ -76,12 +72,10 @@ namespace gfx
             vk::ImageUsageFlagBits::eDepthStencilAttachment,
             vk::ImageAspectFlagBits::eDepth,
             vk::ImageTiling::eOptimal,
-            vk::MemoryPropertyFlagBits::eDeviceLocal
-        );
+            vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-        this->render_pass = std::make_unique<vulkan::RenderPass>(
-            this->device, this->swapchain, this->depth_buffer
-        );
+        this->render_pass = std::make_shared<vulkan::RenderPass>(
+            this->device, this->swapchain, this->depth_buffer);
 
         // PRe-state pipelines
 
@@ -92,8 +86,7 @@ namespace gfx
         // and other dynamic stuff
 
         this->descriptor_pool = vulkan::DescriptorPool::create(
-            this->device, std::move(descriptorMap)
-        );
+            this->device, std::move(descriptorMap));
 
         // allocate pipelines with reference to pool
 
@@ -102,14 +95,12 @@ namespace gfx
         const vk::UniqueShaderModule flatVertex =
             vulkan::Pipeline::createShaderFromFile(
                 this->device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/flat_pipeline.vert.bin"
-            );
+                "src/gfx/vulkan/shaders/flat_pipeline.vert.bin");
 
         const vk::UniqueShaderModule flatFragment =
             vulkan::Pipeline::createShaderFromFile(
                 this->device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"
-            );
+                "src/gfx/vulkan/shaders/flat_pipeline.frag.bin");
 
         // clang-format off
         const std::array<vk::PipelineShaderStageCreateInfo, 2>
@@ -149,6 +140,7 @@ namespace gfx
             this->device,
             this->swapchain,
             this->render_pass,
+            this->descriptor_pool,
             flatPipelineShaders,
             this->device->asLogicalDevice().createPipelineLayoutUnique(
                 vk::PipelineLayoutCreateInfo {
@@ -159,8 +151,6 @@ namespace gfx
                     .pSetLayouts {nullptr},
                     .pushConstantRangeCount {1},
                     .pPushConstantRanges {&pushConstantsInformation},
-                }
-            )
-        )
+                }));
     }
 } // namespace gfx

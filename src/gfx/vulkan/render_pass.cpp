@@ -17,7 +17,7 @@ namespace gfx::vulkan
         , render_pass {nullptr}
     {
         // clang-format off
-        std::array<vk::AttachmentDescription, 2> attachments {
+        const std::array<vk::AttachmentDescription, 2> attachments {
             vk::AttachmentDescription
             {
                 .flags {},
@@ -45,17 +45,17 @@ namespace gfx::vulkan
         };
         // clang-format on
 
-        vk::AttachmentReference colorAttachmentReference {
+        const vk::AttachmentReference colorAttachmentReference {
             .attachment {0},
             .layout {vk::ImageLayout::eColorAttachmentOptimal},
         };
 
-        vk::AttachmentReference depthAttachmentReference {
+        const vk::AttachmentReference depthAttachmentReference {
             .attachment {1},
             .layout {vk::ImageLayout::eDepthStencilAttachmentOptimal},
         };
 
-        vk::SubpassDescription subpass {
+        const vk::SubpassDescription subpass {
             .flags {},
             .pipelineBindPoint {
                 VULKAN_HPP_NAMESPACE::PipelineBindPoint::eGraphics},
@@ -69,7 +69,7 @@ namespace gfx::vulkan
             .pPreserveAttachments {nullptr},
         };
 
-        vk::SubpassDependency subpassDependency {
+        const vk::SubpassDependency subpassDependency {
             .srcSubpass {VK_SUBPASS_EXTERNAL},
             .dstSubpass {0},
             .srcStageMask {
@@ -85,7 +85,7 @@ namespace gfx::vulkan
             .dependencyFlags {},
         };
 
-        vk::RenderPassCreateInfo renderPassCreateInfo {
+        const vk::RenderPassCreateInfo renderPassCreateInfo {
             .sType {vk::StructureType::eRenderPassCreateInfo},
             .pNext {nullptr},
             .flags {},

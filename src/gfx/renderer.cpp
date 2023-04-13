@@ -60,8 +60,6 @@ namespace gfx
         util::logLog("Renderer initialization complete");
     }
 
-    Renderer::~Renderer() {}
-
     void Renderer::initializeRenderer()
     {
         this->swapchain = std::make_shared<vulkan::Swapchain>(
@@ -89,7 +87,8 @@ namespace gfx
         // TODO: make not magic numbers and based instead on pipelines and sizes
         // and other dynamic stuff
 
-        this->descriptor_pool =
-            vulkan::DescriptorPool::create(this->device, descriptorMap);
+        this->descriptor_pool = vulkan::DescriptorPool::create(
+            this->device, std::move(descriptorMap)
+        );
     }
 } // namespace gfx

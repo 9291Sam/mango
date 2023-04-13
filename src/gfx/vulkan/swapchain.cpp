@@ -131,7 +131,7 @@ namespace gfx::vulkan
         );
         this->image_views.reserve(this->images.size());
 
-        for (vk::Image i : this->images)
+        for (const vk::Image i : this->images)
         {
             const vk::ImageViewCreateInfo imageCreateInfo {
                 .sType {vk::StructureType::eImageViewCreateInfo},

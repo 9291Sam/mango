@@ -75,7 +75,7 @@ namespace gfx::vulkan
         , pool {nullptr}
         , available_descriptors {std::move(capacity)}
     {
-        this->available_descriptors.bucket_size(32);
+        this->available_descriptors.rehash(32);
 
         std::vector<vk::DescriptorPoolSize> requestedPoolMembers {};
 

@@ -8,16 +8,14 @@ constexpr bool ENABLE_VALIDATION_LAYERS = true;
 static VkBool32 debugMessageCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT             messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-    [[maybe_unused]] void                      *pUserData
-)
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    [[maybe_unused]] void*                      pUserData)
 {
-    util::panic(
+    util::logFatal(
         "Validation Layer Message: Severity: {} | Type: {} | \n{}",
         messageSeverity,
         messageType,
-        pCallbackData->pMessage
-    );
+        pCallbackData->pMessage);
 
     return VK_FALSE;
 }
@@ -28,50 +26,43 @@ static VkBool32 debugMessageCallback(
 [[nodiscard]] static auto dynVkCreateDebugUtilsMessengerEXT(
     PFN_vkGetInstanceProcAddr                 dynVkGetInstanceProcAddr,
     VkInstance                                instance,
-    const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-    const VkAllocationCallbacks              *pAllocator,
-    VkDebugUtilsMessengerEXT                 *pMessenger
-) -> VkResult
+    const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks*              pAllocator,
+    VkDebugUtilsMessengerEXT*                 pMessenger) -> VkResult
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-strict"
     const auto maybeVkCreateDebugUtilsMessengerExt =
         reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
-            dynVkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT")
-        );
+            dynVkGetInstanceProcAddr(
+                instance, "vkCreateDebugUtilsMessengerEXT"));
 #pragma clang diagnostic pop
 
     util::assertFatal(
         maybeVkCreateDebugUtilsMessengerExt != nullptr,
-        "Failed to dyn load vkCreateDebugUtilsMessengerEXT!"
-    );
+        "Failed to dyn load vkCreateDebugUtilsMessengerEXT!");
 
     return maybeVkCreateDebugUtilsMessengerExt(
-        instance, pCreateInfo, pAllocator, pMessenger
-    );
+        instance, pCreateInfo, pAllocator, pMessenger);
 }
 
 static void dynVkDestroyDebugUtilsMessengerEXT(
     PFN_vkGetInstanceProcAddr                     dynVkGetInstanceProcAddr,
     VkInstance                                    instance,
     VkDebugUtilsMessengerEXT                      messenger,
-    [[maybe_unused]] const VkAllocationCallbacks *pAllocator
-)
+    [[maybe_unused]] const VkAllocationCallbacks* pAllocator)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-strict"
     const auto maybeVkDestroyDebugUtilsMessengerEXT =
         reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
             dynVkGetInstanceProcAddr(
-                instance, "vkDestroyDebugUtilsMessengerEXT"
-            )
-        );
+                instance, "vkDestroyDebugUtilsMessengerEXT"));
 #pragma clang diagnostic pop
 
     util::assertFatal(
         maybeVkDestroyDebugUtilsMessengerEXT != nullptr,
-        "Failed to dy load vkDestroyDebugUtilsMessengerEXT!"
-    );
+        "Failed to dy load vkDestroyDebugUtilsMessengerEXT!");
 
     // Function always succeeds
     maybeVkDestroyDebugUtilsMessengerEXT(instance, messenger, pAllocator);
@@ -81,8 +72,7 @@ namespace gfx::vulkan
 {
     Instance::Instance(
         PFN_vkGetInstanceProcAddr         dyn_vk_get_instance_proc_addr_,
-        std::function<void(vk::Instance)> dynamicLoaderInitializationCallback
-    )
+        std::function<void(vk::Instance)> dynamicLoaderInitializationCallback)
         : instance {nullptr}
         , dyn_vk_get_instance_proc_addr {dyn_vk_get_instance_proc_addr_}
         , debug_messenger {nullptr}
@@ -108,16 +98,14 @@ namespace gfx::vulkan
             .pNext {nullptr},
             .pApplicationName {"mango"},
             .applicationVersion {VK_MAKE_API_VERSION(
-                VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_TWEAK
-            )},
+                VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_TWEAK)},
             .pEngineName {"mango"},
             .engineVersion {VK_MAKE_API_VERSION(
-                VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_TWEAK
-            )},
+                VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_TWEAK)},
             .apiVersion {this->vulkan_api_version},
         };
 
-        const std::vector<const char *> instanceLayers = []
+        const std::vector<const char*> instanceLayers = []
         {
             if constexpr (ENABLE_VALIDATION_LAYERS)
             {
@@ -125,28 +113,26 @@ namespace gfx::vulkan
                      vk::enumerateInstanceLayerProperties())
                 {
                     if (std::strcmp(
-                            layer.layerName, "VK_LAYER_KHRONOS_validation"
-                        )
+                            layer.layerName, "VK_LAYER_KHRONOS_validation")
                         == 0)
                     {
-                        return std::vector<const char *> {
+                        return std::vector<const char*> {
                             "VK_LAYER_KHRONOS_validation"};
                     }
                 }
             }
 
-            return std::vector<const char *> {};
+            return std::vector<const char*> {};
         }();
 
-        const std::vector<const char *> instanceExtensions = []
+        const std::vector<const char*> instanceExtensions = []
         {
-            std::vector<const char *> temp {};
+            std::vector<const char*> temp {};
 
 #ifdef __APPLE__
             temp.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
             temp.push_back(
-                VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
-            );
+                VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 #endif // __APPLE__
 
             if constexpr (ENABLE_VALIDATION_LAYERS)
@@ -157,8 +143,8 @@ namespace gfx::vulkan
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
-            const char *const *instanceExtensionsArray    = nullptr;
-            std::uint32_t      numberOfInstanceExtensions = 0;
+            const char* const * instanceExtensionsArray    = nullptr;
+            std::uint32_t       numberOfInstanceExtensions = 0;
 
             instanceExtensionsArray =
                 glfwGetRequiredInstanceExtensions(&numberOfInstanceExtensions);
@@ -182,9 +168,8 @@ namespace gfx::vulkan
                     {
                         if constexpr (ENABLE_VALIDATION_LAYERS)
                         {
-                            return reinterpret_cast<const void *>(
-                                &debugUtilsCreateInfo
-                            );
+                            return reinterpret_cast<const void*>(
+                                &debugUtilsCreateInfo);
                         }
                         else
                         {
@@ -219,14 +204,12 @@ namespace gfx::vulkan
                 static_cast<VkInstance>(*this->instance),
                 &CStyleCreateInfo,
                 nullptr,
-                &this->debug_messenger
-            );
+                &this->debug_messenger);
 
             util::assertFatal(
                 result == VK_SUCCESS,
                 "Failed to initialize debug Messenger | {}",
-                vk::to_string(vk::Result {result})
-            );
+                vk::to_string(vk::Result {result}));
         }
     }
 
@@ -236,8 +219,7 @@ namespace gfx::vulkan
             this->dyn_vk_get_instance_proc_addr,
             *this->instance,
             this->debug_messenger,
-            nullptr
-        );
+            nullptr);
     }
 
     std::uint32_t Instance::getVulkanVersion() const

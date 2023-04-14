@@ -37,10 +37,56 @@ namespace gfx::vulkan
         glm::vec2 uv;
 
         [[nodiscard]] static auto getBindingDescription()
-            -> const vk::VertexInputBindingDescription*;
+            -> const vk::VertexInputBindingDescription* const
+        {
+            static const vk::VertexInputBindingDescription bindings {
+                .binding {0},
+                .stride {sizeof(Vertex)},
+                .inputRate {vk::VertexInputRate::eVertex},
+            };
+
+            return &bindings;
+        }
 
         [[nodiscard]] static auto getAttributeDescriptions()
-            -> const std::array<vk::VertexInputAttributeDescription, 4>*;
+            -> const std::array<vk::VertexInputAttributeDescription, 4>*
+        {
+            // clang-format off
+            static const std::array<vk::VertexInputAttributeDescription, 4>
+            descriptions
+            {
+                vk::VertexInputAttributeDescription
+                {
+                    .location {0},
+                    .binding {0},
+                    .format {vk::Format::eR32G32B32Sfloat},
+                    .offset {offsetof(Vertex, position)},
+                },
+                vk::VertexInputAttributeDescription
+                {
+                    .location {1},
+                    .binding {0},
+                    .format {vk::Format::eR32G32B32Sfloat},
+                    .offset {offsetof(Vertex, color)},
+                },
+                vk::VertexInputAttributeDescription
+                {
+                    .location {2},
+                    .binding {0},
+                    .format {vk::Format::eR32G32B32Sfloat},
+                    .offset {offsetof(Vertex, normal)},
+                },
+                vk::VertexInputAttributeDescription
+                {
+                    .location {3},
+                    .binding {0},
+                    .format {vk::Format::eR32G32Sfloat},
+                    .offset {offsetof(Vertex, uv)},
+                },
+            };
+            // clang-format on
+            return &descriptions;
+        }
 
         [[nodiscard]] operator std::string () const;
         [[nodiscard]] bool operator== (const Vertex&) const = default;

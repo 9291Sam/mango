@@ -9,8 +9,7 @@ namespace gfx::vulkan
     RenderPass::RenderPass(
         std::shared_ptr<Device>    device_,
         std::shared_ptr<Swapchain> swapchain_,
-        std::shared_ptr<Image2D>   depthBuffer
-    )
+        std::shared_ptr<Image2D>   depthBuffer)
         : device {std::move(device_)}
         , swapchain {std::move(swapchain_)}
         , depth_buffer {std::move(depthBuffer)}
@@ -99,8 +98,12 @@ namespace gfx::vulkan
 
         this->render_pass =
             this->device->asLogicalDevice().createRenderPassUnique(
-                renderPassCreateInfo
-            );
+                renderPassCreateInfo);
+    }
+
+    vk::RenderPass RenderPass::operator* () const
+    {
+        return *this->render_pass;
     }
 
 } // namespace gfx::vulkan

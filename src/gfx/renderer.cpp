@@ -63,10 +63,12 @@ namespace gfx
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
-        // static VERTEXBUFFER;
+        util::todo();
 
-        this->frame_drawers.at(this->render_index)
-            .draw(this->flat_pipeline, /* VERTEXBUFFER */);
+        // // static VERTEXBUFFER;
+
+        // this->frame_drawers.at(this->render_index)
+        //     .draw(this->flat_pipeline, /* VERTEXBUFFER */);
     }
 
     void Renderer::initializeRenderer()

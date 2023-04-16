@@ -204,6 +204,15 @@ namespace gfx::vulkan
         this->pipeline = std::move(maybeGraphicsPipeline);
     }
 
+    vk::Pipeline Pipeline::operator* () const
+    {
+        return *this->pipeline;
+    }
+    vk::PipelineLayout Pipeline::getLayout() const
+    {
+        return *this->layout;
+    }
+
     FlatPipeline::FlatPipeline(
         std::shared_ptr<Device>         device,
         std::shared_ptr<Swapchain>      swapchain,

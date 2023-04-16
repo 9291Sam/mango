@@ -15,7 +15,7 @@ namespace util
         Fatal
     };
 
-    void logFormatted(Level, const std::source_location &, std::string);
+    void logFormatted(Level, const std::source_location&, std::string);
 
 /// Because C++ doesn't have partial template specification, this is the best we
 /// can do
@@ -25,21 +25,19 @@ namespace util
     {                                                                          \
         log##LEVEL(                                                            \
             fmt::format_string<T...> fmt,                                      \
-            T &&...args,                                                       \
-            const std::source_location &location =                             \
-                std::source_location::current()                                \
-        ) noexcept                                                             \
+            T&&... args,                                                       \
+            const std::source_location& location =                             \
+                std::source_location::current()) noexcept                      \
         {                                                                      \
             using enum Level;                                                  \
             logFormatted(                                                      \
                 LEVEL,                                                         \
                 location,                                                      \
-                fmt::vformat(fmt, fmt::make_format_args(args...))              \
-            );                                                                 \
+                fmt::vformat(fmt, fmt::make_format_args(args...)));            \
         }                                                                      \
     };                                                                         \
     template<class... J>                                                       \
-    log##LEVEL(fmt::format_string<J...>, J &&...)->log##LEVEL<J...>;
+    log##LEVEL(fmt::format_string<J...>, J&&...)->log##LEVEL<J...>;
 
     MAKE_LOGGER(Trace)
     MAKE_LOGGER(Debug)
@@ -54,10 +52,9 @@ namespace util
         assert##LEVEL(                                                         \
             bool                     condition,                                \
             fmt::format_string<T...> fmt,                                      \
-            T &&...args,                                                       \
-            const std::source_location &location =                             \
-                std::source_location::current()                                \
-        )                                                                      \
+            T&&... args,                                                       \
+            const std::source_location& location =                             \
+                std::source_location::current())                               \
         {                                                                      \
             if (!condition)                                                    \
             {                                                                  \
@@ -65,8 +62,7 @@ namespace util
                 logFormatted(                                                  \
                     LEVEL,                                                     \
                     location,                                                  \
-                    fmt::vformat(fmt, fmt::make_format_args(args...))          \
-                );                                                             \
+                    fmt::vformat(fmt, fmt::make_format_args(args...)));        \
                 if constexpr (THROW_ON_FAIL)                                   \
                 {                                                              \
                     throw std::runtime_error {                                 \
@@ -76,7 +72,7 @@ namespace util
         }                                                                      \
     };                                                                         \
     template<class... J>                                                       \
-    assert##LEVEL(bool, fmt::format_string<J...>, J &&...)                     \
+    assert##LEVEL(bool, fmt::format_string<J...>, J&&...)                      \
         ->assert##LEVEL<J...>;
 
     MAKE_ASSERT(Trace, false)
@@ -90,23 +86,31 @@ namespace util
     {
         [[noreturn]] panic(
             fmt::format_string<T...> fmt,
-            T &&...args,
-            const std::source_location &location =
-                std::source_location::current()
-        )
+            T&&... args,
+            const std::source_location& location =
+                std::source_location::current())
         {
             using enum Level;
             logFormatted(
                 Fatal,
                 location,
-                fmt::vformat(fmt, fmt::make_format_args(args...))
-            );
+                fmt::vformat(fmt, fmt::make_format_args(args...)));
             throw std::runtime_error {
                 fmt::vformat(fmt, fmt::make_format_args(args...))};
         }
     };
     template<class... J>
-    panic(fmt::format_string<J...>, J &&...) -> panic<J...>;
+    panic(fmt::format_string<J...>, J&&...) -> panic<J...>;
+
+    [[noreturn]] inline void
+    todo(const std::source_location& location = std::source_location::current())
+    {
+        panic<>("Struck todo statement!", location);
+
+        throw std::runtime_error {
+            "Something has gone terribly wrong, panic has not thrown an "
+            "exception!"};
+    }
 } // namespace util
 
 #endif // SRC_UTIL_LOG_HPP

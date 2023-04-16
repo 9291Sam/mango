@@ -30,7 +30,7 @@ namespace gfx
         Renderer& operator= (const Renderer&) = delete;
         Renderer& operator= (Renderer&&)      = delete;
 
-        void drawFrame();
+        [[noreturn]] void drawFrame();
 
     private:
         void initializeRenderer();

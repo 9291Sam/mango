@@ -7,6 +7,11 @@ int main()
     try
     {
         gfx::Renderer renderer {};
+
+        for (;;)
+        {
+            renderer.drawFrame();
+        }
     }
     catch (const std::exception& e)
     {

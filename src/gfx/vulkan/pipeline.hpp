@@ -3,6 +3,7 @@
 
 #include "includes.hpp"
 #include "util/log.hpp"
+#include <concepts>
 #include <memory>
 #include <span>
 
@@ -13,6 +14,16 @@ namespace gfx::vulkan
     class RenderPass;
     class Swapchain;
     class DescriptorPool;
+
+    template<class T>
+    concept ValidPipeline = requires(const T t) {
+        {
+            *t
+        } -> std::same_as<vk::Pipeline>;
+        {
+            t.getLayout()
+        } -> std::same_as<vk::PipelineLayout>;
+    };
 
     // TODO: expand to be not shit
     // TODO: this may be a good PipelineBase class that just needs to be
@@ -49,6 +60,26 @@ namespace gfx::vulkan
         vk::UniquePipelineLayout        layout;
         vk::UniquePipeline              pipeline;
     };
+    static_assert(ValidPipeline<Pipeline>);
+
+    class FlatPipeline
+    {
+    public:
+
+        FlatPipeline(
+            std::shared_ptr<Device>,
+            std::shared_ptr<Swapchain>,
+            std::shared_ptr<RenderPass>,
+            std::shared_ptr<DescriptorPool>);
+        ~FlatPipeline() = default;
+
+        [[nodiscard]] vk::Pipeline       operator* () const;
+        [[nodiscard]] vk::PipelineLayout getLayout() const;
+
+    private:
+        std::unique_ptr<Pipeline> pipeline;
+    };
+    static_assert(ValidPipeline<FlatPipeline>);
 
 } // namespace gfx::vulkan
 

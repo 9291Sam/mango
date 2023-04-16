@@ -15,7 +15,7 @@ namespace gfx
         class Swapchain;
         class Image2D;
         class RenderPass;
-        class Pipeline;
+        class FlatPipeline;
         class DescriptorPool;
     } // namespace vulkan
 
@@ -48,7 +48,7 @@ namespace gfx
 
         // Pipelines
         std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
-        std::unique_ptr<vulkan::Pipeline>       flat_pipeline; // TODO: bad
+        std::unique_ptr<vulkan::FlatPipeline>   flat_pipeline; // TODO expand
 
         // Rendering frames
     }; // class Renderer

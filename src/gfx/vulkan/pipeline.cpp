@@ -6,6 +6,7 @@
 #include "swapchain.hpp"
 #include "util/log.hpp"
 #include <fstream>
+#include <memory>
 
 namespace gfx::vulkan
 {
@@ -201,5 +202,86 @@ namespace gfx::vulkan
             vk::to_string(result));
 
         this->pipeline = std::move(maybeGraphicsPipeline);
+    }
+
+    FlatPipeline::FlatPipeline(
+        std::shared_ptr<Device>         device,
+        std::shared_ptr<Swapchain>      swapchain,
+        std::shared_ptr<RenderPass>     renderPass,
+        std::shared_ptr<DescriptorPool> descriptorPool)
+        : pipeline {nullptr}
+    {
+        // the lifetime of this is that the must outlive the pipeline creation
+        const vk::UniqueShaderModule flatVertex =
+            vulkan::Pipeline::createShaderFromFile(
+                device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/flat_pipeline.vert.bin");
+
+        const vk::UniqueShaderModule flatFragment =
+            vulkan::Pipeline::createShaderFromFile(
+                device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/flat_pipeline.frag.bin");
+
+        // clang-format off
+        const std::array<vk::PipelineShaderStageCreateInfo, 2>
+        flatPipelineShaders
+        {
+            vk::PipelineShaderStageCreateInfo
+            {
+                .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
+                .pNext {nullptr},
+                .flags {},
+                .stage {vk::ShaderStageFlagBits::eVertex},
+                .module {*flatVertex},
+                .pName {"main"},
+                .pSpecializationInfo {nullptr},
+            },
+            vk::PipelineShaderStageCreateInfo
+            {
+                .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
+                .pNext {nullptr},
+                .flags {},
+                .stage {vk::ShaderStageFlagBits::eFragment},
+                .module {*flatFragment},
+                .pName {"main"},
+                .pSpecializationInfo {nullptr},
+            },
+        };
+        // clang-format on
+
+        const vk::PushConstantRange pushConstantsInformation {
+            .stageFlags {vk::ShaderStageFlagBits::eAllGraphics},
+            .offset {0},
+            .size {sizeof(vulkan::PushConstants)},
+        };
+
+        vk::UniquePipelineLayout layout =
+            device->asLogicalDevice().createPipelineLayoutUnique(
+                vk::PipelineLayoutCreateInfo {
+                    .sType {vk::StructureType::ePipelineLayoutCreateInfo},
+                    .pNext {nullptr},
+                    .flags {},
+                    .setLayoutCount {0},
+                    .pSetLayouts {nullptr},
+                    .pushConstantRangeCount {1},
+                    .pPushConstantRanges {&pushConstantsInformation},
+                });
+
+        this->pipeline = std::make_unique<vulkan::Pipeline>(
+            std::move(device),
+            std::move(swapchain),
+            std::move(renderPass),
+            std::move(descriptorPool),
+            flatPipelineShaders,
+            std::move(layout));
+    }
+
+    vk::Pipeline FlatPipeline::operator* () const
+    {
+        return **this->pipeline;
+    }
+    vk::PipelineLayout FlatPipeline::getLayout() const
+    {
+        return this->pipeline->getLayout();
     }
 } // namespace gfx::vulkan

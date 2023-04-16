@@ -36,8 +36,7 @@ namespace gfx::vulkan
         glm::vec3 normal;
         glm::vec2 uv;
 
-        [[nodiscard]] static auto getBindingDescription()
-            -> const vk::VertexInputBindingDescription* const
+        static const vk::VertexInputBindingDescription* getBindingDescription()
         {
             static const vk::VertexInputBindingDescription bindings {
                 .binding {0},

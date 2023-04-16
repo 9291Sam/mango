@@ -30,6 +30,8 @@ namespace gfx
         Renderer& operator= (const Renderer&) = delete;
         Renderer& operator= (Renderer&&)      = delete;
 
+        void drawFrame();
+
     private:
         void initializeRenderer();
 
@@ -49,8 +51,20 @@ namespace gfx
         // Pipelines
         std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
         std::unique_ptr<vulkan::Pipeline>       flat_pipeline; // TODO: bad
+        // TODO: reddo the pipeline to have a bunch of different bind points
+        // i.e three bind functions if they need three descriptors and
+        // also dont forget some runtime checking to ensure theyre not used
+        // incorrectely also as a result use this to sort this stuff as a result
+        // the pipelines are isolated from the pool, they dont care where the
+        // descriptors come from
 
-        // Rendering frames
+        // TODO: youre having trouble naming this, does this mean it needs a
+        // restructure? Rendering frames
+        static constexpr std::size_t MaxFramesInFlight = 2;
+        std::size_t                  render_index;
+
+        // each drawer will have a uniform buffer for each of the seperate
+        // descriptors that need to be bound sinec they
     }; // class Renderer
 } // namespace gfx
 

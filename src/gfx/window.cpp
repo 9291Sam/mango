@@ -27,8 +27,7 @@ namespace gfx
             static_cast<int>(size.height),
             name,
             nullptr,
-            nullptr
-        );
+            nullptr);
 
         if (this->window == nullptr)
         {
@@ -39,8 +38,7 @@ namespace gfx
         // to the callback function
         glfwSetWindowUserPointer(this->window, static_cast<void*>(this));
         std::ignore = glfwSetFramebufferSizeCallback(
-            this->window, Window::frameBufferResizeCallback
-        );
+            this->window, Window::frameBufferResizeCallback);
     }
 
     Window::~Window()
@@ -82,25 +80,26 @@ namespace gfx
             static_cast<VkInstance>(instance),
             this->window,
             nullptr,
-            &maybeSurface
-        );
+            &maybeSurface);
 
         util::assertFatal(
             result == VK_SUCCESS,
             "Failed to create window surface | {}",
-            vk::to_string(vk::Result {result})
-        );
+            vk::to_string(vk::Result {result}));
 
         util::assertFatal(
-            static_cast<bool>(maybeSurface), "Returned surface was a nullptr!"
-        );
+            static_cast<bool>(maybeSurface), "Returned surface was a nullptr!");
 
         return vk::UniqueSurfaceKHR {vk::SurfaceKHR {maybeSurface}, instance};
     }
 
+    void Window::pollEvents() const
+    {
+        glfwPollEvents();
+    }
+
     void Window::frameBufferResizeCallback(
-        GLFWwindow* glfwWindow, int newWidth, int newHeight
-    )
+        GLFWwindow* glfwWindow, int newWidth, int newHeight)
     {
         gfx::Window* window =
             static_cast<gfx::Window*>(glfwGetWindowUserPointer(glfwWindow));

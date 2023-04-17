@@ -105,7 +105,7 @@ namespace gfx::vulkan
             .depthClampEnable {false},
             .rasterizerDiscardEnable {false},
             .polygonMode {vk::PolygonMode::eFill},
-            .cullMode {vk::CullModeFlagBits::eBack},
+            .cullMode {vk::CullModeFlagBits::eNone},
             .frontFace {vk::FrontFace::eCounterClockwise},
             .depthBiasEnable {false},
             .depthBiasConstantFactor {0.0f},

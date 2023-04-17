@@ -44,6 +44,8 @@ namespace gfx
         std::shared_ptr<vulkan::Device>       device;
         std::shared_ptr<vulkan::Allocator>    allocator;
         // std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
+        vk::UniqueCommandPool                 command_pool; // TODO: bad
+        // TODO: make shared_ptr for lifetime stuff
         // TODO: move descriptor pool here
 
         // Rendering Boilerplate
@@ -70,7 +72,6 @@ namespace gfx
         // with thread_local stuff to prevent race conditons and stuff
         // TODO: bad this can be moved up into the device this doesnt need to be
         // recreated
-        vk::UniqueCommandPool command_pool; // TODO: bad
 
         // each drawer will have a uniform buffer for each of the seperate
         // descriptors that need to be bound sinec they

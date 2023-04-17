@@ -19,12 +19,12 @@ namespace gfx
         , instance        {nullptr}
         , device          {nullptr}
         , allocator       {nullptr}
+        , command_pool    {nullptr}
         , swapchain       {nullptr}
         , depth_buffer    {nullptr}
         , render_pass     {nullptr}
         , render_index    {0}
         , frames          {nullptr}
-        , command_pool    {nullptr}
     // , descriptor_pool {nullptr}
     {
         const vk::DynamicLoader         dl;
@@ -115,8 +115,14 @@ namespace gfx
 
         // util::logTrace("Rendering at index {}", this->render_index);
 
-        this->frames.at(this->render_index)
-            ->render(this->framebuffers, *this->flat_pipeline, vertexBuffer);
+        if (this->frames.at(this->render_index)
+                ->render(
+                    this->framebuffers, *this->flat_pipeline, vertexBuffer))
+        {
+            util::panic("Resize requested!");
+        }
+
+        this->window.pollEvents();
     }
 
     void Renderer::initializeRenderer()

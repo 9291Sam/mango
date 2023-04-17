@@ -35,7 +35,7 @@ namespace gfx::vulkan
         Frame& operator= (Frame&&)      = delete;
 
         // @return {true}, is resize seeded
-        bool render(
+        [[nodiscard]] bool render(
             const std::vector<vk::UniqueFramebuffer>&,
             const FlatPipeline&,
             const StagedBuffer& vertexBuffer);

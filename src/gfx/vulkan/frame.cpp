@@ -1,4 +1,5 @@
 #include "frame.hpp"
+#include "buffer.hpp"
 #include "device.hpp"
 #include "pipeline.hpp"
 #include "render_pass.hpp"
@@ -43,7 +44,8 @@ namespace gfx::vulkan
 
     bool Frame::render(
         const std::vector<vk::UniqueFramebuffer>& framebuffers,
-        const FlatPipeline&                       pipeline)
+        const FlatPipeline&                       pipeline,
+        const StagedBuffer&                       vertexBuffer)
     {
         const std::uint64_t timeout = std::numeric_limits<std::uint64_t>::max();
 
@@ -138,6 +140,8 @@ namespace gfx::vulkan
         this->command_buffer->bindPipeline(
             vk::PipelineBindPoint::eGraphics, *pipeline);
 
+        this->command_buffer->bindVertexBuffers(0, *vertexBuffer, {0});
+
         this->command_buffer->draw(3, 1, 0, 0);
 
         this->command_buffer->endRenderPass();
@@ -160,7 +164,7 @@ namespace gfx::vulkan
 
         this->device->getQueue().submit(submitInfo, *this->frame_in_flight);
 
-        vk::SwapchainKHR swapchain = **this->swapchain;
+        vk::SwapchainKHR swapchainPtr = **this->swapchain;
 
         vk::PresentInfoKHR presentInfo {
             .sType {vk::StructureType::ePresentInfoKHR},
@@ -168,7 +172,7 @@ namespace gfx::vulkan
             .waitSemaphoreCount {1},
             .pWaitSemaphores {&*this->render_finished},
             .swapchainCount {1},
-            .pSwapchains {&swapchain},
+            .pSwapchains {&swapchainPtr},
             .pImageIndices {&nextImageIndex},
             .pResults {nullptr},
         };
@@ -177,7 +181,7 @@ namespace gfx::vulkan
         {
             std::ignore = this->device->getQueue().presentKHR(presentInfo);
         }
-        catch (const vk::OutOfDateKHRError& e)
+        catch (const vk::OutOfDateKHRError&)
         {
             return true;
         }
@@ -189,6 +193,8 @@ namespace gfx::vulkan
             result == vk::Result::eSuccess,
             "Failed to wait for frame to complete drawing {}",
             vk::to_string(result));
+
+        util::logTrace("Frame submitted!");
 
         return false;
     }

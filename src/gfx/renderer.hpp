@@ -43,6 +43,8 @@ namespace gfx
         std::shared_ptr<vk::UniqueSurfaceKHR> draw_surface;
         std::shared_ptr<vulkan::Device>       device;
         std::shared_ptr<vulkan::Allocator>    allocator;
+        // std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
+        // TODO: move descriptor pool here
 
         // Rendering Boilerplate
         std::shared_ptr<vulkan::Swapchain>  swapchain;
@@ -50,7 +52,6 @@ namespace gfx
         std::shared_ptr<vulkan::RenderPass> render_pass;
 
         // Pipelines
-        // std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
         std::unique_ptr<vulkan::FlatPipeline> flat_pipeline; // TODO expand
         // TODO: reddo the pipeline to have a bunch of different bind points
         // i.e three bind functions if they need three descriptors and

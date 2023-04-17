@@ -9,6 +9,7 @@
 
 namespace gfx::vulkan
 {
+    class StagedBuffer;
     class Device;
     class Swapchain;
     class RenderPass;
@@ -34,8 +35,10 @@ namespace gfx::vulkan
         Frame& operator= (Frame&&)      = delete;
 
         // @return {true}, is resize seeded
-        bool
-        render(const std::vector<vk::UniqueFramebuffer>&, const FlatPipeline&);
+        bool render(
+            const std::vector<vk::UniqueFramebuffer>&,
+            const FlatPipeline&,
+            const StagedBuffer& vertexBuffer);
 
     private:
         std::shared_ptr<Device>     device;

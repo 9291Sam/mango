@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 #include "util/log.hpp"
 #include "vulkan/allocator.hpp"
+#include "vulkan/buffer.hpp"
 #include "vulkan/data.hpp"
 #include "vulkan/descriptors.hpp"
 #include "vulkan/device.hpp"
@@ -22,8 +23,8 @@ namespace gfx
         , depth_buffer    {nullptr}
         , render_pass     {nullptr}
         , render_index    {0}
-        , command_pool    {nullptr}
         , frames          {nullptr}
+        , command_pool    {nullptr}
     // , descriptor_pool {nullptr}
     {
         const vk::DynamicLoader         dl;
@@ -61,20 +62,61 @@ namespace gfx
         util::logLog("Renderer initialization complete");
     }
 
-    Renderer::~Renderer() {}
+    Renderer::~Renderer()
+    {
+        this->device->asLogicalDevice().waitIdle();
+    }
 
     void Renderer::drawFrame()
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+        static vulkan::StagedBuffer vertexBuffer {
+            [this]
+            {
+                std::array<vulkan::Vertex, 3> vertices {
+                    vulkan::Vertex {
+                                    .position {1.0f, 1.0f, 0.0f},
+                                    .color {1.0f, 0.0f, 0.0f},
+                                    .normal {},
+                                    .uv {},
+                                    },
+
+                    vulkan::Vertex {
+                                    .position {-1.0f, 1.0f, 0.0f},
+                                    .color {0.0f, 1.0f, 0.0f},
+                                    .normal {},
+                                    .uv {},
+                                    },
+
+                    vulkan::Vertex {
+                                    .position {0.0f, -1.0f, 0.0f},
+                                    .color {0.0f, 0.0f, 1.0f},
+                                    .normal {},
+                                    .uv {},
+                                    },
+                };
+
+                vulkan::StagedBuffer temp {
+                    *this->device,
+                    this->allocator,
+                    sizeof(vulkan::Vertex) * vertices.size(),
+                    vk::BufferUsageFlagBits::eVertexBuffer};
+
+                temp.write(
+                    {reinterpret_cast<std::byte*>(vertices.data()),
+                     sizeof(vulkan::Vertex) * vertices.size()});
+
+                return temp;
+            }()};
+#pragma clang diagnostic pop
+
+        // util::logTrace("Rendering at index {}", this->render_index);
+
         this->frames.at(this->render_index)
-            ->render(this->framebuffers, *this->flat_pipeline);
-        // util::todo();
-
-        // // // static VERTEXBUFFER;
-
-        // // this->frame_drawers.at(this->render_index)
-        // //     .draw(this->flat_pipeline, /* VERTEXBUFFER */);
+            ->render(this->framebuffers, *this->flat_pipeline, vertexBuffer);
     }
 
     void Renderer::initializeRenderer()
@@ -100,8 +142,8 @@ namespace gfx
         std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
         descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
         descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
-        // TODO: make not magic numbers and based instead on pipelines and sizes
-        // and other dynamic stuff
+        // TODO: make not magic numbers and based instead on pipelines and
+        // sizes and other dynamic stuff
 
         // this->descriptor_pool = vulkan::DescriptorPool::create(
         // this->device, std::move(descriptorMap));

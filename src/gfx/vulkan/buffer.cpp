@@ -9,7 +9,7 @@ namespace gfx::vulkan
         std::size_t                sizeBytes,
         vk::BufferUsageFlags       usage,
         vk::MemoryPropertyFlags    memoryPropertyFlags)
-        : allocator {std::move(allocator)}
+        : allocator {std::move(allocator_)}
         , buffer {nullptr}
         , allocation {nullptr}
         , size {sizeBytes}

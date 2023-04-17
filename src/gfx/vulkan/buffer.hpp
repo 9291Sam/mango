@@ -62,6 +62,11 @@ namespace gfx::vulkan
         StagedBuffer& operator= (const StagedBuffer&) = delete;
         StagedBuffer& operator= (StagedBuffer&&)      = default;
 
+        [[nodiscard]] vk::Buffer operator* () const
+        {
+            return *this->gpu_local_buffer;
+        }
+
         void write(std::span<const std::byte>) const;
         void stage(vk::CommandBuffer) const;
 

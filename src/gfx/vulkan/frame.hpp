@@ -1,6 +1,8 @@
 #ifndef SRC_GFX_VULKAN_FRAME_HPP
 #define SRC_GFX_VULKAN_FRAME_HPP
 
+// TODO: move out into outer folder
+
 #include "includes.hpp"
 #include <memory>
 #include <span>

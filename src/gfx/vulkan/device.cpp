@@ -165,6 +165,11 @@ namespace gfx::vulkan
         }();
     }
 
+    bool Device::shouldBuffersStage() const
+    {
+        return this->should_buffers_stage;
+    }
+
     vk::Device Device::asLogicalDevice() const
     {
         return *this->logical_device;

@@ -15,6 +15,7 @@ add_executable(mango
   # pipelines
     
   src/gfx/vulkan/allocator.cpp
+  src/gfx/vulkan/buffer.cpp
   src/gfx/vulkan/descriptors.cpp
   src/gfx/vulkan/device.cpp
   src/gfx/vulkan/frame.cpp

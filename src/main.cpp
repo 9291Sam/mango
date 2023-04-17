@@ -2,6 +2,7 @@
 #include "util/log.hpp"
 #include <chrono>
 #include <exception>
+#include <new>
 #include <thread>
 
 int main()
@@ -10,15 +11,9 @@ int main()
     {
         gfx::Renderer renderer {};
 
-        using namespace std::chrono_literals;
-
-        std::this_thread::sleep_for(1s);
-
-        for (;;)
+        while (!renderer.shouldClose())
         {
             renderer.drawFrame();
-            util::logTrace("Frame finished drawing");
-            // util::panic("struck!");
         }
     }
     catch (const std::exception& e)

@@ -194,8 +194,6 @@ namespace gfx::vulkan
             "Failed to wait for frame to complete drawing {}",
             vk::to_string(result));
 
-        util::logTrace("Frame submitted!");
-
         return false;
     }
 } // namespace gfx::vulkan

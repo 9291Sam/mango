@@ -17,8 +17,7 @@ std::size_t getDeviceRating(vk::PhysicalDevice device)
 }
 
 std::uint32_t findFamilyIndexOfGraphicsAndPresentQueue(
-    vk::PhysicalDevice pD, vk::SurfaceKHR surface
-)
+    vk::PhysicalDevice pD, vk::SurfaceKHR surface)
 {
     std::uint32_t idx = 0;
 
@@ -51,8 +50,7 @@ namespace gfx::vulkan
     Device::Device(
         std::shared_ptr<Instance>       instance_,
         vk::SurfaceKHR                  surface,
-        std::function<void(vk::Device)> dynamicLoaderInitializationCallback
-    )
+        std::function<void(vk::Device)> dynamicLoaderInitializationCallback)
         : instance {std::move(instance_)}
         , physical_device {nullptr}
         , logical_device {nullptr}
@@ -68,12 +66,10 @@ namespace gfx::vulkan
             [](vk::PhysicalDevice d1, vk::PhysicalDevice d2)
             {
                 return getDeviceRating(d1) < getDeviceRating(d2);
-            }
-        );
+            });
 
         this->queue_family_index = findFamilyIndexOfGraphicsAndPresentQueue(
-            this->physical_device, surface
-        );
+            this->physical_device, surface);
 
         const float               One = 1.0f;
         vk::DeviceQueueCreateInfo queueCreateInfo {
@@ -149,8 +145,7 @@ namespace gfx::vulkan
                     util::assertWarn(
                         !idx_of_gpu_main_memory.has_value(),
                         "There should only be one memory pool with "
-                        "`desiredFlags`!"
-                    );
+                        "`desiredFlags`!");
 
                     idx_of_gpu_main_memory = t.heapIndex;
                 }
@@ -179,13 +174,22 @@ namespace gfx::vulkan
         return this->physical_device;
     }
 
+    std::uint32_t Device::getQueueFamilyIndex() const
+    {
+        return this->queue_family_index;
+    }
+
+    vk::Queue Device::getQueue() const
+    {
+        return this->queue;
+    }
+
     Queue::Queue(
         vk::Device     device,
         vk::Queue      queue,
         vk::QueueFlags flags_,
         bool           supportsSurface,
-        std::uint32_t  queueFamilyIndex
-    )
+        std::uint32_t  queueFamilyIndex)
         : flags {flags_}
         , supports_surface {supportsSurface}
         , command_pool {nullptr}
@@ -213,16 +217,13 @@ namespace gfx::vulkan
                 std::move(
                     device
                         .allocateCommandBuffersUnique(commandBufferAllocateInfo)
-                        .at(0)
-                )
-            );
+                        .at(0)));
 
         // initalize queue mutex
     }
 
-    bool
-    Queue::try_access(std::function<void(vk::Queue, vk::CommandBuffer)> func
-    ) const
+    bool Queue::try_access(
+        std::function<void(vk::Queue, vk::CommandBuffer)> func) const
     {
         return this->queue_buffer_mutex->try_lock(
             [&](vk::Queue& queue, vk::UniqueCommandBuffer& commandBuffer)
@@ -230,8 +231,7 @@ namespace gfx::vulkan
                 commandBuffer->reset();
 
                 func(queue, *commandBuffer);
-            }
-        );
+            });
     }
 
     std::size_t Queue::getNumberOfOperationsSupported() const
@@ -280,7 +280,7 @@ namespace gfx::vulkan
     {
         return std::strong_order(
             this->getNumberOfOperationsSupported(),
-            o.getNumberOfOperationsSupported()
-        );
+            o.getNumberOfOperationsSupported());
     }
+
 } // namespace gfx::vulkan

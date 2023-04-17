@@ -4,6 +4,7 @@
 #include "vulkan/data.hpp"
 #include "vulkan/descriptors.hpp"
 #include "vulkan/device.hpp"
+#include "vulkan/frame.hpp"
 #include "vulkan/image.hpp"
 #include "vulkan/includes.hpp"
 #include "vulkan/pipeline.hpp"
@@ -20,7 +21,10 @@ namespace gfx
         , swapchain       {nullptr}
         , depth_buffer    {nullptr}
         , render_pass     {nullptr}
-        , descriptor_pool {nullptr}
+        , render_index    {0}
+        , command_pool    {nullptr}
+        , frames          {nullptr}
+    // , descriptor_pool {nullptr}
     {
         const vk::DynamicLoader         dl;
         const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
@@ -63,12 +67,14 @@ namespace gfx
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
-        util::todo();
+        this->frames.at(this->render_index)
+            ->render(this->framebuffers, *this->flat_pipeline);
+        // util::todo();
 
-        // // static VERTEXBUFFER;
+        // // // static VERTEXBUFFER;
 
-        // this->frame_drawers.at(this->render_index)
-        //     .draw(this->flat_pipeline, /* VERTEXBUFFER */);
+        // // this->frame_drawers.at(this->render_index)
+        // //     .draw(this->flat_pipeline, /* VERTEXBUFFER */);
     }
 
     void Renderer::initializeRenderer()
@@ -97,15 +103,68 @@ namespace gfx
         // TODO: make not magic numbers and based instead on pipelines and sizes
         // and other dynamic stuff
 
-        this->descriptor_pool = vulkan::DescriptorPool::create(
-            this->device, std::move(descriptorMap));
+        // this->descriptor_pool = vulkan::DescriptorPool::create(
+        // this->device, std::move(descriptorMap));
 
         // allocate pipelines with reference to pool
 
         this->flat_pipeline = std::make_unique<vulkan::FlatPipeline>(
-            this->device,
-            this->swapchain,
-            this->render_pass,
-            this->descriptor_pool);
+            this->device, this->swapchain, this->render_pass);
+
+        // TODO: :vomit:
+        vk::CommandPoolCreateInfo commandPoolCreateInfo {
+            .sType {vk::StructureType::eCommandPoolCreateInfo},
+            .pNext {nullptr},
+            .flags {vk::CommandPoolCreateFlagBits::eResetCommandBuffer},
+            .queueFamilyIndex {this->device->getQueueFamilyIndex()}};
+
+        this->command_pool =
+            this->device->asLogicalDevice().createCommandPoolUnique(
+                commandPoolCreateInfo);
+
+        const vk::CommandBufferAllocateInfo commandBuffersAllocateInfo {
+            .sType {vk::StructureType::eCommandBufferAllocateInfo},
+            .pNext {},
+            .commandPool {*this->command_pool},
+            .level {vk::CommandBufferLevel::ePrimary},
+            .commandBufferCount {
+                static_cast<std::uint32_t>(this->MaxFramesInFlight)},
+        };
+
+        auto commandBufferVector =
+            this->device->asLogicalDevice().allocateCommandBuffersUnique(
+                commandBuffersAllocateInfo);
+
+        for (std::size_t i = 0; i < this->MaxFramesInFlight; ++i)
+        {
+            this->frames.at(i) = std::make_unique<vulkan::Frame>(
+                this->device,
+                this->swapchain,
+                this->render_pass,
+                std::move(commandBufferVector.at(i)));
+        }
+
+        for (const vk::UniqueImageView& view :
+             this->swapchain->getRenderTargets())
+        {
+            std::array<vk::ImageView, 2> attachments {
+                *view, **this->depth_buffer};
+
+            vk::FramebufferCreateInfo frameBufferCreateInfo {
+                .sType {vk::StructureType::eFramebufferCreateInfo},
+                .pNext {nullptr},
+                .flags {},
+                .renderPass {**this->render_pass},
+                .attachmentCount {attachments.size()},
+                .pAttachments {attachments.data()},
+                .width {this->swapchain->getExtent().width},
+                .height {this->swapchain->getExtent().height},
+                .layers {1},
+            };
+
+            this->framebuffers.push_back(
+                this->device->asLogicalDevice().createFramebufferUnique(
+                    frameBufferCreateInfo));
+        }
     }
 } // namespace gfx

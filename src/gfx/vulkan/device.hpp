@@ -17,6 +17,7 @@ namespace gfx::vulkan
     // case of the os scheduler))
     //
     // EVENTUAL SPLIT:
+    // tmeporary of this in commit 4d996657b94869c1a54e056a97c24c8036818fc8
     // Best graphics queue family (swapchain submission)
     //
     // compute queues
@@ -29,8 +30,8 @@ namespace gfx::vulkan
         Device(
             std::shared_ptr<Instance>,
             vk::SurfaceKHR,
-            std::function<void(vk::Device)> dynamicLoaderInitializationCallback
-        );
+            std::function<void(vk::Device)>
+                dynamicLoaderInitializationCallback);
         ~Device() = default;
 
         Device(const Device&)             = delete;
@@ -43,7 +44,7 @@ namespace gfx::vulkan
         [[nodiscard]] vk::Device         asLogicalDevice() const;
         [[nodiscard]] vk::PhysicalDevice asPhysicalDevice() const;
 
-        [[nodiscard]] std::uint32_t geQueueFamilyIndex() const;
+        [[nodiscard]] std::uint32_t getQueueFamilyIndex() const;
         [[nodiscard]] vk::Queue     getQueue() const;
 
     private:
@@ -66,8 +67,7 @@ namespace gfx::vulkan
             vk::Queue,
             vk::QueueFlags,
             bool          supportsSurface,
-            std::uint32_t queueFamilyIndex
-        );
+            std::uint32_t queueFamilyIndex);
         ~Queue() = default;
 
         Queue(const Queue&)             = delete;

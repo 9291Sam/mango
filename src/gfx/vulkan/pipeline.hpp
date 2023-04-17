@@ -13,7 +13,6 @@ namespace gfx::vulkan
     class Device;
     class RenderPass;
     class Swapchain;
-    class DescriptorPool;
 
     template<class T>
     concept ValidPipeline = requires(const T t) {
@@ -39,7 +38,6 @@ namespace gfx::vulkan
             std::shared_ptr<Device>,
             std::shared_ptr<Swapchain>,
             std::shared_ptr<RenderPass>,
-            std::shared_ptr<DescriptorPool>,
             std::span<const vk::PipelineShaderStageCreateInfo>,
             vk::UniquePipelineLayout);
         ~Pipeline() = default;
@@ -53,12 +51,11 @@ namespace gfx::vulkan
         [[nodiscard]] vk::PipelineLayout getLayout() const;
 
     private:
-        std::shared_ptr<Device>         device;
-        std::shared_ptr<Swapchain>      swapchain;
-        std::shared_ptr<RenderPass>     render_pass;
-        std::shared_ptr<DescriptorPool> descriptor_pool;
-        vk::UniquePipelineLayout        layout;
-        vk::UniquePipeline              pipeline;
+        std::shared_ptr<Device>     device;
+        std::shared_ptr<Swapchain>  swapchain;
+        std::shared_ptr<RenderPass> render_pass;
+        vk::UniquePipelineLayout    layout;
+        vk::UniquePipeline          pipeline;
     };
     static_assert(ValidPipeline<Pipeline>);
 
@@ -69,8 +66,7 @@ namespace gfx::vulkan
         FlatPipeline(
             std::shared_ptr<Device>,
             std::shared_ptr<Swapchain>,
-            std::shared_ptr<RenderPass>,
-            std::shared_ptr<DescriptorPool>);
+            std::shared_ptr<RenderPass>);
         ~FlatPipeline() = default;
 
         [[nodiscard]] vk::Pipeline       operator* () const;

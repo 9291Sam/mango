@@ -17,6 +17,7 @@ namespace gfx
         class RenderPass;
         class FlatPipeline;
         class DescriptorPool;
+        class Frame;
     } // namespace vulkan
 
     class Renderer
@@ -30,7 +31,7 @@ namespace gfx
         Renderer& operator= (const Renderer&) = delete;
         Renderer& operator= (Renderer&&)      = delete;
 
-        [[noreturn]] void drawFrame();
+        void drawFrame();
 
     private:
         void initializeRenderer();
@@ -49,8 +50,8 @@ namespace gfx
         std::shared_ptr<vulkan::RenderPass> render_pass;
 
         // Pipelines
-        std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
-        std::unique_ptr<vulkan::FlatPipeline>   flat_pipeline; // TODO expand
+        // std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
+        std::unique_ptr<vulkan::FlatPipeline> flat_pipeline; // TODO expand
         // TODO: reddo the pipeline to have a bunch of different bind points
         // i.e three bind functions if they need three descriptors and
         // also dont forget some runtime checking to ensure theyre not used
@@ -60,8 +61,15 @@ namespace gfx
 
         // TODO: youre having trouble naming this, does this mean it needs a
         // restructure? Rendering frames
-        static constexpr std::size_t MaxFramesInFlight = 2;
-        std::size_t                  render_index;
+        static constexpr std::size_t       MaxFramesInFlight = 2;
+        std::size_t                        render_index;
+        std::vector<vk::UniqueFramebuffer> framebuffers;
+        std::array<std::unique_ptr<vulkan::Frame>, MaxFramesInFlight> frames;
+        // TODO: remote commandpool bad here this should be under the device
+        // with thread_local stuff to prevent race conditons and stuff
+        // TODO: bad this can be moved up into the device this doesnt need to be
+        // recreated
+        vk::UniqueCommandPool command_pool; // TODO: bad
 
         // each drawer will have a uniform buffer for each of the seperate
         // descriptors that need to be bound sinec they

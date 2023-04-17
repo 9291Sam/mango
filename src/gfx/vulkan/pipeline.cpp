@@ -1,6 +1,5 @@
 #include "pipeline.hpp"
 #include "data.hpp"
-#include "descriptors.hpp"
 #include "device.hpp"
 #include "render_pass.hpp"
 #include "swapchain.hpp"
@@ -47,13 +46,11 @@ namespace gfx::vulkan
         std::shared_ptr<Device>                            device_,
         std::shared_ptr<Swapchain>                         swapchain_,
         std::shared_ptr<RenderPass>                        renderPass,
-        std::shared_ptr<DescriptorPool>                    descriptorPool,
         std::span<const vk::PipelineShaderStageCreateInfo> shaderStages,
         vk::UniquePipelineLayout                           layout_)
         : device {std::move(device_)}
         , swapchain {std::move(swapchain_)}
         , render_pass {std::move(renderPass)}
-        , descriptor_pool {std::move(descriptorPool)}
         , layout {std::move(layout_)}
         , pipeline {nullptr}
     {
@@ -214,10 +211,9 @@ namespace gfx::vulkan
     }
 
     FlatPipeline::FlatPipeline(
-        std::shared_ptr<Device>         device,
-        std::shared_ptr<Swapchain>      swapchain,
-        std::shared_ptr<RenderPass>     renderPass,
-        std::shared_ptr<DescriptorPool> descriptorPool)
+        std::shared_ptr<Device>     device,
+        std::shared_ptr<Swapchain>  swapchain,
+        std::shared_ptr<RenderPass> renderPass)
         : pipeline {nullptr}
     {
         // the lifetime of this is that the must outlive the pipeline creation
@@ -280,7 +276,6 @@ namespace gfx::vulkan
             std::move(device),
             std::move(swapchain),
             std::move(renderPass),
-            std::move(descriptorPool),
             flatPipelineShaders,
             std::move(layout));
     }

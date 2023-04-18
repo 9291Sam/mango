@@ -17,18 +17,15 @@ namespace gfx
     Renderer::Renderer()
         : window          {{1'200, 1'200}, "Mango"}
         , instance        {nullptr}
-        , draw_surface    {nullptr}
         , device          {nullptr}
         , allocator       {nullptr}
-        , descriptor_pool {nullptr}
+        , command_pool    {nullptr}
         , swapchain       {nullptr}
         , depth_buffer    {nullptr}
         , render_pass     {nullptr}
-        , flat_pipeline   {nullptr}
         , render_index    {0}
-        , command_pool    {nullptr}
-        , framebuffers    {}
         , frames          {nullptr}
+    // , descriptor_pool {nullptr}
     {
         const vk::DynamicLoader         dl;
         const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
@@ -60,15 +57,6 @@ namespace gfx
             dynVkGetInstanceProcAddr,
             dl.getProcAddress<PFN_vkGetDeviceProcAddr>("vkGetDeviceProcAddr"));
 
-        // TODO: replace with a dynamic reallocating descriptor pool abstraction
-        // so that this can be self sufficent and not based on magic numbers
-        std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
-        descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
-        descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
-
-        this->descriptor_pool = vulkan::DescriptorPool::create(
-            this->device, std::move(descriptorMap));
-
         this->initializeRenderer();
 
         util::logLog("Renderer initialization complete");
@@ -77,11 +65,6 @@ namespace gfx
     Renderer::~Renderer()
     {
         this->device->asLogicalDevice().waitIdle();
-    }
-
-    bool Renderer::shouldClose() const
-    {
-        return this->window.shouldClose();
     }
 
     void Renderer::drawFrame()
@@ -160,6 +143,19 @@ namespace gfx
         this->render_pass = std::make_shared<vulkan::RenderPass>(
             this->device, this->swapchain, this->depth_buffer);
 
+        // PRe-state pipelines
+
+        std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
+        descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
+        descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
+        // TODO: make not magic numbers and based instead on pipelines and
+        // sizes and other dynamic stuff
+
+        // this->descriptor_pool = vulkan::DescriptorPool::create(
+        // this->device, std::move(descriptorMap));
+
+        // allocate pipelines with reference to pool
+
         this->flat_pipeline = std::make_unique<vulkan::FlatPipeline>(
             this->device, this->swapchain, this->render_pass);
 
@@ -199,8 +195,6 @@ namespace gfx
         for (const vk::UniqueImageView& view :
              this->swapchain->getRenderTargets())
         {
-            // TODO: abstract this away into a new FrameBuffer class
-            // also figure out a way to make this synced with the pipelines?
             std::array<vk::ImageView, 2> attachments {
                 *view, **this->depth_buffer};
 

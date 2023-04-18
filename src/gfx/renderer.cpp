@@ -26,7 +26,6 @@ namespace gfx
         , render_pass     {nullptr}
         , flat_pipeline   {nullptr}
         , render_index    {0}
-        , command_pool    {nullptr}
         , framebuffers    {}
         , frames          {nullptr}
     {
@@ -130,16 +129,33 @@ namespace gfx
             }()};
 #pragma clang diagnostic pop
 
-        // util::logTrace("Rendering at index {}", this->render_index);
-
         if (this->frames.at(this->render_index)
                 ->render(
                     this->framebuffers, *this->flat_pipeline, vertexBuffer))
         {
-            util::panic("Resize requested!");
+            this->resize();
         }
 
         this->window.pollEvents();
+    }
+
+    void Renderer::resize()
+    {
+        this->window.blockThisThreadWhileMinimized();
+        this->device->asLogicalDevice().waitIdle();
+
+        for (std::unique_ptr<vulkan::Frame>& f : this->frames)
+        {
+            f.reset();
+        }
+
+        this->framebuffers.clear();
+        this->flat_pipeline.reset();
+        this->render_pass.reset();
+        this->depth_buffer.reset();
+        this->swapchain.reset();
+
+        this->initializeRenderer();
     }
 
     void Renderer::initializeRenderer()
@@ -163,44 +179,12 @@ namespace gfx
         this->flat_pipeline = std::make_unique<vulkan::FlatPipeline>(
             this->device, this->swapchain, this->render_pass);
 
-        // TODO: :vomit:
-        vk::CommandPoolCreateInfo commandPoolCreateInfo {
-            .sType {vk::StructureType::eCommandPoolCreateInfo},
-            .pNext {nullptr},
-            .flags {vk::CommandPoolCreateFlagBits::eResetCommandBuffer},
-            .queueFamilyIndex {this->device->getQueueFamilyIndex()}};
-
-        this->command_pool =
-            this->device->asLogicalDevice().createCommandPoolUnique(
-                commandPoolCreateInfo);
-
-        const vk::CommandBufferAllocateInfo commandBuffersAllocateInfo {
-            .sType {vk::StructureType::eCommandBufferAllocateInfo},
-            .pNext {},
-            .commandPool {*this->command_pool},
-            .level {vk::CommandBufferLevel::ePrimary},
-            .commandBufferCount {
-                static_cast<std::uint32_t>(this->MaxFramesInFlight)},
-        };
-
-        auto commandBufferVector =
-            this->device->asLogicalDevice().allocateCommandBuffersUnique(
-                commandBuffersAllocateInfo);
-
-        for (std::size_t i = 0; i < this->MaxFramesInFlight; ++i)
-        {
-            this->frames.at(i) = std::make_unique<vulkan::Frame>(
-                this->device,
-                this->swapchain,
-                this->render_pass,
-                std::move(commandBufferVector.at(i)));
-        }
-
+        // TODO: abstract this into its own FrameBuffer class
+        // also figure out how to make this sync the attachments with the
+        // pipelines
         for (const vk::UniqueImageView& view :
              this->swapchain->getRenderTargets())
         {
-            // TODO: abstract this away into a new FrameBuffer class
-            // also figure out a way to make this synced with the pipelines?
             std::array<vk::ImageView, 2> attachments {
                 *view, **this->depth_buffer};
 
@@ -219,6 +203,12 @@ namespace gfx
             this->framebuffers.push_back(
                 this->device->asLogicalDevice().createFramebufferUnique(
                     frameBufferCreateInfo));
+        }
+
+        for (std::unique_ptr<vulkan::Frame>& f : this->frames)
+        {
+            f = std::make_unique<vulkan::Frame>(
+                this->device, this->swapchain, this->render_pass);
         }
     }
 } // namespace gfx

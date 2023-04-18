@@ -17,6 +17,8 @@ static VkBool32 debugMessageCallback(
         messageType,
         pCallbackData->pMessage);
 
+    std::terminate();
+
     return VK_FALSE;
 }
 

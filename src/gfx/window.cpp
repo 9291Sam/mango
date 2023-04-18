@@ -1,6 +1,8 @@
 #include "window.hpp"
 #include "vulkan/includes.hpp"
+#include <thread>
 #include <util/log.hpp>
+
 
 // clang-format off
 #include "GLFW/glfw3.h"
@@ -96,6 +98,15 @@ namespace gfx
     void Window::pollEvents() const
     {
         glfwPollEvents();
+    }
+
+    void Window::blockThisThreadWhileMinimized() const
+    {
+        while (this->size().width == 0 || this->size().height == 0)
+        {
+            glfwWaitEvents();
+            std::this_thread::yield();
+        }
     }
 
     void Window::frameBufferResizeCallback(

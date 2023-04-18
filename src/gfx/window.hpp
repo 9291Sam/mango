@@ -36,8 +36,7 @@ namespace gfx
         // [[nodiscard]] double       getDeltaTimeSeconds() const;
         // [[nodiscard]] Delta        getMouseDelta() const;
 
-        [[nodiscard]] auto createSurface(vk::Instance) const
-            -> vk::UniqueSurfaceKHR;
+        [[nodiscard]] vk::UniqueSurfaceKHR createSurface(vk::Instance) const;
 
         // void attachCursor() const;
         // void detachCursor() const;

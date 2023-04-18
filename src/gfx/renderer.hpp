@@ -36,6 +36,7 @@ namespace gfx
         void drawFrame();
 
     private:
+        void resize();
         void initializeRenderer();
 
         Window window;
@@ -65,13 +66,8 @@ namespace gfx
         static constexpr std::size_t MaxFramesInFlight = 2;
         std::size_t                  render_index;
 
-        // TODO: merge with device refactor
-        // the frames dont need to depend on the command pool refactor pls
-        vk::UniqueCommandPool              command_pool;
         std::vector<vk::UniqueFramebuffer> framebuffers;
         std::array<std::unique_ptr<vulkan::Frame>, MaxFramesInFlight> frames;
-        // TODO: remote commandpool bad here this should be under the device
-        // with thread_local stuff to prevent race conditons and stuff
     }; // class Renderer
 } // namespace gfx
 

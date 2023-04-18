@@ -25,8 +25,7 @@ namespace gfx::vulkan
         Frame(
             std::shared_ptr<Device>,
             std::shared_ptr<Swapchain>,
-            std::shared_ptr<RenderPass>,
-            vk::UniqueCommandBuffer);
+            std::shared_ptr<RenderPass>);
         ~Frame() = default;
 
         Frame(const Frame&)             = delete;
@@ -44,8 +43,6 @@ namespace gfx::vulkan
         std::shared_ptr<Device>     device;
         std::shared_ptr<Swapchain>  swapchain;
         std::shared_ptr<RenderPass> render_pass;
-
-        vk::UniqueCommandBuffer command_buffer;
 
         vk::UniqueSemaphore image_available;
         vk::UniqueSemaphore render_finished;

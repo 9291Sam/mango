@@ -1,9 +1,5 @@
 #include "gfx/renderer.hpp"
 #include "util/log.hpp"
-#include <chrono>
-#include <exception>
-#include <new>
-#include <thread>
 
 int main()
 {
@@ -11,7 +7,7 @@ int main()
     {
         gfx::Renderer renderer {};
 
-        while (!renderer.shouldClose())
+        for (;;)
         {
             renderer.drawFrame();
         }

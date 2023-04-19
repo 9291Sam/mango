@@ -31,8 +31,6 @@ namespace gfx
         Renderer& operator= (const Renderer&) = delete;
         Renderer& operator= (Renderer&&)      = delete;
 
-        [[nodiscard]] bool shouldClose() const;
-
         void drawFrame();
 
     private:
@@ -42,11 +40,14 @@ namespace gfx
         Window window;
 
         // Vulkan Boilerplate
-        std::shared_ptr<vulkan::Instance>       instance;
-        std::shared_ptr<vk::UniqueSurfaceKHR>   draw_surface;
-        std::shared_ptr<vulkan::Device>         device;
-        std::shared_ptr<vulkan::Allocator>      allocator;
-        std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
+        std::shared_ptr<vulkan::Instance>     instance;
+        std::shared_ptr<vk::UniqueSurfaceKHR> draw_surface;
+        std::shared_ptr<vulkan::Device>       device;
+        std::shared_ptr<vulkan::Allocator>    allocator;
+        // std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
+        vk::UniqueCommandPool                 command_pool; // TODO: bad
+        // TODO: make shared_ptr for lifetime stuff
+        // TODO: move descriptor pool here
 
         // Rendering Boilerplate
         std::shared_ptr<vulkan::Swapchain>  swapchain;
@@ -62,12 +63,28 @@ namespace gfx
         // the pipelines are isolated from the pool, they dont care where the
         // descriptors come from
 
+<<<<<<< HEAD
         // Flying frames
         static constexpr std::size_t MaxFramesInFlight = 2;
         std::size_t                  render_index;
 
         std::vector<vk::UniqueFramebuffer> framebuffers;
         std::array<std::unique_ptr<vulkan::Frame>, MaxFramesInFlight> frames;
+=======
+        // TODO: youre having trouble naming this, does this mean it needs a
+        // restructure? Rendering frames
+        static constexpr std::size_t       MaxFramesInFlight = 2;
+        std::size_t                        render_index;
+        std::vector<vk::UniqueFramebuffer> framebuffers;
+        std::array<std::unique_ptr<vulkan::Frame>, MaxFramesInFlight> frames;
+        // TODO: remote commandpool bad here this should be under the device
+        // with thread_local stuff to prevent race conditons and stuff
+        // TODO: bad this can be moved up into the device this doesnt need to be
+        // recreated
+
+        // each drawer will have a uniform buffer for each of the seperate
+        // descriptors that need to be bound sinec they
+>>>>>>> 6613e8279a83aa495d48f89a80a39907bf34667f
     }; // class Renderer
 } // namespace gfx
 

@@ -174,54 +174,54 @@ namespace util
     }; // class Mutex
 
     // TODO: figure out some lifetime management mechanism with a semaphore?
-    template<class... T>
-    class AccessHandle
-    {
-    public:
-        class BadAccessHandleAccess : public std::exception
-        {};
-    public:
+    // template<class... T>
+    // class AccessHandle
+    // {
+    // public:
+    // class BadAccessHandleAccess : public std::exception
+    // {};
+    // public:
 
-        AccessHandle(T&... ts_) noexcept
-            : accessed {}
-            , ts {std::make_tuple {ts_...}}
-        {}
-        ~AccessHandle() = default;
+    // AccessHandle(T&... ts_) noexcept
+    // : accessed {}
+    // , ts {std::make_tuple {ts_...}}
+    // {}
+    // ~AccessHandle() = default;
 
-        AccessHandle(const AccessHandle&) = delete;
-        AccessHandle(AccessHandle&& other) noexcept
-            : accessed {other.accessed}
-            , ts {std::move(other.ts)}
-        {
-            util::assertFatal(
-                other.accessed == false,
-                "Tried to move already used access handle!");
+    // AccessHandle(const AccessHandle&) = delete;
+    // AccessHandle(AccessHandle&& other) noexcept
+    // : accessed {other.accessed}
+    // , ts {std::move(other.ts)}
+    // {
+    // util::assertFatal(
+    // other.accessed == false,
+    // "Tried to move already used access handle!");
 
-            other.ts = std::nullopt;
-        }
-        AccessHandle& operator= (const AccessHandle&) = delete;
-        AccessHandle& operator= (AccessHandle&& other) noexcept
-        {
-            util::assertFatal(
-                other.accessed == false,
-                "Tried to move already used access handle!");
+    // other.ts = std::nullopt;
+    // }
+    // AccessHandle& operator= (const AccessHandle&) = delete;
+    // AccessHandle& operator= (AccessHandle&& other) noexcept
+    // {
+    // util::assertFatal(
+    // other.accessed == false,
+    // "Tried to move already used access handle!");
 
-            this->accessed = other.accessed;
-            this->ts       = std::move(other.ts);
+    // this->accessed = other.accessed;
+    // this->ts       = std::move(other.ts);
 
-            other.ts = std::nullopt;
-        }
+    // other.ts = std::nullopt;
+    // }
 
-        // throws bad optional access
-        std::tuple<T&...> access()
-        {
-            util::todo();
-        }
+    // throws bad optional access
+    // std::tuple<T&...> access()
+    // {
+    // util::todo();
+    // }
 
-    private:
-        std::atomic<bool>                                       accessed;
-        std::optional<std::reference_wrapper<std::tuple<T...>>> ts;
-    };
+    // private:
+    // std::atomic<bool>                                       accessed;
+    // std::optional<std::reference_wrapper<std::tuple<T...>>> ts;
+    // };
 
 } // namespace util
 

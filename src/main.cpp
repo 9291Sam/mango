@@ -3,6 +3,8 @@
 
 int main()
 {
+    util::logLog("mango started");
+
     try
     {
         gfx::Renderer renderer {};
@@ -17,5 +19,5 @@ int main()
         util::logFatal("Exception propagated to main {}", e.what());
     }
 
-    util::logTrace("mango exited successfully");
+    util::logLog("mango exited successfully");
 }

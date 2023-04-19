@@ -25,18 +25,18 @@ namespace gfx::vulkan
         fileStream.read(
             charBuffer.data(), static_cast<std::streamsize>(charBuffer.size()));
 
-        // TODO: intellectual exercise, remove this UB.
-        // use aligned alloc to make new array
-        // copy bitwise
-        // launder
-        // copy form u32 array into proper vector
+        // intellectual exercise :)
+        std::vector<std::uint32_t> u32Buffer {};
+        u32Buffer.resize((charBuffer.size() / 4) + 1);
+
+        std::memcpy(u32Buffer.data(), charBuffer.data(), charBuffer.size());
 
         vk::ShaderModuleCreateInfo shaderCreateInfo {
             .sType {vk::StructureType::eShaderModuleCreateInfo},
             .pNext {nullptr},
             .flags {},
-            .codeSize {charBuffer.size()},
-            .pCode {reinterpret_cast<const uint32_t*>(charBuffer.data())},
+            .codeSize {charBuffer.size()}, // lol
+            .pCode {u32Buffer.data()},
         };
 
         return device.createShaderModuleUnique(shaderCreateInfo);

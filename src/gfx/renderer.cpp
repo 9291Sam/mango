@@ -24,10 +24,7 @@ namespace gfx
         , depth_buffer    {nullptr}
         , render_pass     {nullptr}
         , render_index    {0}
-<<<<<<< HEAD
         , framebuffers    {}
-=======
->>>>>>> 6613e8279a83aa495d48f89a80a39907bf34667f
         , frames          {nullptr}
     // , descriptor_pool {nullptr}
     {

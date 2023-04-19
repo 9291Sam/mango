@@ -11,13 +11,11 @@ static VkBool32 debugMessageCallback(
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     [[maybe_unused]] void*                      pUserData)
 {
-    util::logFatal(
+    util::panic(
         "Validation Layer Message: Severity: {} | Type: {} | \n{}",
         messageSeverity,
         messageType,
         pCallbackData->pMessage);
-
-    std::terminate();
 
     return VK_FALSE;
 }

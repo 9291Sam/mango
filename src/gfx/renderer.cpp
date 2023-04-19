@@ -19,13 +19,14 @@ namespace gfx
         , instance        {nullptr}
         , device          {nullptr}
         , allocator       {nullptr}
+        , descriptor_pool {nullptr}
         , swapchain       {nullptr}
         , depth_buffer    {nullptr}
         , render_pass     {nullptr}
+        , flat_pipeline   {nullptr}
         , render_index    {0}
         , framebuffers    {}
         , frames          {nullptr}
-    // , descriptor_pool {nullptr}
     {
         const vk::DynamicLoader         dl;
         const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
@@ -57,6 +58,14 @@ namespace gfx
             dynVkGetInstanceProcAddr,
             dl.getProcAddress<PFN_vkGetDeviceProcAddr>("vkGetDeviceProcAddr"));
 
+        // TODO: make dynamic auto reallocing class
+        std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
+        descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
+        descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
+
+        this->descriptor_pool = vulkan::DescriptorPool::create(
+            this->device, std::move(descriptorMap));
+
         this->initializeRenderer();
 
         util::logLog("Renderer initialization complete");
@@ -66,6 +75,11 @@ namespace gfx
     {
         // useless omment
         this->device->asLogicalDevice().waitIdle();
+    }
+
+    bool Renderer::shouldClose() const
+    {
+        return this->window.shouldClose();
     }
 
     void Renderer::drawFrame()
@@ -160,19 +174,6 @@ namespace gfx
 
         this->render_pass = std::make_shared<vulkan::RenderPass>(
             this->device, this->swapchain, this->depth_buffer);
-
-        // PRe-state pipelines
-
-        std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
-        descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
-        descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
-        // TODO: make not magic numbers and based instead on pipelines and
-        // sizes and other dynamic stuff
-
-        // this->descriptor_pool = vulkan::DescriptorPool::create(
-        // this->device, std::move(descriptorMap));
-
-        // allocate pipelines with reference to pool
 
         this->flat_pipeline = std::make_unique<vulkan::FlatPipeline>(
             this->device, this->swapchain, this->render_pass);

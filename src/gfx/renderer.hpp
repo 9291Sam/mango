@@ -31,6 +31,8 @@ namespace gfx
         Renderer& operator= (const Renderer&) = delete;
         Renderer& operator= (Renderer&&)      = delete;
 
+        [[nodiscard]] bool shouldClose() const;
+
         void drawFrame();
 
     private:
@@ -40,25 +42,19 @@ namespace gfx
         Window window;
 
         // Vulkan Boilerplate
-        std::shared_ptr<vulkan::Instance>     instance;
-        std::shared_ptr<vk::UniqueSurfaceKHR> draw_surface;
-        std::shared_ptr<vulkan::Device>       device;
-        std::shared_ptr<vulkan::Allocator>    allocator;
-        // std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
+        std::shared_ptr<vulkan::Instance>       instance;
+        std::shared_ptr<vk::UniqueSurfaceKHR>   draw_surface;
+        std::shared_ptr<vulkan::Device>         device;
+        std::shared_ptr<vulkan::Allocator>      allocator;
+        std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
 
         // Rendering Boilerplate
         std::shared_ptr<vulkan::Swapchain>  swapchain;
         std::shared_ptr<vulkan::Image2D>    depth_buffer;
         std::shared_ptr<vulkan::RenderPass> render_pass;
 
-        // Pipelines
-        std::unique_ptr<vulkan::FlatPipeline> flat_pipeline; // TODO expand
-        // TODO: reddo the pipeline to have a bunch of different bind points
-        // i.e three bind functions if they need three descriptors and
-        // also dont forget some runtime checking to ensure theyre not used
-        // incorrectely also as a result use this to sort this stuff as a result
-        // the pipelines are isolated from the pool, they dont care where the
-        // descriptors come from
+        // Pipelines TODO: abstract better
+        std::unique_ptr<vulkan::FlatPipeline> flat_pipeline;
 
         // Flying frames
         static constexpr std::size_t MaxFramesInFlight = 2;

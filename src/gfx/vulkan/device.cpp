@@ -49,8 +49,7 @@ getDeviceQueueCreateInfos(vk::PhysicalDevice device, vk::SurfaceKHR surface)
         //     "Idx: {} | Count: {} | Flags: {}",
         //     idx,
         //     p.queueCount,
-        //     vk::to_string(p.queueFlags)
-        // );
+        //     vk::to_string(p.queueFlags));
 
         ++idx;
     }
@@ -200,17 +199,6 @@ namespace gfx::vulkan
         std::ranges::sort(this->graphics_surface_queue, orderingFn);
         std::ranges::sort(this->compute_queue, orderingFn);
         std::ranges::sort(this->transfer_queue, orderingFn);
-
-        const auto printingFn = [](const std::shared_ptr<Queue>& q)
-        {
-            util::logLog("Flags: {}", vk::to_string(q->getFlags()));
-        };
-
-        std::ranges::for_each(this->graphics_surface_queue, printingFn);
-        util::logLog("\n");
-        std::ranges::for_each(this->compute_queue, printingFn);
-        util::logLog("\n");
-        std::ranges::for_each(this->transfer_queue, printingFn);
     }
 
     bool Device::shouldBuffersStage() const

@@ -7,7 +7,7 @@ int main()
     {
         gfx::Renderer renderer {};
 
-        for (;;)
+        while (!renderer.shouldClose())
         {
             renderer.drawFrame();
         }

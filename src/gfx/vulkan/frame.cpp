@@ -47,7 +47,7 @@ namespace gfx::vulkan
     {
         std::optional<bool> returnValue = std::nullopt;
 
-        this->device->accessComputeBuffer(
+        this->device->accessGraphicsBuffer(
             [&](vk::Queue queue, vk::CommandBuffer commandBuffer)
             {
                 const std::uint64_t timeout =

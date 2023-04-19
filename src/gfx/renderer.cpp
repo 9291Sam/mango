@@ -65,6 +65,7 @@ namespace gfx
 
     Renderer::~Renderer()
     {
+        // useless omment
         this->device->asLogicalDevice().waitIdle();
     }
 

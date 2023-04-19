@@ -45,9 +45,6 @@ namespace gfx
         std::shared_ptr<vulkan::Device>       device;
         std::shared_ptr<vulkan::Allocator>    allocator;
         // std::shared_ptr<vulkan::DescriptorPool> descriptor_pool;
-        vk::UniqueCommandPool                 command_pool; // TODO: bad
-        // TODO: make shared_ptr for lifetime stuff
-        // TODO: move descriptor pool here
 
         // Rendering Boilerplate
         std::shared_ptr<vulkan::Swapchain>  swapchain;

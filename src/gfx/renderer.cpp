@@ -19,7 +19,6 @@ namespace gfx
         , instance        {nullptr}
         , device          {nullptr}
         , allocator       {nullptr}
-        , command_pool    {nullptr}
         , swapchain       {nullptr}
         , depth_buffer    {nullptr}
         , render_pass     {nullptr}

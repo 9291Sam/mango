@@ -53,9 +53,10 @@ namespace gfx::vulkan
             std::function<void(vk::Queue, vk::CommandBuffer)>) const;
 
     private:
-        std::shared_ptr<Instance>           instance;
-        vk::PhysicalDevice                  physical_device;
-        vk::UniqueDevice                    logical_device;
+        std::shared_ptr<Instance> instance;
+        vk::PhysicalDevice        physical_device;
+        vk::UniqueDevice          logical_device;
+
         std::vector<std::shared_ptr<Queue>> graphics_surface_queue;
         std::vector<std::shared_ptr<Queue>> compute_queue;
         std::vector<std::shared_ptr<Queue>> transfer_queue;

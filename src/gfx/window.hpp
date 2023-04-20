@@ -1,3 +1,4 @@
+#include "util/threads.hpp"
 #include "vulkan/includes.hpp"
 #include <atomic>
 #include <chrono>
@@ -42,15 +43,13 @@ namespace gfx
         // void detachCursor() const;
         void pollEvents() const;
 
-        // TODO: replace with a semaphore + spawning another thread?
         void blockThisThreadWhileMinimized() const;
     private:
         // this needs to be here so it can access members of the class
         static void frameBufferResizeCallback(GLFWwindow*, int, int);
 
-        GLFWwindow*       window;
-        std::atomic<int>  width;
-        std::atomic<int>  height;
-        std::atomic<bool> was_resized;
+        GLFWwindow*                               window;
+        util::Mutex<std::uint32_t, std::uint32_t> width_height;
+        std::atomic<bool>                         was_resized;
     }; // class Window
 } // namespace gfx

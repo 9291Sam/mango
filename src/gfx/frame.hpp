@@ -18,7 +18,6 @@ namespace gfx
 
     // abstraction over all the random bits of code that are required to
     // actually draw frames to the screen,
-    // its a mess, TODO: refactor
     class Frame
     {
     public:
@@ -34,7 +33,7 @@ namespace gfx
         Frame& operator= (const Frame&) = delete;
         Frame& operator= (Frame&&)      = delete;
 
-        // @return {true}, is resize seeded
+        // @return {true}, is resize needed
         [[nodiscard]] bool render(
             const std::vector<vk::UniqueFramebuffer>&,
             const vulkan::FlatPipeline&,

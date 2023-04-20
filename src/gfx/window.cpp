@@ -3,7 +3,6 @@
 #include <thread>
 #include <util/log.hpp>
 
-
 // clang-format off
 #include "GLFW/glfw3.h"
 // clang-format on
@@ -11,8 +10,7 @@ namespace gfx
 {
     Window::Window(vk::Extent2D size, const char* name)
         : window {nullptr}
-        , width {static_cast<int>(size.width)}
-        , height {static_cast<int>(size.height)}
+        , width_height {size.width, size.height}
         , was_resized {std::atomic_bool {false}}
     {
         if (glfwInit() != GLFW_TRUE)
@@ -68,10 +66,17 @@ namespace gfx
 
     vk::Extent2D Window::size() const
     {
-        // TODO: add a mutex for the width and height components together
-        return vk::Extent2D {
-            .width {static_cast<std::uint32_t>(this->width.load())},
-            .height {static_cast<std::uint32_t>(this->height.load())}};
+        std::uint32_t width  = 0;
+        std::uint32_t height = 0;
+
+        this->width_height.lock(
+            [&](std::uint32_t width_, std::uint32_t height_)
+            {
+                width  = width_;
+                height = height_;
+            });
+
+        return vk::Extent2D {.width {width}, .height {height}};
     }
 
     vk::UniqueSurfaceKHR Window::createSurface(vk::Instance instance) const
@@ -102,6 +107,7 @@ namespace gfx
 
     void Window::blockThisThreadWhileMinimized() const
     {
+        // TODO: replace with spawnin
         while (this->size().width == 0 || this->size().height == 0)
         {
             glfwWaitEvents();
@@ -116,8 +122,12 @@ namespace gfx
             static_cast<gfx::Window*>(glfwGetWindowUserPointer(glfwWindow));
 
         window->was_resized.store(true);
-        window->width.store(newWidth);
-        window->height.store(newHeight);
+        window->width_height.lock(
+            [&](std::uint32_t& width, std::uint32_t& height)
+            {
+                width  = static_cast<std::uint32_t>(newWidth);
+                height = static_cast<std::uint32_t>(newHeight);
+            });
     }
 
 } // namespace gfx

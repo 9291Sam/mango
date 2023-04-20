@@ -9,7 +9,9 @@ namespace gfx
 {
     namespace vulkan
     {
+        // TODO: organize
         class Instance;
+        class Buffer;
         class Device;
         class Allocator;
         class Swapchain;
@@ -62,7 +64,9 @@ namespace gfx
 
         std::vector<vk::UniqueFramebuffer> framebuffers;
         std::array<std::unique_ptr<vulkan::Frame>, MaxFramesInFlight> frames;
-    }; // class Renderer
+
+        std::unique_ptr<vulkan::Buffer> vertex_buffer; // TODO: bad!
+    };                                                 // class Renderer
 } // namespace gfx
 
 #endif // SRC_GFX_RENDERER_HPP

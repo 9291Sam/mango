@@ -27,6 +27,7 @@ namespace gfx
         , render_index    {0}
         , framebuffers    {}
         , frames          {nullptr}
+        , vertex_buffer   {nullptr}
     {
         const vk::DynamicLoader         dl;
         const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
@@ -66,6 +67,42 @@ namespace gfx
         this->descriptor_pool = vulkan::DescriptorPool::create(
             this->device, std::move(descriptorMap));
 
+        const std::array<vulkan::Vertex, 3> vertices {
+            vulkan::Vertex {
+                            .position {1.0f, 1.0f, 0.0f},
+                            .color {1.0f, 0.0f, 0.0f},
+                            .normal {},
+                            .uv {},
+                            },
+
+            vulkan::Vertex {
+                            .position {-1.0f, 1.0f, 0.0f},
+                            .color {0.0f, 1.0f, 0.0f},
+                            .normal {},
+                            .uv {},
+                            },
+
+            vulkan::Vertex {
+                            .position {0.0f, -1.0f, 0.0f},
+                            .color {0.0f, 0.0f, 1.0f},
+                            .normal {},
+                            .uv {},
+                            },
+        };
+
+        // TODO: bad!
+        this->vertex_buffer = std::make_unique<vulkan::Buffer>(
+            this->allocator,
+            sizeof(vulkan::Vertex) * vertices.size(),
+            vk::BufferUsageFlagBits::eVertexBuffer,
+            vk::MemoryPropertyFlagBits::eHostVisible
+                | vk::MemoryPropertyFlagBits::eHostCoherent
+                | vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+        this->vertex_buffer->write(
+            {reinterpret_cast<const std::byte*>(vertices.data()),
+             sizeof(vulkan::Vertex) * vertices.size()});
+
         this->initializeRenderer();
 
         util::logLog("Renderer initialization complete");
@@ -85,51 +122,11 @@ namespace gfx
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wexit-time-destructors"
-        static vulkan::StagedBuffer vertexBuffer {
-            [this]
-            {
-                std::array<vulkan::Vertex, 3> vertices {
-                    vulkan::Vertex {
-                                    .position {1.0f, 1.0f, 0.0f},
-                                    .color {1.0f, 0.0f, 0.0f},
-                                    .normal {},
-                                    .uv {},
-                                    },
-
-                    vulkan::Vertex {
-                                    .position {-1.0f, 1.0f, 0.0f},
-                                    .color {0.0f, 1.0f, 0.0f},
-                                    .normal {},
-                                    .uv {},
-                                    },
-
-                    vulkan::Vertex {
-                                    .position {0.0f, -1.0f, 0.0f},
-                                    .color {0.0f, 0.0f, 1.0f},
-                                    .normal {},
-                                    .uv {},
-                                    },
-                };
-
-                vulkan::StagedBuffer temp {
-                    *this->device,
-                    this->allocator,
-                    sizeof(vulkan::Vertex) * vertices.size(),
-                    vk::BufferUsageFlagBits::eVertexBuffer};
-
-                temp.write(
-                    {reinterpret_cast<std::byte*>(vertices.data()),
-                     sizeof(vulkan::Vertex) * vertices.size()});
-
-                return temp;
-            }()};
-#pragma clang diagnostic pop
-
         if (this->frames.at(this->render_index)
                 ->render(
-                    this->framebuffers, *this->flat_pipeline, vertexBuffer))
+                    this->framebuffers,
+                    *this->flat_pipeline,
+                    *this->vertex_buffer))
         {
             this->resize();
         }

@@ -43,7 +43,7 @@ namespace gfx::vulkan
     bool Frame::render(
         const std::vector<vk::UniqueFramebuffer>& framebuffers,
         const FlatPipeline&                       pipeline,
-        const StagedBuffer&                       vertexBuffer)
+        const Buffer&                             vertexBuffer)
     {
         std::optional<bool> returnValue = std::nullopt;
 

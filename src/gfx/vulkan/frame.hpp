@@ -9,7 +9,7 @@
 
 namespace gfx::vulkan
 {
-    class StagedBuffer;
+    class Buffer;
     class Device;
     class Swapchain;
     class RenderPass;
@@ -37,7 +37,7 @@ namespace gfx::vulkan
         [[nodiscard]] bool render(
             const std::vector<vk::UniqueFramebuffer>&,
             const FlatPipeline&,
-            const StagedBuffer& vertexBuffer);
+            const Buffer& vertexBuffer);
 
     private:
         std::shared_ptr<Device>     device;

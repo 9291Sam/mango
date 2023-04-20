@@ -1,11 +1,12 @@
 #include "renderer.hpp"
 #include "frame.hpp"
+#include "object.hpp"
 #include "util/log.hpp"
 #include "vulkan/allocator.hpp"
 #include "vulkan/buffer.hpp"
-#include "vulkan/data.hpp"
 #include "vulkan/descriptors.hpp"
 #include "vulkan/device.hpp"
+#include "vulkan/gpu_data.hpp"
 #include "vulkan/image.hpp"
 #include "vulkan/includes.hpp"
 #include "vulkan/instance.hpp"
@@ -67,41 +68,18 @@ namespace gfx
         this->descriptor_pool = vulkan::DescriptorPool::create(
             this->device, std::move(descriptorMap));
 
-        const std::array<vulkan::Vertex, 3> vertices {
-            vulkan::Vertex {
-                            .position {1.0f, 1.0f, 0.0f},
-                            .color {1.0f, 0.0f, 0.0f},
-                            .normal {},
-                            .uv {},
-                            },
-
-            vulkan::Vertex {
-                            .position {-1.0f, 1.0f, 0.0f},
-                            .color {0.0f, 1.0f, 0.0f},
-                            .normal {},
-                            .uv {},
-                            },
-
-            vulkan::Vertex {
-                            .position {0.0f, -1.0f, 0.0f},
-                            .color {0.0f, 0.0f, 1.0f},
-                            .normal {},
-                            .uv {},
-                            },
-        };
-
         // TODO: bad!
-        this->vertex_buffer = std::make_unique<vulkan::Buffer>(
-            this->allocator,
-            sizeof(vulkan::Vertex) * vertices.size(),
-            vk::BufferUsageFlagBits::eVertexBuffer,
-            vk::MemoryPropertyFlagBits::eHostVisible
-                | vk::MemoryPropertyFlagBits::eHostCoherent
-                | vk::MemoryPropertyFlagBits::eDeviceLocal);
+        // this->vertex_buffer = std::make_unique<vulkan::Buffer>(
+        //     this->allocator,
+        //     sizeof(vulkan::Vertex) * vertices.size(),
+        //     vk::BufferUsageFlagBits::eVertexBuffer,
+        //     vk::MemoryPropertyFlagBits::eHostVisible
+        //         | vk::MemoryPropertyFlagBits::eHostCoherent
+        //         | vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-        this->vertex_buffer->write(
-            {reinterpret_cast<const std::byte*>(vertices.data()),
-             sizeof(vulkan::Vertex) * vertices.size()});
+        // this->vertex_buffer->write(
+        //     {reinterpret_cast<const std::byte*>(vertices.data()),
+        //      sizeof(vulkan::Vertex) * vertices.size()});
 
         this->initializeRenderer();
 
@@ -113,17 +91,23 @@ namespace gfx
         this->device->asLogicalDevice().waitIdle();
     }
 
+    std::unique_ptr<VertexObject>
+    Renderer::createObject(std::span<const vulkan::Vertex> vertices) const
+    {
+        return std::make_unique<VertexObject>(this->allocator, vertices);
+    }
+
     bool Renderer::shouldClose() const
     {
         return this->window.shouldClose();
     }
 
-    void Renderer::drawFrame()
+    void Renderer::drawObject(const Object& object)
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
         if (this->frames.at(this->render_index)
-                ->render(*this->flat_pipeline, *this->vertex_buffer))
+                ->render(*this->flat_pipeline, object))
         {
             this->resize();
         }

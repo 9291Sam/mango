@@ -1,4 +1,5 @@
 #include "frame.hpp"
+#include "object.hpp"
 #include "vulkan/buffer.hpp"
 #include "vulkan/device.hpp"
 #include "vulkan/pipeline.hpp"
@@ -42,9 +43,8 @@ namespace gfx
             this->device->asLogicalDevice().createFenceUnique(fenceCreateInfo);
     }
 
-    bool Frame::render(
-        const vulkan::FlatPipeline& pipeline,
-        const vulkan::Buffer&       vertexBuffer)
+    bool
+    Frame::render(const vulkan::FlatPipeline& pipeline, const Object& object)
     {
         std::optional<bool> returnValue = std::nullopt;
 
@@ -148,9 +148,9 @@ namespace gfx
                 commandBuffer.bindPipeline(
                     vk::PipelineBindPoint::eGraphics, *pipeline);
 
-                commandBuffer.bindVertexBuffers(0, *vertexBuffer, {0});
+                object.bind(commandBuffer);
 
-                commandBuffer.draw(3, 1, 0, 0);
+                object.draw(commandBuffer);
 
                 commandBuffer.endRenderPass();
                 commandBuffer.end();

@@ -1,5 +1,4 @@
 #include "instance.hpp"
-#include "GLFW/glfw3.h"
 #include "util/log.hpp"
 #include <iostream>
 

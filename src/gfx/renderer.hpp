@@ -3,9 +3,13 @@
 
 #include "window.hpp"
 #include <memory>
+#include <span>
 
 namespace gfx
 {
+    class Object;
+    class VertexObject;
+
     namespace vulkan
     {
         // TODO: organize
@@ -18,6 +22,7 @@ namespace gfx
         class RenderPass;
         class FlatPipeline;
         class DescriptorPool;
+        class Vertex;
     } // namespace vulkan
 
     class Frame;
@@ -33,9 +38,16 @@ namespace gfx
         Renderer& operator= (const Renderer&) = delete;
         Renderer& operator= (Renderer&&)      = delete;
 
+        std::unique_ptr<VertexObject>
+            createObject(std::span<const vulkan::Vertex>) const;
+
         [[nodiscard]] bool shouldClose() const;
 
-        void drawFrame();
+        // TODO: void drawScene(const Camera&, const Scene&);
+        // Scene : [Object + Pipelines]
+        // use https://en.cppreference.com/w/cpp/types/type_info/hash_code
+        // void drawFrame();
+        void drawObject(const Object&);
 
     private:
         void resize();

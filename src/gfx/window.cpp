@@ -3,9 +3,6 @@
 #include <thread>
 #include <util/log.hpp>
 
-// clang-format off
-#include "GLFW/glfw3.h"
-// clang-format on
 namespace gfx
 {
     Window::Window(vk::Extent2D size, const char* name)

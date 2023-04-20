@@ -25,9 +25,11 @@ add_executable(mango
   src/gfx/vulkan/render_pass.cpp
   src/gfx/vulkan/swapchain.cpp
 
-  src/gfx/renderer.cpp
-  src/gfx/window.cpp
   src/gfx/frame.cpp
+  src/gfx/object.cpp
+  src/gfx/renderer.cpp
+  # src/gfx/transform.cpp
+  src/gfx/window.cpp
   
   src/util/log.cpp
 

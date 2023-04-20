@@ -7,6 +7,8 @@
 
 namespace gfx
 {
+    class Object;
+
     namespace vulkan
     {
         class Buffer;
@@ -35,8 +37,7 @@ namespace gfx
         Frame& operator= (Frame&&)      = delete;
 
         // @return {true}, is resize needed
-        [[nodiscard]] bool
-        render(const vulkan::FlatPipeline&, const vulkan::Buffer& vertexBuffer);
+        [[nodiscard]] bool render(const vulkan::FlatPipeline&, const Object&);
 
     private:
         std::shared_ptr<vulkan::Device>                     device;

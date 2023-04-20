@@ -7,17 +7,13 @@ namespace gfx::vulkan
     Swapchain::Swapchain(
         std::shared_ptr<Device>               device_,
         std::shared_ptr<vk::UniqueSurfaceKHR> windowSurface,
-        vk::Extent2D                          extent_
-    )
+        vk::Extent2D                          extent_)
         : device {std::move(device_)}
         , window_surface {std::move(windowSurface)}
         , extent {extent_}
-        , format {
-            vk::SurfaceFormatKHR {
-                .format {vk::Format::eB8G8R8A8Srgb},
-                .colorSpace {vk::ColorSpaceKHR::eSrgbNonlinear}
-            }
-        }
+        , format {vk::SurfaceFormatKHR {
+              .format {vk::Format::eB8G8R8A8Srgb},
+              .colorSpace {vk::ColorSpaceKHR::eSrgbNonlinear}}}
         , swapchain {nullptr}
         , images {}
         , image_views {}
@@ -25,8 +21,7 @@ namespace gfx::vulkan
         // Ensure surface is compatible
         const auto availableSurfaces =
             this->device->asPhysicalDevice().getSurfaceFormatsKHR(
-                **this->window_surface
-            );
+                **this->window_surface);
 
         if (std::ranges::find(availableSurfaces, this->format)
             == availableSurfaces.end())
@@ -68,12 +63,10 @@ namespace gfx::vulkan
         {
             const auto availablePresentModes =
                 this->device->asPhysicalDevice().getSurfacePresentModesKHR(
-                    **this->window_surface
-                );
+                    **this->window_surface);
 
             if (std::ranges::find(
-                    availablePresentModes, vk::PresentModeKHR::eMailbox
-                )
+                    availablePresentModes, vk::PresentModeKHR::eMailbox)
                 != availablePresentModes.cend())
             {
                 return vk::PresentModeKHR::eMailbox;
@@ -86,8 +79,7 @@ namespace gfx::vulkan
 
         const vk::SurfaceCapabilitiesKHR surfaceCapabilities =
             this->device->asPhysicalDevice().getSurfaceCapabilitiesKHR(
-                **this->window_surface
-            );
+                **this->window_surface);
 
         // clang-format off
         const vk::SwapchainCreateInfoKHR swapchainCreateInfoKHR
@@ -119,16 +111,13 @@ namespace gfx::vulkan
 
         this->swapchain =
             this->device->asLogicalDevice().createSwapchainKHRUnique(
-                swapchainCreateInfoKHR
-            );
+                swapchainCreateInfoKHR);
         this->images = this->device->asLogicalDevice().getSwapchainImagesKHR(
-            *this->swapchain
-        );
+            *this->swapchain);
 
         // image view initalization
         util::assertFatal(
-            this->image_views.size() == 0, "Image views were not empty!"
-        );
+            this->image_views.size() == 0, "Image views were not empty!");
         this->image_views.reserve(this->images.size());
 
         for (const vk::Image i : this->images)
@@ -141,25 +130,23 @@ namespace gfx::vulkan
                 .viewType {vk::ImageViewType::e2D},
                 .format {this->format.format},
                 .components {
-                        .r {vk::ComponentSwizzle::eIdentity},
-                        .g {vk::ComponentSwizzle::eIdentity},
-                        .b {vk::ComponentSwizzle::eIdentity},
-                        .a {vk::ComponentSwizzle::eIdentity},
-                        },
+                    .r {vk::ComponentSwizzle::eIdentity},
+                    .g {vk::ComponentSwizzle::eIdentity},
+                    .b {vk::ComponentSwizzle::eIdentity},
+                    .a {vk::ComponentSwizzle::eIdentity},
+                },
                 .subresourceRange {
-                        .aspectMask {vk::ImageAspectFlagBits::eColor},
-                        .baseMipLevel {0},
-                        .levelCount {1},
-                        .baseArrayLayer {0},
-                        .layerCount {1},
-                        },
+                    .aspectMask {vk::ImageAspectFlagBits::eColor},
+                    .baseMipLevel {0},
+                    .levelCount {1},
+                    .baseArrayLayer {0},
+                    .layerCount {1},
+                },
             };
 
             this->image_views.push_back(
                 this->device->asLogicalDevice().createImageViewUnique(
-                    imageCreateInfo
-                )
-            );
+                    imageCreateInfo));
         }
     }
 

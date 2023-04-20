@@ -15,10 +15,8 @@ namespace gfx::vulkan
         , depth_buffer {std::move(depthBuffer)}
         , render_pass {nullptr}
     {
-        // clang-format off
         const std::array<vk::AttachmentDescription, 2> attachments {
-            vk::AttachmentDescription
-            {
+            vk::AttachmentDescription {
                 .flags {},
                 .format {this->swapchain->getSurfaceFormat().format},
                 .samples {vk::SampleCountFlagBits::e1},
@@ -29,8 +27,7 @@ namespace gfx::vulkan
                 .initialLayout {vk::ImageLayout::eUndefined},
                 .finalLayout {vk::ImageLayout::ePresentSrcKHR},
             },
-            vk::AttachmentDescription
-            {
+            vk::AttachmentDescription {
                 .flags {},
                 .format {this->depth_buffer->getFormat()},
                 .samples {vk::SampleCountFlagBits::e1},
@@ -42,7 +39,6 @@ namespace gfx::vulkan
                 .finalLayout {vk::ImageLayout::eDepthStencilAttachmentOptimal},
             },
         };
-        // clang-format on
 
         const vk::AttachmentReference colorAttachmentReference {
             .attachment {0},

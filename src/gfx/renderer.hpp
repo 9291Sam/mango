@@ -61,8 +61,6 @@ namespace gfx
         // Flying frames
         static constexpr std::size_t MaxFramesInFlight = 2;
         std::size_t                  render_index;
-
-        std::vector<vk::UniqueFramebuffer>                    framebuffers;
         std::array<std::unique_ptr<Frame>, MaxFramesInFlight> frames;
 
         std::unique_ptr<vulkan::Buffer> vertex_buffer; // TODO: bad!

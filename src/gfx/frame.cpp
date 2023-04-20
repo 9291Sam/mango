@@ -8,12 +8,14 @@
 namespace gfx
 {
     Frame::Frame(
-        std::shared_ptr<vulkan::Device>     device_,
-        std::shared_ptr<vulkan::Swapchain>  swapchain_,
-        std::shared_ptr<vulkan::RenderPass> renderPass)
+        std::shared_ptr<vulkan::Device>                     device_,
+        std::shared_ptr<vulkan::Swapchain>                  swapchain_,
+        std::shared_ptr<vulkan::RenderPass>                 renderPass,
+        std::shared_ptr<std::vector<vk::UniqueFramebuffer>> framebuffers_)
         : device {std::move(device_)}
         , swapchain {std::move(swapchain_)}
         , render_pass {std::move(renderPass)}
+        , framebuffers {std::move(framebuffers_)}
         , image_available {nullptr}
         , render_finished {nullptr}
         , frame_in_flight {nullptr}
@@ -41,9 +43,8 @@ namespace gfx
     }
 
     bool Frame::render(
-        const std::vector<vk::UniqueFramebuffer>& framebuffers,
-        const vulkan::FlatPipeline&               pipeline,
-        const vulkan::Buffer&                     vertexBuffer)
+        const vulkan::FlatPipeline& pipeline,
+        const vulkan::Buffer&       vertexBuffer)
     {
         std::optional<bool> returnValue = std::nullopt;
 
@@ -131,7 +132,7 @@ namespace gfx
                     .sType {vk::StructureType::eRenderPassBeginInfo},
                     .pNext {nullptr},
                     .renderPass {**this->render_pass},
-                    .framebuffer {*framebuffers.at(nextImageIndex)},
+                    .framebuffer {*this->framebuffers->at(nextImageIndex)},
                     .renderArea {vk::Rect2D {
                         .offset {0, 0},
                         .extent {this->swapchain->getExtent()},

@@ -26,7 +26,6 @@ namespace gfx
         , render_pass     {nullptr}
         , flat_pipeline   {nullptr}
         , render_index    {0}
-        , framebuffers    {}
         , frames          {nullptr}
         , vertex_buffer   {nullptr}
     {
@@ -124,10 +123,7 @@ namespace gfx
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
         if (this->frames.at(this->render_index)
-                ->render(
-                    this->framebuffers,
-                    *this->flat_pipeline,
-                    *this->vertex_buffer))
+                ->render(*this->flat_pipeline, *this->vertex_buffer))
         {
             this->resize();
         }
@@ -145,7 +141,6 @@ namespace gfx
             f.reset();
         }
 
-        this->framebuffers.clear();
         this->flat_pipeline.reset();
         this->render_pass.reset();
         this->depth_buffer.reset();
@@ -175,6 +170,9 @@ namespace gfx
         this->flat_pipeline = std::make_unique<vulkan::FlatPipeline>(
             this->device, this->swapchain, this->render_pass);
 
+        std::shared_ptr<std::vector<vk::UniqueFramebuffer>> framebuffers =
+            std::make_shared<std::vector<vk::UniqueFramebuffer>>();
+
         // TODO: abstract this into its own FrameBuffer class
         // also figure out how to make this sync the attachments with the
         // pipelines
@@ -196,7 +194,7 @@ namespace gfx
                 .layers {1},
             };
 
-            this->framebuffers.push_back(
+            framebuffers->push_back(
                 this->device->asLogicalDevice().createFramebufferUnique(
                     frameBufferCreateInfo));
         }
@@ -204,7 +202,7 @@ namespace gfx
         for (std::unique_ptr<Frame>& f : this->frames)
         {
             f = std::make_unique<Frame>(
-                this->device, this->swapchain, this->render_pass);
+                this->device, this->swapchain, this->render_pass, framebuffers);
         }
     }
 } // namespace gfx

@@ -45,7 +45,6 @@ namespace gfx
 
         void blockThisThreadWhileMinimized() const;
     private:
-        // this needs to be here so it can access members of the class
         static void frameBufferResizeCallback(GLFWwindow*, int, int);
 
         GLFWwindow*                               window;

@@ -25,7 +25,8 @@ namespace gfx
         Frame(
             std::shared_ptr<vulkan::Device>,
             std::shared_ptr<vulkan::Swapchain>,
-            std::shared_ptr<vulkan::RenderPass>);
+            std::shared_ptr<vulkan::RenderPass>,
+            std::shared_ptr<std::vector<vk::UniqueFramebuffer>>);
         ~Frame() = default;
 
         Frame(const Frame&)             = delete;
@@ -34,15 +35,14 @@ namespace gfx
         Frame& operator= (Frame&&)      = delete;
 
         // @return {true}, is resize needed
-        [[nodiscard]] bool render(
-            const std::vector<vk::UniqueFramebuffer>&,
-            const vulkan::FlatPipeline&,
-            const vulkan::Buffer& vertexBuffer);
+        [[nodiscard]] bool
+        render(const vulkan::FlatPipeline&, const vulkan::Buffer& vertexBuffer);
 
     private:
-        std::shared_ptr<vulkan::Device>     device;
-        std::shared_ptr<vulkan::Swapchain>  swapchain;
-        std::shared_ptr<vulkan::RenderPass> render_pass;
+        std::shared_ptr<vulkan::Device>                     device;
+        std::shared_ptr<vulkan::Swapchain>                  swapchain;
+        std::shared_ptr<vulkan::RenderPass>                 render_pass;
+        std::shared_ptr<std::vector<vk::UniqueFramebuffer>> framebuffers;
 
         vk::UniqueSemaphore image_available;
         vk::UniqueSemaphore render_finished;

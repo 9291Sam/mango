@@ -19,7 +19,7 @@ namespace gfx
     {
     public:
         Object() noexcept {}
-        virtual ~Object() {};
+        virtual ~Object();
 
         Object(const Object&)             = delete;
         Object(Object&&)                  = delete;
@@ -37,7 +37,7 @@ namespace gfx
         VertexObject(
             std::shared_ptr<vulkan::Allocator>,
             std::span<const vulkan::Vertex>);
-        virtual ~VertexObject();
+        virtual ~VertexObject() override;
 
         virtual void bind(vk::CommandBuffer) const override;
         virtual void draw(vk::CommandBuffer) const override;

@@ -3,6 +3,8 @@
 
 namespace gfx
 {
+    Object::~Object() {}
+
     VertexObject::VertexObject(
         std::shared_ptr<vulkan::Allocator> allocator_,
         std::span<const vulkan::Vertex>    vertices)

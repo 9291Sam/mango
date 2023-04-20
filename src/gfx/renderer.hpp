@@ -22,7 +22,7 @@ namespace gfx
         class RenderPass;
         class FlatPipeline;
         class DescriptorPool;
-        class Vertex;
+        struct Vertex;
     } // namespace vulkan
 
     class Frame;

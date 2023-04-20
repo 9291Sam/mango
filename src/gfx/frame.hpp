@@ -1,19 +1,20 @@
-#ifndef SRC_GFX_VULKAN_FRAME_HPP
-#define SRC_GFX_VULKAN_FRAME_HPP
+#ifndef SRC_GFX_FRAME_HPP
+#define SRC_GFX_FRAME_HPP
 
-// TODO: move out into outer folder
-
-#include "includes.hpp"
+#include "vulkan/includes.hpp"
 #include <memory>
 #include <span>
 
-namespace gfx::vulkan
+namespace gfx
 {
-    class Buffer;
-    class Device;
-    class Swapchain;
-    class RenderPass;
-    class FlatPipeline;
+    namespace vulkan
+    {
+        class Buffer;
+        class Device;
+        class Swapchain;
+        class RenderPass;
+        class FlatPipeline;
+    } // namespace vulkan
 
     // abstraction over all the random bits of code that are required to
     // actually draw frames to the screen,
@@ -23,9 +24,9 @@ namespace gfx::vulkan
     public:
 
         Frame(
-            std::shared_ptr<Device>,
-            std::shared_ptr<Swapchain>,
-            std::shared_ptr<RenderPass>);
+            std::shared_ptr<vulkan::Device>,
+            std::shared_ptr<vulkan::Swapchain>,
+            std::shared_ptr<vulkan::RenderPass>);
         ~Frame() = default;
 
         Frame(const Frame&)             = delete;
@@ -36,18 +37,18 @@ namespace gfx::vulkan
         // @return {true}, is resize seeded
         [[nodiscard]] bool render(
             const std::vector<vk::UniqueFramebuffer>&,
-            const FlatPipeline&,
-            const Buffer& vertexBuffer);
+            const vulkan::FlatPipeline&,
+            const vulkan::Buffer& vertexBuffer);
 
     private:
-        std::shared_ptr<Device>     device;
-        std::shared_ptr<Swapchain>  swapchain;
-        std::shared_ptr<RenderPass> render_pass;
+        std::shared_ptr<vulkan::Device>     device;
+        std::shared_ptr<vulkan::Swapchain>  swapchain;
+        std::shared_ptr<vulkan::RenderPass> render_pass;
 
         vk::UniqueSemaphore image_available;
         vk::UniqueSemaphore render_finished;
         vk::UniqueFence     frame_in_flight;
     }; // class Frame
-} // namespace gfx::vulkan
+} // namespace gfx
 
-#endif // SRC_GFX_VULKAN_FRAME_HPP
+#endif // SRC_GFX_FRAME_HPP

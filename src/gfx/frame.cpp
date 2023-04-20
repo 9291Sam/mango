@@ -1,16 +1,16 @@
 #include "frame.hpp"
-#include "buffer.hpp"
-#include "device.hpp"
-#include "pipeline.hpp"
-#include "render_pass.hpp"
-#include "swapchain.hpp"
+#include "vulkan/buffer.hpp"
+#include "vulkan/device.hpp"
+#include "vulkan/pipeline.hpp"
+#include "vulkan/render_pass.hpp"
+#include "vulkan/swapchain.hpp"
 
-namespace gfx::vulkan
+namespace gfx
 {
     Frame::Frame(
-        std::shared_ptr<Device>     device_,
-        std::shared_ptr<Swapchain>  swapchain_,
-        std::shared_ptr<RenderPass> renderPass)
+        std::shared_ptr<vulkan::Device>     device_,
+        std::shared_ptr<vulkan::Swapchain>  swapchain_,
+        std::shared_ptr<vulkan::RenderPass> renderPass)
         : device {std::move(device_)}
         , swapchain {std::move(swapchain_)}
         , render_pass {std::move(renderPass)}
@@ -42,8 +42,8 @@ namespace gfx::vulkan
 
     bool Frame::render(
         const std::vector<vk::UniqueFramebuffer>& framebuffers,
-        const FlatPipeline&                       pipeline,
-        const Buffer&                             vertexBuffer)
+        const vulkan::FlatPipeline&               pipeline,
+        const vulkan::Buffer&                     vertexBuffer)
     {
         std::optional<bool> returnValue = std::nullopt;
 
@@ -209,4 +209,4 @@ namespace gfx::vulkan
 
         return returnValue.value();
     }
-} // namespace gfx::vulkan
+} // namespace gfx

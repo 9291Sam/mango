@@ -18,7 +18,6 @@ add_executable(mango
   src/gfx/vulkan/buffer.cpp
   src/gfx/vulkan/descriptors.cpp
   src/gfx/vulkan/device.cpp
-  src/gfx/vulkan/frame.cpp
   src/gfx/vulkan/image.cpp
   src/gfx/vulkan/includes.cpp
   src/gfx/vulkan/instance.cpp
@@ -28,6 +27,7 @@ add_executable(mango
 
   src/gfx/renderer.cpp
   src/gfx/window.cpp
+  src/gfx/frame.cpp
   
   src/util/log.cpp
 

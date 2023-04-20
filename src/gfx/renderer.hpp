@@ -1,7 +1,6 @@
 #ifndef SRC_GFX_RENDERER_HPP
 #define SRC_GFX_RENDERER_HPP
 
-#include "vulkan/instance.hpp"
 #include "window.hpp"
 #include <memory>
 
@@ -19,8 +18,9 @@ namespace gfx
         class RenderPass;
         class FlatPipeline;
         class DescriptorPool;
-        class Frame;
     } // namespace vulkan
+
+    class Frame;
 
     class Renderer
     {
@@ -62,8 +62,8 @@ namespace gfx
         static constexpr std::size_t MaxFramesInFlight = 2;
         std::size_t                  render_index;
 
-        std::vector<vk::UniqueFramebuffer> framebuffers;
-        std::array<std::unique_ptr<vulkan::Frame>, MaxFramesInFlight> frames;
+        std::vector<vk::UniqueFramebuffer>                    framebuffers;
+        std::array<std::unique_ptr<Frame>, MaxFramesInFlight> frames;
 
         std::unique_ptr<vulkan::Buffer> vertex_buffer; // TODO: bad!
     };                                                 // class Renderer

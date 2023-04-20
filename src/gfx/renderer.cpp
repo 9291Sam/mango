@@ -1,13 +1,14 @@
 #include "renderer.hpp"
+#include "frame.hpp"
 #include "util/log.hpp"
 #include "vulkan/allocator.hpp"
 #include "vulkan/buffer.hpp"
 #include "vulkan/data.hpp"
 #include "vulkan/descriptors.hpp"
 #include "vulkan/device.hpp"
-#include "vulkan/frame.hpp"
 #include "vulkan/image.hpp"
 #include "vulkan/includes.hpp"
+#include "vulkan/instance.hpp"
 #include "vulkan/pipeline.hpp"
 #include "vulkan/render_pass.hpp"
 #include "vulkan/swapchain.hpp"
@@ -139,7 +140,7 @@ namespace gfx
         this->window.blockThisThreadWhileMinimized();
         this->device->asLogicalDevice().waitIdle();
 
-        for (std::unique_ptr<vulkan::Frame>& f : this->frames)
+        for (std::unique_ptr<Frame>& f : this->frames)
         {
             f.reset();
         }
@@ -200,9 +201,9 @@ namespace gfx
                     frameBufferCreateInfo));
         }
 
-        for (std::unique_ptr<vulkan::Frame>& f : this->frames)
+        for (std::unique_ptr<Frame>& f : this->frames)
         {
-            f = std::make_unique<vulkan::Frame>(
+            f = std::make_unique<Frame>(
                 this->device, this->swapchain, this->render_pass);
         }
     }

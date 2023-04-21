@@ -6,12 +6,11 @@ namespace gfx::vulkan
 {
     std::shared_ptr<DescriptorPool> DescriptorPool::create(
         std::shared_ptr<Device>                               device,
-        std::unordered_map<vk::DescriptorType, std::uint32_t> capacity
-    )
+        std::unordered_map<vk::DescriptorType, std::uint32_t> capacity)
     {
         // We need to access a private constructor, std::make_shared won't work
-        return std::shared_ptr<DescriptorPool>(new DescriptorPool {
-            std::move(device), std::move(capacity)});
+        return std::shared_ptr<DescriptorPool>(
+            new DescriptorPool {std::move(device), std::move(capacity)});
     }
 
     DescriptorSet
@@ -29,8 +28,7 @@ namespace gfx::vulkan
                     "with only {} available!",
                     binding.descriptorCount,
                     vk::to_string(binding.descriptorType),
-                    this->available_descriptors[binding.descriptorType]
-                );
+                    this->available_descriptors[binding.descriptorType]);
             }
         }
 
@@ -53,13 +51,11 @@ namespace gfx::vulkan
         // TODO: create an array function to deal with multiple allocation
         std::vector<vk::DescriptorSet> allocatedDescriptors =
             this->device->asLogicalDevice().allocateDescriptorSets(
-                descriptorAllocationInfo
-            );
+                descriptorAllocationInfo);
 
         util::assertFatal(
             allocatedDescriptors.size() == 1,
-            "Invalid descriptor length returned"
-        );
+            "Invalid descriptor length returned");
 
         return DescriptorSet {
             this->shared_from_this(),
@@ -69,17 +65,17 @@ namespace gfx::vulkan
 
     DescriptorPool::DescriptorPool(
         std::shared_ptr<Device>                               device_,
-        std::unordered_map<vk::DescriptorType, std::uint32_t> capacity
-    )
+        std::unordered_map<vk::DescriptorType, std::uint32_t> capacity)
         : device {std::move(device_)}
         , pool {nullptr}
+        , initial_descriptors {capacity}
         , available_descriptors {std::move(capacity)}
     {
         this->available_descriptors.rehash(32); // optimization
 
         std::vector<vk::DescriptorPoolSize> requestedPoolMembers {};
 
-        for (auto [descriptor, number] : this->available_descriptors)
+        for (auto& [descriptor, number] : this->available_descriptors)
         {
             requestedPoolMembers.push_back(vk::DescriptorPoolSize {
                 .type {descriptor}, .descriptorCount {number}});
@@ -96,8 +92,7 @@ namespace gfx::vulkan
         };
 
         this->pool = this->device->asLogicalDevice().createDescriptorPoolUnique(
-            poolCreateInfo
-        );
+            poolCreateInfo);
     }
 
     void DescriptorPool::free(DescriptorSet& setToFree)
@@ -110,14 +105,12 @@ namespace gfx::vulkan
 
         // TODO: add array function
         this->device->asLogicalDevice().freeDescriptorSets(
-            *this->pool, *setToFree
-        );
+            *this->pool, *setToFree);
     }
 
     DescriptorSetLayout::DescriptorSetLayout(
         std::shared_ptr<Device>           device_,
-        vk::DescriptorSetLayoutCreateInfo layoutCreateInfo
-    )
+        vk::DescriptorSetLayoutCreateInfo layoutCreateInfo)
         : device {std::move(device_)}
         , layout {nullptr}
         , descriptors {}
@@ -134,8 +127,7 @@ namespace gfx::vulkan
 
         this->layout =
             this->device->asLogicalDevice().createDescriptorSetLayoutUnique(
-                layoutCreateInfo
-            );
+                layoutCreateInfo);
     }
 
     const vk::DescriptorSetLayout* DescriptorSetLayout::operator* () const
@@ -191,14 +183,12 @@ namespace gfx::vulkan
     DescriptorSet::DescriptorSet(
         std::shared_ptr<DescriptorPool>      pool_,
         std::shared_ptr<DescriptorSetLayout> layout_,
-        vk::DescriptorSet                    set_
-    )
+        vk::DescriptorSet                    set_)
         : set {set_}
         , layout {std::move(layout_)}
         , pool {std::move(pool_)}
     {
         util::logTrace(
-            "Allocated descriptor set at {}", static_cast<void*>(this->set)
-        );
+            "Allocated descriptor set at {}", static_cast<void*>(this->set));
     }
 } // namespace gfx::vulkan

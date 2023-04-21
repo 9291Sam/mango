@@ -2,6 +2,7 @@
 #define SRC_GFX_VULKAN_DESCRIPTORS_HPP
 
 #include "includes.hpp"
+#include <expected>
 #include <memory>
 #include <span>
 #include <unordered_map>
@@ -12,16 +13,42 @@ namespace gfx::vulkan
     class DescriptorSet;
     class DescriptorSetLayout;
 
-    // TODO: could this be trivially threaded with the use of atomics && some
-    // atomic_load_store?
+    class DynamicDescriptorPool
+    {
+    public:
+
+        DynamicDescriptorPool(std::shared_ptr<Device>);
+
+        DynamicDescriptorPool(const DynamicDescriptorPool&) = delete;
+        DynamicDescriptorPool(DynamicDescriptorPool&&)      = delete;
+        DynamicDescriptorPool&
+        operator= (const DynamicDescriptorPool&)                   = delete;
+        DynamicDescriptorPool& operator= (DynamicDescriptorPool&&) = delete;
+
+        [[nodiscard]] DescriptorSet
+            allocate(std::shared_ptr<DescriptorSetLayout>);
+
+    private:
+        std::shared_ptr<Device> device;
+
+        std::shared_ptr<DescriptorPool> current_pool;
+    }
+
+    // TODO: add proper atomics to this
     class DescriptorPool : public std::enable_shared_from_this<DescriptorPool>
     {
+    public:
+        struct AllocationFailure
+        {
+            std::size_t        tried_to_allocate;
+            vk::DescriptorType type;
+            std::size_t        number_available;
+        };
     public:
 
         [[nodiscard]] static std::shared_ptr<DescriptorPool> create(
             std::shared_ptr<Device>,
-            std::unordered_map<vk::DescriptorType, std::uint32_t> capacity
-        );
+            std::unordered_map<vk::DescriptorType, std::uint32_t> capacity);
         ~DescriptorPool() = default;
 
         DescriptorPool()                                  = delete;
@@ -30,15 +57,14 @@ namespace gfx::vulkan
         DescriptorPool& operator= (const DescriptorPool&) = delete;
         DescriptorPool& operator= (DescriptorPool&&)      = delete;
 
-        [[nodiscard]] DescriptorSet
+        [[nodiscard]] std::expected<DescriptorSet, AllocationFailure>
             allocate(std::shared_ptr<DescriptorSetLayout>);
 
     private:
 
         DescriptorPool(
             std::shared_ptr<Device>,
-            std::unordered_map<vk::DescriptorType, std::uint32_t> capacity
-        );
+            std::unordered_map<vk::DescriptorType, std::uint32_t> capacity);
 
         friend class DescriptorSet;
         void free(DescriptorSet&);
@@ -46,6 +72,8 @@ namespace gfx::vulkan
         std::shared_ptr<Device>  device;
         vk::UniqueDescriptorPool pool;
         std::unordered_map<vk::DescriptorType, std::uint32_t>
+            initial_descriptors;
+        std::unordered_map<vk::DescriptorType, std::atomic<std::uint32_t>>
             available_descriptors;
     }; // class DescriptorPool
 
@@ -54,8 +82,7 @@ namespace gfx::vulkan
     public:
 
         DescriptorSetLayout(
-            std::shared_ptr<Device>, vk::DescriptorSetLayoutCreateInfo
-        );
+            std::shared_ptr<Device>, vk::DescriptorSetLayoutCreateInfo);
         ~DescriptorSetLayout() = default;
 
         DescriptorSetLayout()                                       = delete;
@@ -94,8 +121,7 @@ namespace gfx::vulkan
         DescriptorSet(
             std::shared_ptr<DescriptorPool>,
             std::shared_ptr<DescriptorSetLayout>,
-            vk::DescriptorSet
-        );
+            vk::DescriptorSet);
 
         vk::DescriptorSet                    set;
         std::shared_ptr<DescriptorSetLayout> layout;

@@ -1,6 +1,6 @@
 AccessModifierOffset: -4
 AlignAfterOpenBracket: AlwaysBreak 
-AlignArrayOfStructures: Left 
+AlignArrayOfStructures: None 
 AlignConsecutiveAssignments: AcrossComments
 AlignConsecutiveBitFields: AcrossComments 
 AlignConsecutiveDeclarations: AcrossComments

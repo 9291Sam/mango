@@ -9,25 +9,25 @@ int main()
 
     const std::array<gfx::vulkan::Vertex, 3> vertices {
         gfx::vulkan::Vertex {
-                             .position {1.0f, 1.0f, 0.0f},
-                             .color {1.0f, 0.0f, 0.0f},
-                             .normal {},
-                             .uv {},
-                             },
+            .position {1.0f, 1.0f, 0.0f},
+            .color {1.0f, 0.0f, 0.0f},
+            .normal {},
+            .uv {},
+        },
 
         gfx::vulkan::Vertex {
-                             .position {-1.0f, 1.0f, 0.0f},
-                             .color {0.0f, 1.0f, 0.0f},
-                             .normal {},
-                             .uv {},
-                             },
+            .position {-1.0f, 1.0f, 0.0f},
+            .color {0.0f, 1.0f, 0.0f},
+            .normal {},
+            .uv {},
+        },
 
         gfx::vulkan::Vertex {
-                             .position {0.0f, -1.0f, 0.0f},
-                             .color {0.0f, 0.0f, 1.0f},
-                             .normal {},
-                             .uv {},
-                             },
+            .position {0.0f, -1.0f, 0.0f},
+            .color {0.0f, 0.0f, 1.0f},
+            .normal {},
+            .uv {},
+        },
     };
 
     try

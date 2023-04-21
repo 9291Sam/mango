@@ -7,7 +7,6 @@
 #include <fstream>
 #include <memory>
 
-
 namespace gfx::vulkan
 {
     vk::UniqueShaderModule
@@ -85,9 +84,7 @@ namespace gfx::vulkan
         };
 
         const vk::Rect2D scissor {
-            .offset {0, 0},
-             .extent {this->swapchain->getExtent()}
-        };
+            .offset {0, 0}, .extent {this->swapchain->getExtent()}};
 
         const vk::PipelineViewportStateCreateInfo viewportState {
             .sType {vk::StructureType::ePipelineViewportStateCreateInfo},
@@ -228,32 +225,27 @@ namespace gfx::vulkan
                 device->asLogicalDevice(),
                 "src/gfx/vulkan/shaders/flat_pipeline.frag.bin");
 
-        // clang-format off
         const std::array<vk::PipelineShaderStageCreateInfo, 2>
-        flatPipelineShaders
-        {
-            vk::PipelineShaderStageCreateInfo
-            {
-                .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
-                .pNext {nullptr},
-                .flags {},
-                .stage {vk::ShaderStageFlagBits::eVertex},
-                .module {*flatVertex},
-                .pName {"main"},
-                .pSpecializationInfo {nullptr},
-            },
-            vk::PipelineShaderStageCreateInfo
-            {
-                .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
-                .pNext {nullptr},
-                .flags {},
-                .stage {vk::ShaderStageFlagBits::eFragment},
-                .module {*flatFragment},
-                .pName {"main"},
-                .pSpecializationInfo {nullptr},
-            },
-        };
-        // clang-format on
+            flatPipelineShaders {
+                vk::PipelineShaderStageCreateInfo {
+                    .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
+                    .pNext {nullptr},
+                    .flags {},
+                    .stage {vk::ShaderStageFlagBits::eVertex},
+                    .module {*flatVertex},
+                    .pName {"main"},
+                    .pSpecializationInfo {nullptr},
+                },
+                vk::PipelineShaderStageCreateInfo {
+                    .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
+                    .pNext {nullptr},
+                    .flags {},
+                    .stage {vk::ShaderStageFlagBits::eFragment},
+                    .module {*flatFragment},
+                    .pName {"main"},
+                    .pSpecializationInfo {nullptr},
+                },
+            };
 
         const vk::PushConstantRange pushConstantsInformation {
             .stageFlags {vk::ShaderStageFlagBits::eAllGraphics},

@@ -28,6 +28,7 @@ namespace gfx
 
         virtual void bind(vk::CommandBuffer) const = 0;
         virtual void draw(vk::CommandBuffer) const = 0;
+        // virtual void setPushConstants(vk::CommandBuffer) const = 0;
     };
 
     class VertexObject : public Object
@@ -47,6 +48,8 @@ namespace gfx
         std::size_t                        number_of_vertices;
         vulkan::Buffer                     vertex_buffer;
     };
+
+    // pipelined object class
 } // namespace gfx
 
 #endif // SRC_GFX_OBJECT_HPP

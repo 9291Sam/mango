@@ -28,7 +28,7 @@ add_executable(mango
   src/gfx/frame.cpp
   src/gfx/object.cpp
   src/gfx/renderer.cpp
-  # src/gfx/transform.cpp
+  src/gfx/transform.cpp
   src/gfx/window.cpp
   
   src/util/log.cpp

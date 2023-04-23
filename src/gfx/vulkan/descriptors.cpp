@@ -67,8 +67,7 @@ namespace gfx::vulkan
         std::shared_ptr<Device>                               device_,
         std::unordered_map<vk::DescriptorType, std::uint32_t> capacity)
         : device {std::move(device_)}
-        , pool {nullptr}
-        , initial_descriptors {capacity}
+        , pool {nullptr} // , initial_descriptors {capacity}
         , available_descriptors {std::move(capacity)}
     {
         this->available_descriptors.rehash(32); // optimization

@@ -13,26 +13,26 @@ namespace gfx::vulkan
     class DescriptorSet;
     class DescriptorSetLayout;
 
-    class DynamicDescriptorPool
-    {
-    public:
+    // class DynamicDescriptorPool
+    // {
+    // public:
 
-        DynamicDescriptorPool(std::shared_ptr<Device>);
+    //     DynamicDescriptorPool(std::shared_ptr<Device>);
 
-        DynamicDescriptorPool(const DynamicDescriptorPool&) = delete;
-        DynamicDescriptorPool(DynamicDescriptorPool&&)      = delete;
-        DynamicDescriptorPool&
-        operator= (const DynamicDescriptorPool&)                   = delete;
-        DynamicDescriptorPool& operator= (DynamicDescriptorPool&&) = delete;
+    //     DynamicDescriptorPool(const DynamicDescriptorPool&) = delete;
+    //     DynamicDescriptorPool(DynamicDescriptorPool&&)      = delete;
+    //     DynamicDescriptorPool&
+    //     operator= (const DynamicDescriptorPool&)                   = delete;
+    //     DynamicDescriptorPool& operator= (DynamicDescriptorPool&&) = delete;
 
-        [[nodiscard]] DescriptorSet
-            allocate(std::shared_ptr<DescriptorSetLayout>);
+    //     [[nodiscard]] DescriptorSet
+    //         allocate(std::shared_ptr<DescriptorSetLayout>);
 
-    private:
-        std::shared_ptr<Device> device;
+    // private:
+    //     std::shared_ptr<Device> device;
 
-        std::shared_ptr<DescriptorPool> current_pool;
-    }
+    //     std::shared_ptr<DescriptorPool> current_pool;
+    // };
 
     // TODO: add proper atomics to this
     class DescriptorPool : public std::enable_shared_from_this<DescriptorPool>
@@ -57,7 +57,8 @@ namespace gfx::vulkan
         DescriptorPool& operator= (const DescriptorPool&) = delete;
         DescriptorPool& operator= (DescriptorPool&&)      = delete;
 
-        [[nodiscard]] std::expected<DescriptorSet, AllocationFailure>
+        // [[nodiscard]] std::expected<DescriptorSet, AllocationFailure>
+        [[nodiscard]] DescriptorSet
             allocate(std::shared_ptr<DescriptorSetLayout>);
 
     private:
@@ -71,9 +72,9 @@ namespace gfx::vulkan
 
         std::shared_ptr<Device>  device;
         vk::UniqueDescriptorPool pool;
+        // std::unordered_map<vk::DescriptorType, std::uint32_t>
+        //     initial_descriptors;
         std::unordered_map<vk::DescriptorType, std::uint32_t>
-            initial_descriptors;
-        std::unordered_map<vk::DescriptorType, std::atomic<std::uint32_t>>
             available_descriptors;
     }; // class DescriptorPool
 

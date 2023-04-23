@@ -7,6 +7,7 @@
 
 namespace gfx
 {
+    class Camera;
     class Object;
 
     namespace vulkan
@@ -37,7 +38,8 @@ namespace gfx
         Frame& operator= (Frame&&)      = delete;
 
         // @return {true}, is resize needed
-        [[nodiscard]] bool render(const vulkan::FlatPipeline&, const Object&);
+        [[nodiscard]] bool
+        render(const vulkan::FlatPipeline&, const Camera&, const Object&);
 
     private:
         std::shared_ptr<vulkan::Device>                     device;

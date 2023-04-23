@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 #include "frame.hpp"
 #include "object.hpp"
+#include "transform.hpp"
 #include "util/log.hpp"
 #include "vulkan/allocator.hpp"
 #include "vulkan/buffer.hpp"
@@ -17,18 +18,18 @@
 namespace gfx
 {
     Renderer::Renderer()
-        : window          {{1'200, 1'200}, "Mango"}
-        , instance        {nullptr}
-        , device          {nullptr}
-        , allocator       {nullptr}
+        : window {{1'200, 1'200}, "Mango"}
+        , instance {nullptr}
+        , device {nullptr}
+        , allocator {nullptr}
         , descriptor_pool {nullptr}
-        , swapchain       {nullptr}
-        , depth_buffer    {nullptr}
-        , render_pass     {nullptr}
-        , flat_pipeline   {nullptr}
-        , render_index    {0}
-        , frames          {nullptr}
-        , vertex_buffer   {nullptr}
+        , swapchain {nullptr}
+        , depth_buffer {nullptr}
+        , render_pass {nullptr}
+        , flat_pipeline {nullptr}
+        , render_index {0}
+        , frames {nullptr}
+        , vertex_buffer {nullptr}
     {
         const vk::DynamicLoader         dl;
         const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
@@ -106,8 +107,10 @@ namespace gfx
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
+        const Camera camera {{-35.0f, 35.0f, 35.0f}, -0.570792479f, 0.785398f};
+
         if (this->frames.at(this->render_index)
-                ->render(*this->flat_pipeline, object))
+                ->render(*this->flat_pipeline, camera, object))
         {
             this->resize();
         }

@@ -1,5 +1,6 @@
 #include "frame.hpp"
 #include "object.hpp"
+#include "transform.hpp"
 #include "vulkan/buffer.hpp"
 #include "vulkan/device.hpp"
 #include "vulkan/pipeline.hpp"
@@ -43,8 +44,10 @@ namespace gfx
             this->device->asLogicalDevice().createFenceUnique(fenceCreateInfo);
     }
 
-    bool
-    Frame::render(const vulkan::FlatPipeline& pipeline, const Object& object)
+    bool Frame::render(
+        const vulkan::FlatPipeline&    pipeline,
+        [[maybe_unused]] const Camera& camera,
+        const Object&                  object)
     {
         std::optional<bool> returnValue = std::nullopt;
 
@@ -147,6 +150,28 @@ namespace gfx
                 // loops lol
                 commandBuffer.bindPipeline(
                     vk::PipelineBindPoint::eGraphics, *pipeline);
+
+                Transform transform {
+                    .translation {0.0f, 0.0f, 0.0f},
+                    .rotation {1.0f, 0.0f, 0.0f, 0.0f},
+                    .scale {5.0f, 5.0f, 5.0f}};
+
+                vulkan::PushConstants pushConstants {.model_view_proj {
+                    Camera::getPerspectiveMatrix(
+                        glm::radians(70.f),
+                        static_cast<float>(this->swapchain->getExtent().width)
+                            / static_cast<float>(
+                                this->swapchain->getExtent().height),
+                        0.1f,
+                        200000.0f)
+                    * camera.getViewMatrix() * transform.asModelMatrix()}};
+
+                // vkCmdPushConstants
+                commandBuffer.pushConstants<vulkan::PushConstants>(
+                    pipeline.getLayout(),
+                    vk::ShaderStageFlagBits::eAllGraphics,
+                    0,
+                    pushConstants);
 
                 object.bind(commandBuffer);
 

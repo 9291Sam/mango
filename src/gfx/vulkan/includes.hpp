@@ -1,6 +1,8 @@
 #ifndef SRC_RENDER_VULKAN_INCLUDES_HPP
 #define SRC_RENDER_VULKAN_INCLUDES_HPP
 
+// TODO: seperate out into vulkan  / glfw / a and glm includes
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 // clang-format off

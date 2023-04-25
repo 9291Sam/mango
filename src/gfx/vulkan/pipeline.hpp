@@ -14,42 +14,33 @@ namespace gfx::vulkan
     class RenderPass;
     class Swapchain;
 
-    template<class T>
-    concept ValidPipeline = requires(const T t) {
-        {
-            *t
-        } -> std::same_as<vk::Pipeline>;
-        {
-            t.getLayout()
-        } -> std::same_as<vk::PipelineLayout>;
-    };
+    class PipelineBuilder
+    {};
 
-    // TODO: expand to be not shit
-    // TODO: this may be a good PipelineBase class that just needs to be
-    // specialized
     class Pipeline
     {
     public:
         static vk::UniqueShaderModule
         createShaderFromFile(vk::Device, const char* filePath);
-
     public:
-        Pipeline(
-            std::shared_ptr<Device>,
-            std::shared_ptr<Swapchain>,
-            std::shared_ptr<RenderPass>,
-            std::span<const vk::PipelineShaderStageCreateInfo>,
-            vk::UniquePipelineLayout);
-        ~Pipeline() = default;
+        virtual ~Pipeline();
 
         Pipeline(const Pipeline&)             = delete;
         Pipeline(Pipeline&&)                  = delete;
         Pipeline& operator= (const Pipeline&) = delete;
         Pipeline& operator= (Pipeline&&)      = delete;
 
-        // TODO: add virtual operator<=>
-        [[nodiscard]] vk::Pipeline       operator* () const;
-        [[nodiscard]] vk::PipelineLayout getLayout() const;
+        [[nodiscard]] virtual std::strong_ordering
+                                           operator<=> (const Pipeline&) const;
+        [[nodiscard]] virtual vk::Pipeline operator* () const;
+        [[nodiscard]] virtual vk::PipelineLayout getLayout() const;
+
+    protected:
+        Pipeline(
+            std::shared_ptr<Device>,
+            std::shared_ptr<Swapchain>,
+            std::shared_ptr<RenderPass>,
+            const PipelineBuilder&);
 
     private:
         std::shared_ptr<Device>     device;
@@ -58,25 +49,16 @@ namespace gfx::vulkan
         vk::UniquePipelineLayout    layout;
         vk::UniquePipeline          pipeline;
     };
-    static_assert(ValidPipeline<Pipeline>);
 
-    class FlatPipeline
+    class FlatPipeline final : public Pipeline
     {
     public:
-
         FlatPipeline(
             std::shared_ptr<Device>,
             std::shared_ptr<Swapchain>,
             std::shared_ptr<RenderPass>);
-        ~FlatPipeline() = default;
-
-        [[nodiscard]] vk::Pipeline       operator* () const;
-        [[nodiscard]] vk::PipelineLayout getLayout() const;
-
-    private:
-        std::unique_ptr<Pipeline> pipeline;
+        ~FlatPipeline() override;
     };
-    static_assert(ValidPipeline<FlatPipeline>);
 
 } // namespace gfx::vulkan
 

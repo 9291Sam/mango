@@ -212,7 +212,7 @@ namespace gfx::vulkan
         std::shared_ptr<Device>     device,
         std::shared_ptr<Swapchain>  swapchain,
         std::shared_ptr<RenderPass> renderPass)
-        : pipeline {nullptr}
+        : Pipeline {nullptr}
     {
         // the lifetime of this is that the must outlive the pipeline creation
         const vk::UniqueShaderModule flatVertex =
@@ -264,13 +264,6 @@ namespace gfx::vulkan
                     .pushConstantRangeCount {1},
                     .pPushConstantRanges {&pushConstantsInformation},
                 });
-
-        this->pipeline = std::make_unique<vulkan::Pipeline>(
-            std::move(device),
-            std::move(swapchain),
-            std::move(renderPass),
-            flatPipelineShaders,
-            std::move(layout));
     }
 
     vk::Pipeline FlatPipeline::operator* () const

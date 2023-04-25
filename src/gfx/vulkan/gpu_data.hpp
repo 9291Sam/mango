@@ -6,6 +6,7 @@
 
 namespace gfx::vulkan
 {
+    using Index = std::uint32_t;
     /// NOTE:
     /// If you change any of these, dont forget to update their
     /// corresponding structs in the shaders!

@@ -47,6 +47,7 @@ namespace gfx::vulkan
         Pipeline& operator= (const Pipeline&) = delete;
         Pipeline& operator= (Pipeline&&)      = delete;
 
+        // TODO: add virtual operator<=>
         [[nodiscard]] vk::Pipeline       operator* () const;
         [[nodiscard]] vk::PipelineLayout getLayout() const;
 

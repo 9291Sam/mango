@@ -70,19 +70,6 @@ namespace gfx
         this->descriptor_pool = vulkan::DescriptorPool::create(
             this->device, std::move(descriptorMap));
 
-        // TODO: bad!
-        // this->vertex_buffer = std::make_unique<vulkan::Buffer>(
-        //     this->allocator,
-        //     sizeof(vulkan::Vertex) * vertices.size(),
-        //     vk::BufferUsageFlagBits::eVertexBuffer,
-        //     vk::MemoryPropertyFlagBits::eHostVisible
-        //         | vk::MemoryPropertyFlagBits::eHostCoherent
-        //         | vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-        // this->vertex_buffer->write(
-        //     {reinterpret_cast<const std::byte*>(vertices.data()),
-        //      sizeof(vulkan::Vertex) * vertices.size()});
-
         this->initializeRenderer();
 
         util::logLog("Renderer initialization complete");
@@ -96,7 +83,12 @@ namespace gfx
     std::unique_ptr<VertexObject>
     Renderer::createObject(std::span<const vulkan::Vertex> vertices) const
     {
-        return std::make_unique<VertexObject>(this->allocator, vertices);
+        util::logWarn("Unhard code this pipeline!");
+
+        return std::make_unique<VertexObject>(
+            this->allocator,
+            std::static_pointer_cast<vulkan::Pipeline>(this->flat_pipeline),
+            vertices);
     }
 
     bool Renderer::shouldClose() const
@@ -155,7 +147,7 @@ namespace gfx
         this->render_pass = std::make_shared<vulkan::RenderPass>(
             this->device, this->swapchain, this->depth_buffer);
 
-        this->flat_pipeline = std::make_unique<vulkan::FlatPipeline>(
+        this->flat_pipeline = std::make_shared<vulkan::FlatPipeline>(
             this->device, this->swapchain, this->render_pass);
 
         std::shared_ptr<std::vector<vk::UniqueFramebuffer>> framebuffers =

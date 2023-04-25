@@ -8,7 +8,6 @@
 #include "vulkan/render_pass.hpp"
 #include "vulkan/swapchain.hpp"
 
-
 namespace gfx
 {
     Frame::Frame(
@@ -149,9 +148,9 @@ namespace gfx
                 commandBuffer.beginRenderPass(
                     renderPassBeginInfo, vk::SubpassContents::eInline);
 
-                // loops lol
-                commandBuffer.bindPipeline(
-                    vk::PipelineBindPoint::eGraphics, *pipeline);
+                BindState bindState {.current_pipeline {nullptr}};
+
+                object.bind(bindState, commandBuffer);
 
                 Transform transform {
                     .translation {0.0f, 0.0f, 0.0f},
@@ -174,8 +173,6 @@ namespace gfx
                     vk::ShaderStageFlagBits::eAllGraphics,
                     0,
                     pushConstants);
-
-                object.bind(commandBuffer);
 
                 object.draw(commandBuffer);
 

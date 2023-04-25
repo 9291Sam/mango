@@ -19,15 +19,14 @@ namespace gfx
         class DescriptorSet;
     } // namespace vulkan
 
-    class BindState
-    {};
+    struct BindState
+    {
+        std::shared_ptr<vulkan::Pipeline> current_pipeline;
+    };
 
     class Object
     {
     public:
-        Object(
-            std::shared_ptr<vulkan::Allocator>,
-            std::shared_ptr<vulkan::Pipeline>);
         virtual ~Object();
 
         Object(const Object&)             = delete;
@@ -37,9 +36,13 @@ namespace gfx
 
         virtual std::strong_ordering operator<=> (const Object&) const;
 
-        virtual void bind(BindState&) const = 0;
-        virtual void draw() const           = 0;
+        virtual void bind(BindState&, vk::CommandBuffer) const = 0;
+        virtual void draw(vk::CommandBuffer) const           = 0;
     protected:
+        Object(
+            std::shared_ptr<vulkan::Allocator>,
+            std::shared_ptr<vulkan::Pipeline>);
+
         std::shared_ptr<vulkan::Allocator> allocator;
         std::shared_ptr<vulkan::Pipeline>  pipeline;
     };
@@ -51,12 +54,10 @@ namespace gfx
             std::shared_ptr<vulkan::Allocator>,
             std::shared_ptr<vulkan::Pipeline>,
             std::span<const vulkan::Vertex>);
-        virtual ~VertexObject();
+        virtual ~VertexObject() override;
 
-        virtual std::strong_ordering operator<=> (const Object&) const;
-
-        virtual void bind(BindState&) const;
-        virtual void draw() const;
+        virtual void bind(BindState&, vk::CommandBuffer) const override;
+        virtual void draw(vk::CommandBuffer) const override;
 
     private:
         std::size_t    number_of_vertices;

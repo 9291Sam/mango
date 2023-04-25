@@ -51,12 +51,11 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -std=c++2b)
     target_compile_options(mango PUBLIC -Og)
     target_compile_options(mango PUBLIC -g)
-    target_compile_options(mango PUBLIC -fsanitize=address)
     target_compile_options(mango PUBLIC -march=native)
     target_compile_options(mango PUBLIC -fvisibility=default)
+    
     target_compile_options(mango PUBLIC -Weverything)
     target_compile_options(mango PUBLIC -Werror)
-
 
     target_compile_options(mango PUBLIC -Wno-c++98-compat)
     target_compile_options(mango PUBLIC -Wno-c++98-compat-pedantic)
@@ -67,8 +66,15 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-old-style-cast)
     target_compile_options(mango PUBLIC -Wno-c++20-compat)
     target_compile_options(mango PUBLIC -Wno-padded)
+
+  
+    target_compile_options(mango PUBLIC -fsanitize=address)
+    target_compile_options(mango PUBLIC -fsanitize=leak)
+    target_compile_options(mango PUBLIC -fsanitize=undefined)
     
     target_link_options(mango PUBLIC -fsanitize=address)
+    target_link_options(mango PUBLIC -fsanitize=leak)
+    target_link_options(mango PUBLIC -fsanitize=undefined)
 
     if (WIN32)    
       target_compile_definitions(mango  PUBLIC _ITERATOR_DEBUG_LEVEL=0)

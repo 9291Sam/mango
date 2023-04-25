@@ -68,7 +68,7 @@ namespace gfx
         std::shared_ptr<vulkan::RenderPass> render_pass;
 
         // Pipelines TODO: abstract better
-        std::unique_ptr<vulkan::FlatPipeline> flat_pipeline;
+        std::shared_ptr<vulkan::FlatPipeline> flat_pipeline;
 
         // Flying frames
         static constexpr std::size_t MaxFramesInFlight = 2;

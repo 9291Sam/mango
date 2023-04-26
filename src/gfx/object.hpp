@@ -37,7 +37,7 @@ namespace gfx
         virtual std::strong_ordering operator<=> (const Object&) const;
 
         virtual void bind(BindState&, vk::CommandBuffer) const = 0;
-        virtual void draw(vk::CommandBuffer) const           = 0;
+        virtual void draw(vk::CommandBuffer) const             = 0;
     protected:
         Object(
             std::shared_ptr<vulkan::Allocator>,

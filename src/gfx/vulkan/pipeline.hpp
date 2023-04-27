@@ -61,9 +61,9 @@ namespace gfx::vulkan
 
         // TODO: add an id number
         [[nodiscard]] virtual std::strong_ordering
-                                           operator<=> (const Pipeline&) const;
-        [[nodiscard]] virtual vk::Pipeline operator* () const;
-        [[nodiscard]] virtual vk::PipelineLayout getLayout() const;
+                                         operator<=> (const Pipeline&) const;
+        [[nodiscard]] vk::Pipeline       operator* () const;
+        [[nodiscard]] vk::PipelineLayout getLayout() const;
 
     protected:
         Pipeline(

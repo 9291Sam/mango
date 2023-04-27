@@ -15,15 +15,6 @@ namespace gfx::vulkan
     // make sure each queue is only accessed by one thread at a time
     // this alsp removes the requirement of mutexes (actually err no? idk (edge
     // case of the os scheduler))
-    //
-    // EVENTUAL SPLIT:
-    // tmeporary of this in commit 4d996657b94869c1a54e056a97c24c8036818fc8
-    // Best graphics queue family (swapchain submission)
-    //
-    // compute queues
-    // transfer queues
-    //
-    // TODO: add abstractions to ensure queue families are kept seperate
     class Device
     {
     public:

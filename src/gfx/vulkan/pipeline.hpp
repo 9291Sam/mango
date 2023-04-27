@@ -13,9 +13,38 @@ namespace gfx::vulkan
     class Device;
     class RenderPass;
     class Swapchain;
+    class RenderPass;
 
-    class PipelineBuilder
-    {};
+    template<class T>
+    concept PipelineVertex = requires {
+        {
+            T::getBindingDescription()
+        } -> std::same_as<const vk::VertexInputBindingDescription*>;
+        {
+            T::getAttributeDescriptions()
+        } -> std::same_as<
+            const std::array<vk::VertexInputAttributeDescription, 4>*>;
+    };
+
+    struct PipelineBuilder
+    {
+    public:
+        using Self = std::remove_pointer_t<decltype(this)>;
+    public:
+        PipelineBuilder() {};
+
+        // TODO: actually dont hack this together and do it right
+        Self& withVertexShader(vk::UniqueShaderModule);
+        Self& withFragmentShader(vk::UniqueShaderModule);
+        Self& withLayout(vk::UniquePipelineLayout);
+
+        vk::UniquePipeline build(const RenderPass&, const Swapchain&) const;
+
+    private:
+        std::optional<vk::UniqueShaderModule>   vertex_shader;
+        std::optional<vk::UniqueShaderModule>   fragment_shader;
+        std::optional<vk::UniquePipelineLayout> layout;
+    };
 
     class Pipeline
     {
@@ -30,6 +59,7 @@ namespace gfx::vulkan
         Pipeline& operator= (const Pipeline&) = delete;
         Pipeline& operator= (Pipeline&&)      = delete;
 
+        // TODO: add an id number
         [[nodiscard]] virtual std::strong_ordering
                                            operator<=> (const Pipeline&) const;
         [[nodiscard]] virtual vk::Pipeline operator* () const;
@@ -40,11 +70,12 @@ namespace gfx::vulkan
             std::shared_ptr<Device>,
             std::shared_ptr<Swapchain>,
             std::shared_ptr<RenderPass>,
-            const PipelineBuilder&);
+            PipelineBuilder);
 
     private:
-        std::shared_ptr<Device>     device;
-        std::shared_ptr<Swapchain>  swapchain;
+        std::shared_ptr<Device> device;
+        std::shared_ptr<Swapchain>
+            swapchain; // TODO: make this a const reference
         std::shared_ptr<RenderPass> render_pass;
         vk::UniquePipelineLayout    layout;
         vk::UniquePipeline          pipeline;

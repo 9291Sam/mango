@@ -42,18 +42,52 @@ namespace gfx::vulkan
         return device.createShaderModuleUnique(shaderCreateInfo);
     }
 
-    Pipeline::Pipeline(
-        std::shared_ptr<Device>                            device_,
-        std::shared_ptr<Swapchain>                         swapchain_,
-        std::shared_ptr<RenderPass>                        renderPass,
-        std::span<const vk::PipelineShaderStageCreateInfo> shaderStages,
-        vk::UniquePipelineLayout                           layout_)
-        : device {std::move(device_)}
-        , swapchain {std::move(swapchain_)}
-        , render_pass {std::move(renderPass)}
-        , layout {std::move(layout_)}
-        , pipeline {nullptr}
+    auto PipelineBuilder::withVertexShader(vk::UniqueShaderModule shaderModule)
+        -> Self&
     {
+        this->vertex_shader = shaderModule;
+        return *this;
+    }
+
+    auto
+    PipelineBuilder::withFragmentShader(vk::UniqueShaderModule shaderModule)
+        -> Self&
+    {
+        this->fragment_shader = shaderModule;
+        return *this;
+    }
+
+    auto PipelineBuilder::withLayout(vk::UniquePipelineLayout layout_) -> Self&
+    {
+        this->layout = layout_;
+        return *this;
+    }
+
+    vk::UniquePipeline PipelineBuilder::build(
+        const RenderPass& renderPass, const Swapchain& swapchain) const
+    {
+        // TODO: :vomit:
+        const std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages {
+            vk::PipelineShaderStageCreateInfo {
+                .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
+                .pNext {nullptr},
+                .flags {},
+                .stage {vk::ShaderStageFlagBits::eVertex},
+                .module {this->vertex_shader.value()},
+                .pName {"main"},
+                .pSpecializationInfo {nullptr},
+            },
+            vk::PipelineShaderStageCreateInfo {
+                .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
+                .pNext {nullptr},
+                .flags {},
+                .stage {vk::ShaderStageFlagBits::eFragment},
+                .module {this->fragment_shader.value()},
+                .pName {"main"},
+                .pSpecializationInfo {nullptr},
+            },
+        };
+
         const vk::PipelineVertexInputStateCreateInfo pipeVertexCreateInfo {
             .sType {vk::StructureType::ePipelineVertexInputStateCreateInfo},
             .pNext {nullptr},
@@ -77,14 +111,14 @@ namespace gfx::vulkan
         const vk::Viewport viewport {
             .x {0.0f},
             .y {0.0f},
-            .width {static_cast<float>(this->swapchain->getExtent().width)},
-            .height {static_cast<float>(this->swapchain->getExtent().height)},
+            .width {static_cast<float>(swapchain.getExtent().width)},
+            .height {static_cast<float>(swapchain.getExtent().height)},
             .minDepth {0.0f},
             .maxDepth {1.0f},
         };
 
         const vk::Rect2D scissor {
-            .offset {0, 0}, .extent {this->swapchain->getExtent()}};
+            .offset {0, 0}, .extent {swapchain.getExtent()}};
 
         const vk::PipelineViewportStateCreateInfo viewportState {
             .sType {vk::StructureType::ePipelineViewportStateCreateInfo},
@@ -180,8 +214,8 @@ namespace gfx::vulkan
             .pDepthStencilState {&depthStencilActivator},
             .pColorBlendState {&colorBlendCreateInfo},
             .pDynamicState {nullptr},
-            .layout {*this->layout},
-            .renderPass {**this->render_pass},
+            .layout {this->layout.value()},
+            .renderPass {*renderPass},
             .subpass {0},
             .basePipelineHandle {nullptr},
             .basePipelineIndex {-1},
@@ -199,6 +233,11 @@ namespace gfx::vulkan
         this->pipeline = std::move(maybeGraphicsPipeline);
     }
 
+    Pipeline::~Pipeline() {}
+
+    [[nodiscard]] virtual std::strong_ordering
+    operator<=> (const Pipeline&) const;
+
     vk::Pipeline Pipeline::operator* () const
     {
         return *this->pipeline;
@@ -212,59 +251,41 @@ namespace gfx::vulkan
         std::shared_ptr<Device>     device,
         std::shared_ptr<Swapchain>  swapchain,
         std::shared_ptr<RenderPass> renderPass)
-        : Pipeline {nullptr}
+        : Pipeline
     {
-        // the lifetime of this is that the must outlive the pipeline creation
-        const vk::UniqueShaderModule flatVertex =
-            vulkan::Pipeline::createShaderFromFile(
-                device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/flat_pipeline.vert.bin");
+        std::move(device), std::move(swapchain), std::move(renderPass),
+            PipelineBuilder {}
+                .withVertexShader(vulkan::Pipeline::createShaderFromFile(
+                    device->asLogicalDevice(),
+                    "src/gfx/vulkan/shaders/flat_pipeline.vert.bin"))
+                .withFragmentShader(vulkan::Pipeline::createShaderFromFile(
+                    device->asLogicalDevice(),
+                    "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"))
+                .withLayout(
+                    [&]
+                    {
+                        const vk::PushConstantRange pushConstantsInformation {
+                            .stageFlags {vk::ShaderStageFlagBits::eAllGraphics},
+                            .offset {0},
+                            .size {sizeof(vulkan::PushConstants)},
+                        };
 
-        const vk::UniqueShaderModule flatFragment =
-            vulkan::Pipeline::createShaderFromFile(
-                device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/flat_pipeline.frag.bin");
-
-        const std::array<vk::PipelineShaderStageCreateInfo, 2>
-            flatPipelineShaders {
-                vk::PipelineShaderStageCreateInfo {
-                    .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
-                    .pNext {nullptr},
-                    .flags {},
-                    .stage {vk::ShaderStageFlagBits::eVertex},
-                    .module {*flatVertex},
-                    .pName {"main"},
-                    .pSpecializationInfo {nullptr},
-                },
-                vk::PipelineShaderStageCreateInfo {
-                    .sType {vk::StructureType::ePipelineShaderStageCreateInfo},
-                    .pNext {nullptr},
-                    .flags {},
-                    .stage {vk::ShaderStageFlagBits::eFragment},
-                    .module {*flatFragment},
-                    .pName {"main"},
-                    .pSpecializationInfo {nullptr},
-                },
-            };
-
-        const vk::PushConstantRange pushConstantsInformation {
-            .stageFlags {vk::ShaderStageFlagBits::eAllGraphics},
-            .offset {0},
-            .size {sizeof(vulkan::PushConstants)},
-        };
-
-        vk::UniquePipelineLayout layout =
-            device->asLogicalDevice().createPipelineLayoutUnique(
-                vk::PipelineLayoutCreateInfo {
-                    .sType {vk::StructureType::ePipelineLayoutCreateInfo},
-                    .pNext {nullptr},
-                    .flags {},
-                    .setLayoutCount {0},
-                    .pSetLayouts {nullptr},
-                    .pushConstantRangeCount {1},
-                    .pPushConstantRanges {&pushConstantsInformation},
-                });
+                        return device->asLogicalDevice()
+                            .createPipelineLayoutUnique(
+                                vk::PipelineLayoutCreateInfo {
+                                    .sType {vk::StructureType::
+                                                ePipelineLayoutCreateInfo},
+                                    .pNext {nullptr},
+                                    .flags {},
+                                    .setLayoutCount {0},
+                                    .pSetLayouts {nullptr},
+                                    .pushConstantRangeCount {1},
+                                    .pPushConstantRanges {
+                                        &pushConstantsInformation},
+                                })
+                    }());
     }
+    {}
 
     vk::Pipeline FlatPipeline::operator* () const
     {

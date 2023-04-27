@@ -11,7 +11,7 @@ namespace gfx
     {
     public:
 
-        Camera(glm::vec3 position, float pitch, float yaw);
+        Camera(glm::vec3 position);
 
         static glm::mat4 getPerspectiveMatrix(
             float fovY,
@@ -29,11 +29,7 @@ namespace gfx
         void addYaw(float);
 
     private:
-        void updateRotationInTransform();
-
         Transform transform;
-        float     pitch;
-        float     yaw;
     };
 } // namespace gfx
 

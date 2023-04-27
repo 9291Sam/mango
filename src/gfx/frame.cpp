@@ -46,8 +46,7 @@ namespace gfx
     }
 
     bool Frame::render(
-        [[maybe_unused]] const Camera& camera,
-        std::span<const Object*>       unsortedObjects)
+        const Camera& camera, std::span<const Object*> unsortedObjects)
     {
         std::optional<bool> returnValue = std::nullopt;
 
@@ -165,30 +164,7 @@ namespace gfx
                 {
                     o->bind(bindState, commandBuffer);
 
-                    // TODO: bad
-                    Transform transform {
-                        .translation {0.0f, 0.0f, 0.0f},
-                        .rotation {1.0f, 0.0f, 0.0f, 0.0f},
-                        .scale {5.0f, 5.0f, 5.0f}};
-
-                    vulkan::PushConstants pushConstants {.model_view_proj {
-                        Camera::getPerspectiveMatrix(
-                            glm::radians(70.f),
-                            static_cast<float>(
-                                this->swapchain->getExtent().width)
-                                / static_cast<float>(
-                                    this->swapchain->getExtent().height),
-                            0.1f,
-                            200000.0f)
-                        * camera.getViewMatrix() * transform.asModelMatrix()}};
-
-                    commandBuffer.pushConstants<vulkan::PushConstants>(
-                        o->pipeline->getLayout(), // TODO: bad!!!
-                        vk::ShaderStageFlagBits::eAllGraphics,
-                        0,
-                        pushConstants);
-
-                    o->draw(commandBuffer);
+                    o->draw(camera, commandBuffer);
                 }
 
                 commandBuffer.endRenderPass();

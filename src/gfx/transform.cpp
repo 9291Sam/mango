@@ -1,5 +1,6 @@
 #include "transform.hpp"
 #include "object.hpp"
+#include "util/log.hpp"
 #include <fmt/format.h>
 
 namespace gfx
@@ -38,6 +39,28 @@ namespace gfx
     glm::vec3 Transform::getRightVector() const
     {
         return this->rotation * Transform::RightVector;
+    }
+
+    void Transform::pitchBy(float pitch)
+    {
+        this->rotation =
+            glm::rotate(this->rotation, pitch, Transform::RightVector);
+    }
+
+    void Transform::yawBy(float yaw)
+    {
+        this->rotation = glm::rotate(this->rotation, yaw, Transform::UpVector);
+    }
+
+    void Transform::rollBy(float roll)
+    {
+        this->rotation =
+            glm::rotate(this->rotation, roll, Transform::ForwardVector);
+    }
+
+    void Transform::assertReasonable() const
+    {
+        util::assertWarn(this->rotation.w != 0.0f, "unreasonable rotation");
     }
 
     Transform::operator std::string () const

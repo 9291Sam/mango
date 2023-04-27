@@ -1,20 +1,23 @@
 #include "object.hpp"
+#include "camera.hpp"
 #include "vulkan/allocator.hpp"
 #include "vulkan/pipeline.hpp"
+#include "vulkan/swapchain.hpp"
 
 namespace gfx
 {
     Object::Object(
         std::shared_ptr<vulkan::Allocator> allocator_,
-        std::shared_ptr<vulkan::Pipeline>  pipeline_)
+        std::shared_ptr<vulkan::Pipeline>  pipeline_,
+        std::shared_ptr<vulkan::Swapchain> swapchain_)
         : allocator {std::move(allocator_)}
         , pipeline {std::move(pipeline_)}
+        , swapchain {std::move(swapchain_)}
     {}
 
     Object::~Object() {}
 
-    std::strong_ordering
-    Object::operator<=> ([[maybe_unused]] const Object& other) const
+    std::strong_ordering Object::operator<=> (const Object& other) const
     {
         return *this->pipeline <=> *other.pipeline;
     }
@@ -31,11 +34,33 @@ namespace gfx
         }
     }
 
+    void Object::setPushConstants(
+        const Camera& camera, vk::CommandBuffer commandBuffer) const
+    {
+        this->transform.assertReasonable();
+
+        vulkan::PushConstants pushConstants {.model_view_proj {
+            Camera::getPerspectiveMatrix(
+                glm::radians(70.f),
+                static_cast<float>(this->swapchain->getExtent().width)
+                    / static_cast<float>(this->swapchain->getExtent().height),
+                0.1f,
+                200000.0f)
+            * camera.getViewMatrix() * this->transform.asModelMatrix()}};
+
+        commandBuffer.pushConstants<vulkan::PushConstants>(
+            this->pipeline->getLayout(),
+            vk::ShaderStageFlagBits::eAllGraphics,
+            0,
+            pushConstants);
+    }
+
     VertexObject::VertexObject(
         std::shared_ptr<vulkan::Allocator> allocator_,
         std::shared_ptr<vulkan::Pipeline>  pipeline_,
+        std::shared_ptr<vulkan::Swapchain> swapchain_,
         std::span<const vulkan::Vertex>    vertices)
-        : Object {std::move(allocator_), std::move(pipeline_)}
+        : Object {std::move(allocator_), std::move(pipeline_), std::move(swapchain_)}
         , number_of_vertices {vertices.size()}
         , vertex_buffer {
               this->allocator,
@@ -58,8 +83,11 @@ namespace gfx
         commandBuffer.bindVertexBuffers(0, *this->vertex_buffer, {0});
     }
 
-    void VertexObject::draw(vk::CommandBuffer commandBuffer) const
+    void VertexObject::draw(
+        const Camera& camera, vk::CommandBuffer commandBuffer) const
     {
+        this->setPushConstants(camera, commandBuffer);
+
         commandBuffer.draw(
             static_cast<std::uint32_t>(this->number_of_vertices), 1, 0, 0);
     }
@@ -67,9 +95,10 @@ namespace gfx
     IndexObject::IndexObject(
         std::shared_ptr<vulkan::Allocator> allocator_,
         std::shared_ptr<vulkan::Pipeline>  pipeline_,
+        std::shared_ptr<vulkan::Swapchain> swapchain_,
         std::span<const vulkan::Vertex>    vertices,
         std::span<const vulkan::Index>     indicies)
-        : VertexObject {std::move(allocator_), std::move(pipeline_), vertices}
+        : VertexObject {std::move(allocator_), std::move(pipeline_), std::move(swapchain_), vertices}
         , number_of_indicies {indicies.size()}
         , index_buffer {
               this->allocator,
@@ -94,8 +123,11 @@ namespace gfx
             *this->index_buffer, 0, vk::IndexType::eUint32);
     }
 
-    void IndexObject::draw(vk::CommandBuffer commandBuffer) const
+    void IndexObject::draw(
+        const Camera& camera, vk::CommandBuffer commandBuffer) const
     {
+        this->setPushConstants(camera, commandBuffer);
+
         commandBuffer.drawIndexed(
             static_cast<std::uint32_t>(this->number_of_indicies), 1, 0, 0, 0);
     }

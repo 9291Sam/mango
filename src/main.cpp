@@ -38,9 +38,12 @@ int main()
 
         std::vector<std::shared_ptr<gfx::Object>> objects {};
         objects.push_back(renderer.createFlatObject(vertices, indicies));
+        objects.at(0)->transform.scale *= 100;
 
         while (!renderer.shouldClose())
         {
+            // objects.at(0)->
+
             std::vector<const gfx::Object*> drawingObjects {};
             drawingObjects.reserve(objects.size());
 

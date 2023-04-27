@@ -2,13 +2,10 @@
 
 namespace gfx
 {
-    Camera::Camera(glm::vec3 position, float pitch_, float yaw_)
+    Camera::Camera(glm::vec3 position)
         : transform {}
-        , pitch {pitch_}
-        , yaw {yaw_}
     {
         this->transform.translation = position;
-        this->updateRotationInTransform();
     }
 
     glm::mat4 Camera::getPerspectiveMatrix(
@@ -58,28 +55,34 @@ namespace gfx
 
     void Camera::addPitch(float pitchToAdd)
     {
-        this->pitch += pitchToAdd;
-        this->updateRotationInTransform();
+        const float pitchBefore = glm::eulerAngles(this->transform.rotation).p;
+        if (pitchBefore + pitchToAdd > glm::half_pi<float>())
+        {
+            this->transform.pitchBy(glm::half_pi<float>() - pitchBefore);
+        }
+        else
+        {
+            this->transform.pitchBy(pitchToAdd);
+        }
     }
 
     void Camera::addYaw(float yawToAdd)
     {
-        this->yaw += yawToAdd;
-        this->updateRotationInTransform();
+        this->transform.yawBy(yawToAdd);
     }
 
-    void Camera::updateRotationInTransform()
-    {
-        glm::quat q {1.0f, 0.0f, 0.0f, 0.0f};
+    // void updateRotationInTransform()
+    // {
+    //     glm::quat q {1.0f, 0.0f, 0.0f, 0.0f};
 
-        this->pitch = std::clamp(
-            this->pitch, -glm::half_pi<float>(), glm::half_pi<float>());
-        this->yaw = glm::mod(this->yaw, glm::two_pi<float>());
+    //     this->pitch = std::clamp(
+    //         this->pitch, -glm::half_pi<float>(), glm::half_pi<float>());
+    //     this->yaw = glm::mod(this->yaw, glm::two_pi<float>());
 
-        q *= glm::angleAxis(this->pitch, glm::vec3 {1.0f, 0.0f, 0.0f});
+    //     q *= glm::angleAxis(this->pitch, glm::vec3 {1.0f, 0.0f, 0.0f});
 
-        q = glm::angleAxis(this->yaw, glm::vec3 {0.0f, -1.0f, 0.0f}) * q;
+    //     q = glm::angleAxis(this->yaw, glm::vec3 {0.0f, -1.0f, 0.0f}) * q;
 
-        this->transform.rotation = q;
-    }
+    //     this->transform.rotation = q;
+    // }
 } // namespace gfx

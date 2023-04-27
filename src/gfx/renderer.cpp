@@ -86,7 +86,11 @@ namespace gfx
     {
         return std::dynamic_pointer_cast<gfx::Object>(
             std::make_shared<IndexObject>(
-                this->allocator, this->flat_pipeline, vertices, indicies));
+                this->allocator,
+                this->flat_pipeline,
+                this->swapchain,
+                vertices,
+                indicies));
     }
 
     bool Renderer::shouldClose() const
@@ -98,7 +102,9 @@ namespace gfx
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
-        const Camera camera {{-35.0f, 35.0f, 35.0f}, -0.570792479f, 0.785398f};
+        Camera camera {{-35.0f, 35.0f, 35.0f}};
+        camera.addPitch(-0.570792479f);
+        camera.addYaw(0.785398f);
 
         if (this->frames.at(this->render_index)->render(camera, objects))
         {

@@ -25,6 +25,13 @@ namespace gfx
         [[nodiscard]] glm::vec3 getUpVector() const;
         [[nodiscard]] glm::vec3 getRightVector() const;
 
+        // add rotate by functions
+        void pitchBy(float pitch);
+        void yawBy(float yaw);
+        void rollBy(float roll);
+
+        void assertReasonable() const; // lmfao
+
         [[nodiscard]] explicit operator std::string () const;
     };
 

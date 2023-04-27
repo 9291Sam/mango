@@ -45,9 +45,7 @@ namespace gfx
                   | vk::MemoryPropertyFlagBits::eHostCoherent
                   | vk::MemoryPropertyFlagBits::eDeviceLocal}
     {
-        this->vertex_buffer.write(
-            {reinterpret_cast<const std::byte*>(vertices.data()),
-             vertices.size_bytes()});
+        this->vertex_buffer.write(std::as_bytes(vertices));
     }
 
     VertexObject::~VertexObject() {}
@@ -81,9 +79,7 @@ namespace gfx
                   | vk::MemoryPropertyFlagBits::eHostCoherent
                   | vk::MemoryPropertyFlagBits::eDeviceLocal}
     {
-        this->index_buffer.write(
-            {reinterpret_cast<const std::byte*>(indicies.data()),
-             indicies.size_bytes()});
+        this->index_buffer.write(std::as_bytes(indicies));
     }
 
     IndexObject::~IndexObject() {}

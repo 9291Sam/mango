@@ -241,14 +241,14 @@ namespace gfx::vulkan
         std::shared_ptr<RenderPass> renderPass,
         std::shared_ptr<Swapchain>  swapchain_,
         PipelineBuilder             builder,
-        std::size_t                 id)
+        std::size_t                 id_)
         : device {std::move(device_)}
         , render_pass {std::move(renderPass)}
         , swapchain {std::move(swapchain_)}
         , layout {nullptr}
         , pipeline {builder.build(
               *this->device, *this->render_pass, *this->swapchain)}
-        , id {id}
+        , id {id_}
     {
         this->layout.swap(builder.layout.value());
     }

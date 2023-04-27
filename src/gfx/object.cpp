@@ -82,7 +82,7 @@ namespace gfx
                   | vk::MemoryPropertyFlagBits::eDeviceLocal}
     {
         this->index_buffer.write(
-            {reinterpret_cast<const std::byte*>(indicies.size()),
+            {reinterpret_cast<const std::byte*>(indicies.data()),
              indicies.size_bytes()});
     }
 

@@ -64,6 +64,6 @@ namespace gfx
     void VertexObject::draw(vk::CommandBuffer commandBuffer) const
     {
         commandBuffer.draw(
-            static_cast<std::uint32_t>(this->number_vertices), 1, 0, 0);
+            static_cast<std::uint32_t>(this->number_of_vertices), 1, 0, 0);
     }
 } // namespace gfx

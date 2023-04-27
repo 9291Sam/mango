@@ -6,6 +6,7 @@
 #include "util/log.hpp"
 #include <fstream>
 #include <memory>
+#include <typeinfo>
 
 namespace gfx::vulkan
 {
@@ -45,7 +46,7 @@ namespace gfx::vulkan
     auto PipelineBuilder::withVertexShader(vk::UniqueShaderModule shaderModule)
         -> Self&
     {
-        this->vertex_shader = shaderModule;
+        this->vertex_shader = std::move(shaderModule);
         return *this;
     }
 
@@ -53,18 +54,20 @@ namespace gfx::vulkan
     PipelineBuilder::withFragmentShader(vk::UniqueShaderModule shaderModule)
         -> Self&
     {
-        this->fragment_shader = shaderModule;
+        this->fragment_shader = std::move(shaderModule);
         return *this;
     }
 
     auto PipelineBuilder::withLayout(vk::UniquePipelineLayout layout_) -> Self&
     {
-        this->layout = layout_;
+        this->layout = std::move(layout_);
         return *this;
     }
 
     vk::UniquePipeline PipelineBuilder::build(
-        const RenderPass& renderPass, const Swapchain& swapchain) const
+        const Device&     device,
+        const RenderPass& renderPass,
+        const Swapchain&  swapchain) const
     {
         // TODO: :vomit:
         const std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages {
@@ -73,7 +76,7 @@ namespace gfx::vulkan
                 .pNext {nullptr},
                 .flags {},
                 .stage {vk::ShaderStageFlagBits::eVertex},
-                .module {this->vertex_shader.value()},
+                .module {*this->vertex_shader.value()},
                 .pName {"main"},
                 .pSpecializationInfo {nullptr},
             },
@@ -82,7 +85,7 @@ namespace gfx::vulkan
                 .pNext {nullptr},
                 .flags {},
                 .stage {vk::ShaderStageFlagBits::eFragment},
-                .module {this->fragment_shader.value()},
+                .module {*this->fragment_shader.value()},
                 .pName {"main"},
                 .pSpecializationInfo {nullptr},
             },
@@ -214,7 +217,7 @@ namespace gfx::vulkan
             .pDepthStencilState {&depthStencilActivator},
             .pColorBlendState {&colorBlendCreateInfo},
             .pDynamicState {nullptr},
-            .layout {this->layout.value()},
+            .layout {*this->layout.value()},
             .renderPass {*renderPass},
             .subpass {0},
             .basePipelineHandle {nullptr},
@@ -222,7 +225,7 @@ namespace gfx::vulkan
         };
 
         auto [result, maybeGraphicsPipeline] =
-            this->device->asLogicalDevice().createGraphicsPipelineUnique(
+            device.asLogicalDevice().createGraphicsPipelineUnique(
                 nullptr, graphicsPipelineCreateInfo);
 
         util::assertFatal(
@@ -230,13 +233,40 @@ namespace gfx::vulkan
             "Failed to create graphics pipeline | Error: {}",
             vk::to_string(result));
 
-        this->pipeline = std::move(maybeGraphicsPipeline);
+        return std::move(maybeGraphicsPipeline);
+    }
+
+    Pipeline::Pipeline(
+        std::shared_ptr<Device>     device_,
+        std::shared_ptr<RenderPass> renderPass,
+        std::shared_ptr<Swapchain>  swapchain_,
+        PipelineBuilder             builder,
+        std::size_t                 id)
+        : device {std::move(device_)}
+        , render_pass {std::move(renderPass)}
+        , swapchain {std::move(swapchain_)}
+        , layout {nullptr}
+        , pipeline {builder.build(
+              *this->device, *this->render_pass, *this->swapchain)}
+        , id {id}
+    {
+        this->layout.swap(builder.layout.value());
     }
 
     Pipeline::~Pipeline() {}
 
-    [[nodiscard]] virtual std::strong_ordering
-    operator<=> (const Pipeline&) const;
+    std::strong_ordering Pipeline::operator<=> (const Pipeline& other) const
+    {
+        std::strong_ordering order = std::strong_order(this->id, other.id);
+
+        if (order == std::strong_ordering::equivalent
+            && typeid(*this) != typeid(other))
+        {
+            util::panic("Pipelines of different types were ordered equally!");
+        }
+
+        return order;
+    }
 
     vk::Pipeline Pipeline::operator* () const
     {
@@ -251,9 +281,10 @@ namespace gfx::vulkan
         std::shared_ptr<Device>     device,
         std::shared_ptr<Swapchain>  swapchain,
         std::shared_ptr<RenderPass> renderPass)
-        : Pipeline
-    {
-        std::move(device), std::move(swapchain), std::move(renderPass),
+        : Pipeline {
+            device, // this is captured by the lambda
+            std::move(renderPass),
+            std::move(swapchain),
             PipelineBuilder {}
                 .withVertexShader(vulkan::Pipeline::createShaderFromFile(
                     device->asLogicalDevice(),
@@ -262,7 +293,7 @@ namespace gfx::vulkan
                     device->asLogicalDevice(),
                     "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"))
                 .withLayout(
-                    [&]
+                    [&] -> vk::UniquePipelineLayout
                     {
                         const vk::PushConstantRange pushConstantsInformation {
                             .stageFlags {vk::ShaderStageFlagBits::eAllGraphics},
@@ -282,17 +313,11 @@ namespace gfx::vulkan
                                     .pushConstantRangeCount {1},
                                     .pPushConstantRanges {
                                         &pushConstantsInformation},
-                                })
-                    }());
-    }
+                                });
+                    }())
+                .transfer(),
+            0} // id
     {}
 
-    vk::Pipeline FlatPipeline::operator* () const
-    {
-        return **this->pipeline;
-    }
-    vk::PipelineLayout FlatPipeline::getLayout() const
-    {
-        return this->pipeline->getLayout();
-    }
+    FlatPipeline::~FlatPipeline() {}
 } // namespace gfx::vulkan

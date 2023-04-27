@@ -5,6 +5,7 @@
 #include "util/log.hpp"
 #include <concepts>
 #include <memory>
+#include <optional>
 #include <span>
 
 namespace gfx::vulkan
@@ -28,19 +29,25 @@ namespace gfx::vulkan
 
     struct PipelineBuilder
     {
-    public:
-        using Self = std::remove_pointer_t<decltype(this)>;
-    public:
-        PipelineBuilder() {};
+        using Self = PipelineBuilder;
 
         // TODO: actually dont hack this together and do it right
-        Self& withVertexShader(vk::UniqueShaderModule);
-        Self& withFragmentShader(vk::UniqueShaderModule);
-        Self& withLayout(vk::UniquePipelineLayout);
+        auto withVertexShader(vk::UniqueShaderModule) -> Self&;
+        auto withFragmentShader(vk::UniqueShaderModule) -> Self&;
+        auto withLayout(vk::UniquePipelineLayout) -> Self&;
 
-        vk::UniquePipeline build(const RenderPass&, const Swapchain&) const;
+        Self transfer()
+        {
+            return PipelineBuilder {
+                .vertex_shader {std::move(this->vertex_shader)},
+                .fragment_shader {std::move(this->fragment_shader)},
+                .layout {std::move(this->layout)},
+            };
+        }
 
-    private:
+        vk::UniquePipeline
+        build(const Device&, const RenderPass&, const Swapchain&) const;
+
         std::optional<vk::UniqueShaderModule>   vertex_shader;
         std::optional<vk::UniqueShaderModule>   fragment_shader;
         std::optional<vk::UniquePipelineLayout> layout;
@@ -68,17 +75,19 @@ namespace gfx::vulkan
     protected:
         Pipeline(
             std::shared_ptr<Device>,
-            std::shared_ptr<Swapchain>,
             std::shared_ptr<RenderPass>,
-            PipelineBuilder);
+            std::shared_ptr<Swapchain>,
+            PipelineBuilder,
+            std::size_t id);
 
     private:
-        std::shared_ptr<Device> device;
-        std::shared_ptr<Swapchain>
-            swapchain; // TODO: make this a const reference
+        std::shared_ptr<Device>     device;
         std::shared_ptr<RenderPass> render_pass;
-        vk::UniquePipelineLayout    layout;
-        vk::UniquePipeline          pipeline;
+        std::shared_ptr<Swapchain>
+                                 swapchain; // TODO: make this a const reference
+        vk::UniquePipelineLayout layout;
+        vk::UniquePipeline       pipeline;
+        std::size_t              id;
     };
 
     class FlatPipeline final : public Pipeline

@@ -30,18 +30,26 @@ int main()
         },
     };
 
+    const std::array<gfx::vulkan::Index, 3> indicies {0, 1, 2};
+
     try
     {
         gfx::Renderer renderer {};
 
-        const std::unique_ptr<gfx::VertexObject> vertexObject =
-            renderer.createObject(vertices);
-
-        gfx::Object* object = dynamic_cast<gfx::Object*>(vertexObject.get());
+        std::vector<std::shared_ptr<gfx::Object>> objects {};
+        objects.push_back(renderer.createFlatObject(vertices, indicies));
 
         while (!renderer.shouldClose())
         {
-            renderer.drawObject(*object);
+            std::vector<const gfx::Object*> drawingObjects {};
+            drawingObjects.reserve(objects.size());
+
+            for (const std::shared_ptr<gfx::Object>& o : objects)
+            {
+                drawingObjects.push_back(o.get());
+            }
+
+            renderer.drawObjects(drawingObjects);
         }
     }
     catch (const std::exception& e)

@@ -23,6 +23,8 @@ namespace gfx
         class FlatPipeline;
         class DescriptorPool;
         struct Vertex;
+        using Index = std::uint32_t;
+
     } // namespace vulkan
 
     class Frame;
@@ -38,16 +40,13 @@ namespace gfx
         Renderer& operator= (const Renderer&) = delete;
         Renderer& operator= (Renderer&&)      = delete;
 
-        std::unique_ptr<VertexObject>
-            createObject(std::span<const vulkan::Vertex>) const;
+        [[nodiscard]] std::shared_ptr<Object> createFlatObject(
+            std::span<const vulkan::Vertex>,
+            std::span<const vulkan::Index>) const;
 
         [[nodiscard]] bool shouldClose() const;
 
-        // TODO: void drawScene(const Camera&, const Scene&);
-        // Scene : [Object + Pipelines]
-        // use https://en.cppreference.com/w/cpp/types/type_info/hash_code
-        // void drawFrame();
-        void drawObject(const Object&);
+        void drawObjects(std::span<const Object*>);
 
     private:
         void resize();

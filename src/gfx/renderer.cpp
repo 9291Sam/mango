@@ -80,15 +80,13 @@ namespace gfx
         this->device->asLogicalDevice().waitIdle();
     }
 
-    std::unique_ptr<VertexObject>
-    Renderer::createObject(std::span<const vulkan::Vertex> vertices) const
+    std::shared_ptr<Object> Renderer::createFlatObject(
+        std::span<const vulkan::Vertex> vertices,
+        std::span<const vulkan::Index>  indicies) const
     {
-        util::logWarn("Unhard code this pipeline!");
-
-        return std::make_unique<VertexObject>(
-            this->allocator,
-            std::static_pointer_cast<vulkan::Pipeline>(this->flat_pipeline),
-            vertices);
+        return std::dynamic_pointer_cast<gfx::Object>(
+            std::make_shared<IndexObject>(
+                this->allocator, this->flat_pipeline, vertices, indicies));
     }
 
     bool Renderer::shouldClose() const
@@ -96,14 +94,13 @@ namespace gfx
         return this->window.shouldClose();
     }
 
-    void Renderer::drawObject(const Object& object)
+    void Renderer::drawObjects(std::span<const Object*> objects)
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
         const Camera camera {{-35.0f, 35.0f, 35.0f}, -0.570792479f, 0.785398f};
 
-        if (this->frames.at(this->render_index)
-                ->render(*this->flat_pipeline, camera, object))
+        if (this->frames.at(this->render_index)->render(camera, objects))
         {
             this->resize();
         }

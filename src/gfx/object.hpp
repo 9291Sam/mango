@@ -39,12 +39,17 @@ namespace gfx
         virtual void bind(BindState&, vk::CommandBuffer) const = 0;
         virtual void draw(vk::CommandBuffer) const             = 0;
     protected:
+        void bindIfPipelineChanged(BindState&, vk::CommandBuffer) const;
+
         Object(
             std::shared_ptr<vulkan::Allocator>,
             std::shared_ptr<vulkan::Pipeline>);
 
         std::shared_ptr<vulkan::Allocator> allocator;
-        std::shared_ptr<vulkan::Pipeline>  pipeline;
+
+        // TODO: no good vert bad, make the bind require a push constants call!
+    public:
+        std::shared_ptr<vulkan::Pipeline> pipeline;
     };
 
     class VertexObject : public Object
@@ -59,27 +64,27 @@ namespace gfx
         virtual void bind(BindState&, vk::CommandBuffer) const override;
         virtual void draw(vk::CommandBuffer) const override;
 
-    private:
+    protected:
         std::size_t    number_of_vertices;
         vulkan::Buffer vertex_buffer;
     };
 
-    // class IndexObject : public VertexObject
-    // {
-    // public:
-    // IndexObject(
-    // std::shared_ptr<vulkan::Allocator>,
-    // std::shared_ptr<vulkan::Pipeline>,
-    // std::span<const vulkan::Vertex>,
-    // std::span<const vulkan::Index>);
-    // virtual IndexObject()
-    // }
+    class IndexObject : public VertexObject
+    {
+    public:
+        IndexObject(
+            std::shared_ptr<vulkan::Allocator>,
+            std::shared_ptr<vulkan::Pipeline>,
+            std::span<const vulkan::Vertex>,
+            std::span<const vulkan::Index>);
+        virtual ~IndexObject() override;
 
-    // std::vector<vulkan::DescriptorSet>
-    //   descriptors;
-    // std::size_t                   number_of_indicies;
-    // std::optional<vulkan::Buffer> index_buffer;
-
+        virtual void bind(BindState&, vk::CommandBuffer) const override;
+        virtual void draw(vk::CommandBuffer) const override;
+    protected:
+        std::size_t    number_of_indicies;
+        vulkan::Buffer index_buffer;
+    };
 } // namespace gfx
 
 #endif // SRC_GFX_OBJECT_HPP

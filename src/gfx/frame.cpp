@@ -46,11 +46,22 @@ namespace gfx
     }
 
     bool Frame::render(
-        const vulkan::FlatPipeline&    pipeline,
         [[maybe_unused]] const Camera& camera,
-        const Object&                  object)
+        std::span<const Object*>       unsortedObjects)
     {
         std::optional<bool> returnValue = std::nullopt;
+
+        std::vector<const Object*> sortedObjects;
+        sortedObjects.insert(
+            sortedObjects.cend(),
+            unsortedObjects.begin(),
+            unsortedObjects.end());
+        std::ranges::sort(
+            sortedObjects,
+            [](const Object* l, const Object* r)
+            {
+                return (*l <=> *r) == std::strong_ordering::less;
+            });
 
         this->device->accessGraphicsBuffer(
             [&](vk::Queue queue, vk::CommandBuffer commandBuffer)
@@ -150,31 +161,35 @@ namespace gfx
 
                 BindState bindState {.current_pipeline {nullptr}};
 
-                object.bind(bindState, commandBuffer);
+                for (const Object* o : sortedObjects)
+                {
+                    o->bind(bindState, commandBuffer);
 
-                Transform transform {
-                    .translation {0.0f, 0.0f, 0.0f},
-                    .rotation {1.0f, 0.0f, 0.0f, 0.0f},
-                    .scale {5.0f, 5.0f, 5.0f}};
+                    // TODO: bad
+                    Transform transform {
+                        .translation {0.0f, 0.0f, 0.0f},
+                        .rotation {1.0f, 0.0f, 0.0f, 0.0f},
+                        .scale {5.0f, 5.0f, 5.0f}};
 
-                vulkan::PushConstants pushConstants {.model_view_proj {
-                    Camera::getPerspectiveMatrix(
-                        glm::radians(70.f),
-                        static_cast<float>(this->swapchain->getExtent().width)
-                            / static_cast<float>(
-                                this->swapchain->getExtent().height),
-                        0.1f,
-                        200000.0f)
-                    * camera.getViewMatrix() * transform.asModelMatrix()}};
+                    vulkan::PushConstants pushConstants {.model_view_proj {
+                        Camera::getPerspectiveMatrix(
+                            glm::radians(70.f),
+                            static_cast<float>(
+                                this->swapchain->getExtent().width)
+                                / static_cast<float>(
+                                    this->swapchain->getExtent().height),
+                            0.1f,
+                            200000.0f)
+                        * camera.getViewMatrix() * transform.asModelMatrix()}};
 
-                // vkCmdPushConstants
-                commandBuffer.pushConstants<vulkan::PushConstants>(
-                    pipeline.getLayout(),
-                    vk::ShaderStageFlagBits::eAllGraphics,
-                    0,
-                    pushConstants);
+                    commandBuffer.pushConstants<vulkan::PushConstants>(
+                        o->pipeline->getLayout(), // TODO: bad!!!
+                        vk::ShaderStageFlagBits::eAllGraphics,
+                        0,
+                        pushConstants);
 
-                object.draw(commandBuffer);
+                    o->draw(commandBuffer);
+                }
 
                 commandBuffer.endRenderPass();
                 commandBuffer.end();

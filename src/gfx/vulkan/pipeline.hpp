@@ -10,7 +10,6 @@
 
 namespace gfx::vulkan
 {
-    // TODO: replace with a builder!
     class Device;
     class RenderPass;
     class Swapchain;
@@ -66,7 +65,6 @@ namespace gfx::vulkan
         Pipeline& operator= (const Pipeline&) = delete;
         Pipeline& operator= (Pipeline&&)      = delete;
 
-        // TODO: add an id number
         [[nodiscard]] virtual std::strong_ordering
                                          operator<=> (const Pipeline&) const;
         [[nodiscard]] vk::Pipeline       operator* () const;
@@ -84,7 +82,8 @@ namespace gfx::vulkan
         std::shared_ptr<Device>     device;
         std::shared_ptr<RenderPass> render_pass;
         std::shared_ptr<Swapchain>
-                                 swapchain; // TODO: make this a const reference
+            swapchain; // TODO: make this a const reference + dont store for
+                       // lifetime extensions
         vk::UniquePipelineLayout layout;
         vk::UniquePipeline       pipeline;
         std::size_t              id;

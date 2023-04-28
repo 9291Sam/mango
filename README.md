@@ -9,3 +9,5 @@ TODO: combine depth buffer into the swapchain?
 TODO: go and do a nodiscard pass
 
 TODO: the trongle doesnt load if the mouse is moving during initalization
+
+TODO: custom window icon and cursor

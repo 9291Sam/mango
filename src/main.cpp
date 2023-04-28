@@ -67,6 +67,8 @@ int main()
         {
             objects.at(0)->transform.yawBy(0.1f);
 
+            renderer.updateCamera(camera);
+
             renderer.drawObjects(camera, drawingObjects);
         }
     }

@@ -6,6 +6,7 @@
 
 namespace gfx
 {
+    class Window;
 
     class Camera
     {
@@ -27,6 +28,8 @@ namespace gfx
         void addPosition(glm::vec3);
         void addPitch(float);
         void addYaw(float);
+
+        void updateState(const Window&);
 
     private:
         Transform transform;

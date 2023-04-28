@@ -98,6 +98,11 @@ namespace gfx
         return this->window.shouldClose();
     }
 
+    void Renderer::updateCamera(Camera& camera)
+    {
+        camera.updateState(this->window);
+    }
+
     void Renderer::drawObjects(
         const Camera& camera, std::span<const Object*> objects)
     {

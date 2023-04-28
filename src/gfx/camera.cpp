@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include "window.hpp"
 
 namespace gfx
 {
@@ -69,6 +70,41 @@ namespace gfx
     void Camera::addYaw(float yawToAdd)
     {
         this->transform.yawBy(yawToAdd);
+    }
+
+    void Camera::updateState(const Window& window)
+    {
+        // TODO: fix this, current moving diagionmaly is faster
+
+        const float MoveScale = 65.0;
+
+        if (window.isActionActive(Window::Action::PlayerMoveForward))
+        {
+            this->addPosition(
+                this->getForwardVector() * window.getDeltaTimeSeconds()
+                * MoveScale);
+        }
+
+        if (window.isActionActive(Window::Action::PlayerMoveBackward))
+        {
+            this->addPosition(
+                -this->getForwardVector() * window.getDeltaTimeSeconds()
+                * MoveScale);
+        }
+
+        if (window.isActionActive(Window::Action::PlayerMoveLeft))
+        {
+            this->addPosition(
+                -this->getRightVector() * window.getDeltaTimeSeconds()
+                * MoveScale);
+        }
+
+        if (window.isActionActive(Window::Action::PlayerMoveRight))
+        {
+            this->addPosition(
+                this->getRightVector() * window.getDeltaTimeSeconds()
+                * MoveScale);
+        }
     }
 
     // void updateRotationInTransform()

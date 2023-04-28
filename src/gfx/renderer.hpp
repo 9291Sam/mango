@@ -47,6 +47,7 @@ namespace gfx
 
         [[nodiscard]] bool shouldClose() const;
 
+        void updateCamera(Camera&);
         void drawObjects(const Camera&, std::span<const Object*>);
 
     private:

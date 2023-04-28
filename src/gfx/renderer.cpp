@@ -98,13 +98,10 @@ namespace gfx
         return this->window.shouldClose();
     }
 
-    void Renderer::drawObjects(std::span<const Object*> objects)
+    void Renderer::drawObjects(
+        const Camera& camera, std::span<const Object*> objects)
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
-
-        Camera camera {{-0.0f, 0.0f, 350.0f}};
-        camera.addPitch(-0.570792479f);
-        camera.addYaw(0.785398f);
 
         if (this->frames.at(this->render_index)->render(camera, objects))
         {

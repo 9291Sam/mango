@@ -9,6 +9,7 @@ namespace gfx
 {
     class Object;
     class VertexObject;
+    class Camera;
 
     namespace vulkan
     {
@@ -46,7 +47,7 @@ namespace gfx
 
         [[nodiscard]] bool shouldClose() const;
 
-        void drawObjects(std::span<const Object*>);
+        void drawObjects(const Camera&, std::span<const Object*>);
 
     private:
         void resize();

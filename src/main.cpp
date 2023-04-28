@@ -1,3 +1,4 @@
+#include "gfx/camera.hpp"
 #include "gfx/object.hpp"
 #include "gfx/renderer.hpp"
 #include "gfx/vulkan/gpu_data.hpp"
@@ -53,14 +54,18 @@ int main()
         std::vector<std::shared_ptr<gfx::Object>> objects {};
         objects.push_back(renderer.createFlatObject(vertices, indicies));
         objects.at(0)->transform.scale *= 1000;
+        objects.at(0)->transform.rotation = {1.0f, 0.0f, 0.0f, 0.0f};
+        objects.at(0)->transform.yawBy(0.1f);
 
         auto drawingObjects = getPointerVector(objects);
 
+        gfx::Camera camera {{-0.0f, 0.0f, 350.0f}};
+        camera.addPitch(-0.570792479f);
+        camera.addYaw(0.785398f);
+
         while (!renderer.shouldClose())
         {
-            objects.at(0)->transform.yawBy(0.1f);
-
-            renderer.drawObjects(drawingObjects);
+            renderer.drawObjects(camera, drawingObjects);
         }
     }
     catch (const std::exception& e)

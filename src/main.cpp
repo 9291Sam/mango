@@ -59,12 +59,14 @@ int main()
 
         auto drawingObjects = getPointerVector(objects);
 
-        gfx::Camera camera {{-0.0f, 0.0f, 350.0f}};
+        gfx::Camera camera {{-0.0f, 0.0f, 1500.0f}};
         camera.addPitch(-0.570792479f);
         camera.addYaw(0.785398f);
 
         while (!renderer.shouldClose())
         {
+            objects.at(0)->transform.yawBy(0.1f);
+
             renderer.drawObjects(camera, drawingObjects);
         }
     }

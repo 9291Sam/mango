@@ -10,9 +10,11 @@ namespace gfx
         std::shared_ptr<vulkan::Allocator> allocator_,
         std::shared_ptr<vulkan::Pipeline>  pipeline_,
         std::shared_ptr<vulkan::Swapchain> swapchain_)
-        : allocator {std::move(allocator_)}
+        : transform {.translation {0.0f, 0.0f, 0.0f}, .rotation {1.0f, 0.0f, 0.0f, 0.0f}, .scale {1.0f, 1.0f, 1.0f}}
+        , allocator {std::move(allocator_)}
         , pipeline {std::move(pipeline_)}
         , swapchain {std::move(swapchain_)}
+
     {}
 
     Object::~Object() {}

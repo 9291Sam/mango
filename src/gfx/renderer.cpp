@@ -102,7 +102,7 @@ namespace gfx
     {
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
-        Camera camera {{-35.0f, 35.0f, 35.0f}};
+        Camera camera {{-0.0f, 0.0f, 350.0f}};
         camera.addPitch(-0.570792479f);
         camera.addYaw(0.785398f);
 

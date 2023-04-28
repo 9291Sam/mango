@@ -3,6 +3,20 @@
 #include "gfx/vulkan/gpu_data.hpp"
 #include "util/log.hpp"
 
+std::vector<const gfx::Object*>
+getPointerVector(const std::vector<std::shared_ptr<gfx::Object>> objects)
+{
+    std::vector<const gfx::Object*> tempObjects {};
+    tempObjects.reserve(objects.size());
+
+    for (const std::shared_ptr<gfx::Object>& o : objects)
+    {
+        tempObjects.push_back(o.get());
+    }
+
+    return tempObjects;
+}
+
 int main()
 {
     util::logLog("mango started");
@@ -38,19 +52,13 @@ int main()
 
         std::vector<std::shared_ptr<gfx::Object>> objects {};
         objects.push_back(renderer.createFlatObject(vertices, indicies));
-        objects.at(0)->transform.scale *= 100;
+        objects.at(0)->transform.scale *= 1000;
+
+        auto drawingObjects = getPointerVector(objects);
 
         while (!renderer.shouldClose())
         {
-            // objects.at(0)->
-
-            std::vector<const gfx::Object*> drawingObjects {};
-            drawingObjects.reserve(objects.size());
-
-            for (const std::shared_ptr<gfx::Object>& o : objects)
-            {
-                drawingObjects.push_back(o.get());
-            }
+            objects.at(0)->transform.yawBy(0.1f);
 
             renderer.drawObjects(drawingObjects);
         }

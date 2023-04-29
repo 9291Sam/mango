@@ -2,6 +2,7 @@
 #define SRC_GFX_VULKAN_SWAPCHAIN_HPP
 
 #include "includes.hpp"
+#include "util/log.hpp"
 #include <memory>
 
 namespace gfx::vulkan
@@ -14,8 +15,7 @@ namespace gfx::vulkan
         Swapchain(
             std::shared_ptr<Device>,
             std::shared_ptr<vk::UniqueSurfaceKHR>,
-            vk::Extent2D
-        );
+            vk::Extent2D);
         ~Swapchain() = default;
 
         Swapchain()                             = delete;

@@ -76,7 +76,7 @@ namespace gfx
     {
         // TODO: moving diaginally is faster
         const float MoveScale        = 650.0;
-        const float rotateSpeedScale = 1500000.255;
+        const float rotateSpeedScale = 1500000.255f;
         const float deltaTime        = window.getDeltaTimeSeconds();
 
         if (window.isActionActive(Window::Action::PlayerMoveForward))

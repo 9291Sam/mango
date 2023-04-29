@@ -148,6 +148,8 @@ namespace gfx::vulkan
                 this->device->asLogicalDevice().createImageViewUnique(
                     imageCreateInfo));
         }
+
+        // util::logTrace("Successfully created swapchain!");
     }
 
     vk::SwapchainKHR Swapchain::operator* () const

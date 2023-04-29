@@ -17,6 +17,7 @@ namespace gfx
         class Swapchain;
         class RenderPass;
         class FlatPipeline;
+        class Pipeline;
     } // namespace vulkan
 
     // abstraction over all the random bits of code that are required to
@@ -38,7 +39,11 @@ namespace gfx
         Frame& operator= (Frame&&)      = delete;
 
         // @return {true}, is resize needed
-        [[nodiscard]] bool render(const Camera&, std::span<const Object*>);
+        [[nodiscard]] bool render(
+            const Camera&,
+            vk::Extent2D windowSize,
+            std::span<const vulkan::Pipeline*>,
+            std::span<const Object*>);
 
     private:
         std::shared_ptr<vulkan::Device>                     device;

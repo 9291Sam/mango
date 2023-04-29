@@ -22,6 +22,7 @@ namespace gfx
         class Image2D;
         class RenderPass;
         class FlatPipeline;
+        class Pipeline;
         class DescriptorPool;
         struct Vertex;
         using Index = std::uint32_t;
@@ -33,6 +34,16 @@ namespace gfx
     class Renderer
     {
     public:
+        // TODO: dont forget to actually create the pipeline!
+        enum class PipelineType : std::size_t
+        {
+            FlatPipeline     = 0,
+            MaxPipelineValue = 1,
+        };
+
+        static constexpr std::size_t PipelineNumber =
+            static_cast<std::size_t>(PipelineType::MaxPipelineValue);
+    public:
         Renderer();
         ~Renderer();
 
@@ -41,7 +52,8 @@ namespace gfx
         Renderer& operator= (const Renderer&) = delete;
         Renderer& operator= (Renderer&&)      = delete;
 
-        [[nodiscard]] std::shared_ptr<Object> createFlatObject(
+        [[nodiscard]] Object createObject(
+            PipelineType,
             std::span<const vulkan::Vertex>,
             std::span<const vulkan::Index>) const;
 
@@ -69,8 +81,8 @@ namespace gfx
         std::shared_ptr<vulkan::Image2D>    depth_buffer;
         std::shared_ptr<vulkan::RenderPass> render_pass;
 
-        // Pipelines TODO: abstract better
-        std::shared_ptr<vulkan::FlatPipeline> flat_pipeline;
+        // Pipelines
+        std::array<std::unique_ptr<vulkan::Pipeline>, PipelineNumber> pipelines;
 
         // Flying frames
         static constexpr std::size_t MaxFramesInFlight = 2;

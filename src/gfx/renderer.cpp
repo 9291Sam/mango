@@ -27,7 +27,7 @@ namespace gfx
         , swapchain {nullptr}
         , depth_buffer {nullptr}
         , render_pass {nullptr}
-        , flat_pipeline {nullptr}
+        , pipelines {nullptr}
         , render_index {0}
         , frames {nullptr}
         , vertex_buffer {nullptr}
@@ -80,17 +80,17 @@ namespace gfx
         this->device->asLogicalDevice().waitIdle();
     }
 
-    std::shared_ptr<Object> Renderer::createFlatObject(
+    Object Renderer::createObject(
+        PipelineType                    pipelineType,
         std::span<const vulkan::Vertex> vertices,
-        std::span<const vulkan::Index>  indicies) const
+        std::span<const vulkan::Index>  indices) const
     {
-        return std::dynamic_pointer_cast<gfx::Object>(
-            std::make_shared<IndexObject>(
-                this->allocator,
-                this->flat_pipeline,
-                this->swapchain,
-                vertices,
-                indicies));
+        return Object {
+            this->allocator,
+            static_cast<std::size_t>(pipelineType),
+            vertices,
+            indices,
+        };
     }
 
     bool Renderer::shouldClose() const
@@ -115,7 +115,18 @@ namespace gfx
 
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
-        if (this->frames.at(this->render_index)->render(camera, objects))
+        std::vector<const vulkan::Pipeline*> drawingPipelines {};
+        for (const std::unique_ptr<vulkan::Pipeline>& p : this->pipelines)
+        {
+            drawingPipelines.push_back(&*p);
+        }
+
+        if (this->frames.at(this->render_index)
+                ->render(
+                    camera,
+                    this->swapchain->getExtent(),
+                    drawingPipelines,
+                    objects))
         {
             this->resize();
         }
@@ -133,7 +144,11 @@ namespace gfx
             f.reset();
         }
 
-        this->flat_pipeline.reset();
+        for (std::unique_ptr<vulkan::Pipeline>& p : this->pipelines)
+        {
+            p.reset();
+        }
+
         this->render_pass.reset();
         this->depth_buffer.reset();
         this->swapchain.reset();
@@ -159,8 +174,17 @@ namespace gfx
         this->render_pass = std::make_shared<vulkan::RenderPass>(
             this->device, this->swapchain, this->depth_buffer);
 
-        this->flat_pipeline = std::make_shared<vulkan::FlatPipeline>(
-            this->device, this->swapchain, this->render_pass);
+        // Pipeline Creation!
+        this->pipelines.at(0) = std::make_unique<vulkan::Pipeline>(
+            this->device,
+            this->render_pass,
+            this->swapchain,
+            vulkan::Pipeline::createShaderFromFile(
+                this->device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"),
+            vulkan::Pipeline::createShaderFromFile(
+                this->device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/flat_pipeline.vert.bin"));
 
         std::shared_ptr<std::vector<vk::UniqueFramebuffer>> framebuffers =
             std::make_shared<std::vector<vk::UniqueFramebuffer>>();

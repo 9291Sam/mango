@@ -46,7 +46,10 @@ namespace gfx
     }
 
     bool Frame::render(
-        const Camera& camera, std::span<const Object*> unsortedObjects)
+        const Camera&                      camera,
+        vk::Extent2D                       size,
+        std::span<const vulkan::Pipeline*> pipelines,
+        std::span<const Object*>           unsortedObjects)
     {
         std::optional<bool> returnValue = std::nullopt;
 
@@ -59,7 +62,7 @@ namespace gfx
             sortedObjects,
             [](const Object* l, const Object* r)
             {
-                return (*l <=> *r) == std::strong_ordering::less;
+                return l->getPipelineNumber() < r->getPipelineNumber();
             });
 
         this->device->accessGraphicsBuffer(
@@ -158,13 +161,38 @@ namespace gfx
                 commandBuffer.beginRenderPass(
                     renderPassBeginInfo, vk::SubpassContents::eInline);
 
-                BindState bindState {.current_pipeline {nullptr}};
+                std::size_t currentBoundPipelineIndex = ~0UZ;
 
                 for (const Object* o : sortedObjects)
                 {
-                    o->bind(bindState, commandBuffer);
+                    if (o->getPipelineNumber() != currentBoundPipelineIndex)
+                    {
+                        commandBuffer.bindPipeline(
+                            vk::PipelineBindPoint::eGraphics,
+                            **pipelines[o->getPipelineNumber()]);
 
-                    o->draw(camera, commandBuffer);
+                        currentBoundPipelineIndex = o->getPipelineNumber();
+                    }
+
+                    vulkan::PushConstants pushConstants {.model_view_proj {
+                        Camera::getPerspectiveMatrix(
+                            glm::radians(70.f),
+                            static_cast<float>(size.width)
+                                / static_cast<float>(size.height),
+                            0.1f,
+                            200000.0f)
+                        * camera.getViewMatrix()
+                        * o->transform.asModelMatrix()}};
+
+                    commandBuffer.pushConstants<vulkan::PushConstants>(
+                        pipelines[o->getPipelineNumber()]->getLayout(),
+                        vk::ShaderStageFlagBits::eAllGraphics,
+                        0,
+                        pushConstants);
+
+                    o->bind(commandBuffer);
+
+                    o->draw(commandBuffer);
                 }
 
                 commandBuffer.endRenderPass();

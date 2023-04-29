@@ -4,20 +4,6 @@
 #include "gfx/vulkan/gpu_data.hpp"
 #include "util/log.hpp"
 
-std::vector<const gfx::Object*>
-getPointerVector(const std::vector<std::shared_ptr<gfx::Object>> objects)
-{
-    std::vector<const gfx::Object*> tempObjects {};
-    tempObjects.reserve(objects.size());
-
-    for (const std::shared_ptr<gfx::Object>& o : objects)
-    {
-        tempObjects.push_back(o.get());
-    }
-
-    return tempObjects;
-}
-
 int main()
 {
     util::logLog("mango started");
@@ -52,13 +38,19 @@ int main()
         gfx::Renderer renderer {};
 
         // TODO: make everything resonablly sized
-        std::vector<std::shared_ptr<gfx::Object>> objects {};
-        objects.push_back(renderer.createFlatObject(vertices, indicies));
-        objects.at(0)->transform.scale *= 1000;
-        objects.at(0)->transform.rotation = {1.0f, 0.0f, 0.0f, 0.0f};
-        objects.at(0)->transform.yawBy(0.1f);
+        std::vector<gfx::Object> objects {};
+        objects.push_back(renderer.createObject(
+            gfx::Renderer::PipelineType::FlatPipeline, vertices, indicies));
+        objects.at(0).transform.scale *= 1000;
+        objects.at(0).transform.rotation = {1.0f, 0.0f, 0.0f, 0.0f};
+        objects.at(0).transform.yawBy(0.1f);
 
-        auto drawingObjects = getPointerVector(objects);
+        std::vector<const gfx::Object*> drawingObjects {};
+        drawingObjects.reserve(objects.size());
+        for (const gfx::Object& o : objects)
+        {
+            drawingObjects.push_back(&o);
+        }
 
         gfx::Camera camera {{-0.0f, 0.0f, 2250.0f}};
         // camera.addPitch(-0.570792479f);
@@ -66,7 +58,7 @@ int main()
 
         while (!renderer.shouldClose())
         {
-            objects.at(0)->transform.yawBy(
+            objects.at(0).transform.yawBy(
                 1.0f * renderer.getDeltaTimeSeconds());
 
             renderer.updateCamera(camera);

@@ -153,7 +153,9 @@ namespace gfx
             static_cast<gfx::Window*>(glfwGetWindowUserPointer(glfwWindow));
 
         window->was_resized.store(true);
-        window->width_height.set(newWidth, newHeight);
+        window->width_height.set(
+            static_cast<std::uint32_t>(newWidth),
+            static_cast<std::uint32_t>(newHeight));
     }
     void Window::keypressCallback(
         GLFWwindow*          glfwWindow,

@@ -27,72 +27,39 @@ namespace gfx
         std::shared_ptr<vulkan::Pipeline> current_pipeline;
     };
 
-    // TODO: initalize transform and swapchain
     class Object
     {
     public:
-        virtual ~Object();
-
-        Object(const Object&)             = delete;
-        Object(Object&&)                  = delete;
-        Object& operator= (const Object&) = delete;
-        Object& operator= (Object&&)      = delete;
-
-        virtual std::strong_ordering operator<=> (const Object&) const;
-
-        virtual void bind(BindState&, vk::CommandBuffer) const    = 0;
-        virtual void draw(const Camera&, vk::CommandBuffer) const = 0;
-
-        Transform                          transform;
-    protected:
-        void bindIfPipelineChanged(BindState&, vk::CommandBuffer) const;
-        void setPushConstants(const Camera&, vk::CommandBuffer) const;
-
         Object(
             std::shared_ptr<vulkan::Allocator>,
-            std::shared_ptr<vulkan::Pipeline>,
-            std::shared_ptr<vulkan::Swapchain>);
-
-        std::shared_ptr<vulkan::Allocator> allocator;
-        std::shared_ptr<vulkan::Pipeline>  pipeline;
-        std::shared_ptr<vulkan::Swapchain> swapchain;
-    };
-
-    class VertexObject : public Object
-    {
-    public:
-        VertexObject(
-            std::shared_ptr<vulkan::Allocator>,
-            std::shared_ptr<vulkan::Pipeline>,
-            std::shared_ptr<vulkan::Swapchain>,
-            std::span<const vulkan::Vertex>);
-        virtual ~VertexObject() override;
-
-        virtual void bind(BindState&, vk::CommandBuffer) const override;
-        virtual void draw(const Camera&, vk::CommandBuffer) const override;
-
-    protected:
-        std::size_t    number_of_vertices;
-        vulkan::Buffer vertex_buffer;
-    };
-
-    class IndexObject : public VertexObject
-    {
-    public:
-        IndexObject(
-            std::shared_ptr<vulkan::Allocator>,
-            std::shared_ptr<vulkan::Pipeline>,
-            std::shared_ptr<vulkan::Swapchain>,
+            std::size_t pipelineNumber,
             std::span<const vulkan::Vertex>,
             std::span<const vulkan::Index>);
-        virtual ~IndexObject() override;
+        ~Object() = default;
 
-        virtual void bind(BindState&, vk::CommandBuffer) const override;
-        virtual void draw(const Camera&, vk::CommandBuffer) const override;
-    protected:
-        std::size_t    number_of_indicies;
+        Object(const Object&)             = delete;
+        Object(Object&&)                  = default;
+        Object& operator= (const Object&) = delete;
+        Object& operator= (Object&&)      = default;
+
+        std::size_t getPipelineNumber() const;
+
+        void bind(vk::CommandBuffer) const;
+        void draw(vk::CommandBuffer) const;
+
+        Transform transform;
+    private:
+
+        std::shared_ptr<vulkan::Allocator> allocator;
+        std::size_t                        pipeline_number;
+
+        std::size_t    number_of_vertices;
+        vulkan::Buffer vertex_buffer;
+
+        std::size_t    number_of_indices;
         vulkan::Buffer index_buffer;
     };
+
 } // namespace gfx
 
 #endif // SRC_GFX_OBJECT_HPP

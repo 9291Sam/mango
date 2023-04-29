@@ -98,6 +98,11 @@ namespace gfx
         return this->window.shouldClose();
     }
 
+    float Renderer::getDeltaTimeSeconds() const
+    {
+        return this->window.getDeltaTimeSeconds();
+    }
+
     void Renderer::updateCamera(Camera& camera)
     {
         camera.updateState(this->window);
@@ -106,6 +111,8 @@ namespace gfx
     void Renderer::drawObjects(
         const Camera& camera, std::span<const Object*> objects)
     {
+        util::logTrace("Frame time {}", this->window.getDeltaTimeSeconds());
+
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
         if (this->frames.at(this->render_index)->render(camera, objects))

@@ -59,17 +59,28 @@ namespace gfx
 
         // void attachCursor() const;
         // void detachCursor() const;
-        void pollEvents() const;
+        void pollEvents();
 
         void blockThisThreadWhileMinimized() const;
     private:
         static void frameBufferResizeCallback(GLFWwindow*, int, int);
         static void keypressCallback(GLFWwindow*, int, int, int, int);
 
-        GLFWwindow*                                   window;
+        GLFWwindow* window;
+
+        // Frame Times
+        std::chrono::time_point<std::chrono::steady_clock> last_frame_end_time;
+        std::chrono::duration<float>                       last_frame_duration;
+
+        // Window
+        util::Mutex<std::uint32_t, std::uint32_t> width_height;
+        std::atomic<bool>                         was_resized;
+
+        // Keyboard
         std::array<std::atomic<bool>, ActionMaxValue> keyboard_states;
         std::unordered_map<GlfwKeyType, Action>       key_map;
-        util::Mutex<std::uint32_t, std::uint32_t>     width_height;
-        std::atomic<bool>                             was_resized;
+
+        // Mouse
+
     }; // class Window
 } // namespace gfx

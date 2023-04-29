@@ -65,7 +65,8 @@ int main()
 
         while (!renderer.shouldClose())
         {
-            objects.at(0)->transform.yawBy(0.1f);
+            objects.at(0)->transform.yawBy(
+                1.0f * renderer.getDeltaTimeSeconds());
 
             renderer.updateCamera(camera);
 

@@ -45,7 +45,8 @@ namespace gfx
             std::span<const vulkan::Vertex>,
             std::span<const vulkan::Index>) const;
 
-        [[nodiscard]] bool shouldClose() const;
+        [[nodiscard]] bool  shouldClose() const;
+        [[nodiscard]] float getDeltaTimeSeconds() const;
 
         void updateCamera(Camera&);
         void drawObjects(const Camera&, std::span<const Object*>);

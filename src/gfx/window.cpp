@@ -43,6 +43,11 @@ namespace gfx
             this->window, Window::frameBufferResizeCallback);
         std::ignore =
             glfwSetKeyCallback(this->window, Window::keypressCallback);
+
+        this->last_frame_end_time = std::chrono::steady_clock::now();
+
+        using namespace std::chrono_literals;
+        this->last_frame_duration = 16ms;
     }
 
     Window::~Window()
@@ -100,13 +105,18 @@ namespace gfx
 
     float Window::getDeltaTimeSeconds() const
     {
-        util::logWarn("Invalid delta time!");
-        return 1.0f;
+        return this->last_frame_duration.count();
     }
 
-    void Window::pollEvents() const
+    void Window::pollEvents()
     {
         glfwPollEvents();
+
+        const auto currentTime = std::chrono::steady_clock::now();
+
+        this->last_frame_duration = currentTime - this->last_frame_end_time;
+
+        this->last_frame_end_time = currentTime;
     }
 
     void Window::blockThisThreadWhileMinimized() const

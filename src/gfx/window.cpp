@@ -9,6 +9,7 @@ namespace gfx
         : window {nullptr}
         , width_height {size.width, size.height}
         , was_resized {std::atomic_bool {false}}
+        , input_ignore_frames {3}
     {
         if (glfwInit() != GLFW_TRUE)
         {
@@ -35,14 +36,21 @@ namespace gfx
         this->key_map[GLFW_KEY_S] = Action::PlayerMoveBackward;
         this->key_map[GLFW_KEY_A] = Action::PlayerMoveLeft;
         this->key_map[GLFW_KEY_D] = Action::PlayerMoveRight;
+        this->key_map[GLFW_KEY_I] = Action::CursorAttach;
+        this->key_map[GLFW_KEY_O] = Action::CursorDetach;
 
         // Putting a reference to `this` inside of GLFW so that it can be passed
         // to the callback function
         glfwSetWindowUserPointer(this->window, static_cast<void*>(this));
+
         std::ignore = glfwSetFramebufferSizeCallback(
             this->window, Window::frameBufferResizeCallback);
+
         std::ignore =
             glfwSetKeyCallback(this->window, Window::keypressCallback);
+
+        std::ignore = glfwSetWindowFocusCallback(
+            this->window, Window::windowFocusCallback);
 
         this->last_frame_end_time = std::chrono::steady_clock::now();
 
@@ -102,12 +110,19 @@ namespace gfx
 
     auto Window::getMouseDelta() const -> Delta
     {
-        return Delta {
-            .x {static_cast<float>(this->mouse_delta_pixels.first)
-                / this->size().width},
-            .y {static_cast<float>(this->mouse_delta_pixels.second)
-                / this->size().height},
-        };
+        if (this->is_cursor_attached.load())
+        {
+            return Delta {
+                .x {static_cast<float>(this->mouse_delta_pixels.first)
+                    / this->size().width},
+                .y {static_cast<float>(this->mouse_delta_pixels.second)
+                    / this->size().height},
+            };
+        }
+        else
+        {
+            return Delta {.x {0.0f}, .y {0.0f}};
+        }
     }
 
     void Window::pollEvents()
@@ -135,6 +150,24 @@ namespace gfx
         this->last_frame_duration = currentTime - this->last_frame_end_time;
 
         this->last_frame_end_time = currentTime;
+    }
+
+    void Window::attachCursor() const
+    {
+        glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        this->is_cursor_attached.store(true);
+    }
+
+    void Window::detachCursor() const
+    {
+        glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetCursorPos(
+            this->window,
+            static_cast<double>(this->size().width / 2),
+            static_cast<double>(this->size().height / 2));
+
+        this->is_cursor_attached.store(false);
     }
 
     void Window::blockThisThreadWhileMinimized() const
@@ -205,6 +238,30 @@ namespace gfx
         default:
             util::panic("Unexpected action! {}", action);
         }
+
+        if (window->keyboard_states
+                .at(static_cast<std::size_t>(Action::CursorAttach))
+                .load())
+        {
+            window->attachCursor();
+        }
+
+        if (window->keyboard_states
+                .at(static_cast<std::size_t>(Action::CursorDetach))
+                .load())
+        {
+            window->detachCursor();
+        }
     }
 
+    void Window::windowFocusCallback(GLFWwindow* glfwWindow, int isFocused)
+    {
+        gfx::Window* window =
+            static_cast<gfx::Window*>(glfwGetWindowUserPointer(glfwWindow));
+
+        if (isFocused)
+        {
+            window->attachCursor();
+        }
+    }
 } // namespace gfx

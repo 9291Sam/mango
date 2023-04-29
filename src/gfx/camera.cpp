@@ -4,10 +4,11 @@
 namespace gfx
 {
     Camera::Camera(glm::vec3 position)
-        : transform {}
-    {
-        this->transform.translation = position;
-    }
+        : transform {
+            .translation {position},
+            .rotation {1.0f, 0.0f, 0.0f, 0.0f},
+            .scale {1.0f, 1.0f, 1.0f}}
+    {}
 
     glm::mat4 Camera::getPerspectiveMatrix(
         float fovY,
@@ -69,14 +70,19 @@ namespace gfx
 
     void Camera::addYaw(float yawToAdd)
     {
+        util::logTrace("Yawing by {:.8f}", yawToAdd);
+
+        util::logTrace(
+            "yawing rotation! {}", glm::to_string(this->transform.rotation));
+
         this->transform.yawBy(yawToAdd);
     }
 
     void Camera::updateState(const Window& window)
     {
         // TODO: moving diaginally is faster
-        const float MoveScale        = 650.0;
-        const float rotateSpeedScale = 1500000.255f;
+        const float MoveScale        = 50.0;
+        const float rotateSpeedScale = 150.255f;
         const float deltaTime        = window.getDeltaTimeSeconds();
 
         if (window.isActionActive(Window::Action::PlayerMoveForward))
@@ -101,8 +107,6 @@ namespace gfx
         }
 
         auto [xDelta, yDelta] = window.getMouseDelta();
-
-        // util::logTrace("mouse deltas {} | {}", xDelta, yDelta);
 
         // TODO: clamp!
         this->addYaw(xDelta * deltaTime * rotateSpeedScale);

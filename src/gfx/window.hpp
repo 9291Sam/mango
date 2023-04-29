@@ -65,7 +65,9 @@ namespace gfx
             PlayerMoveBackward = 1,
             PlayerMoveLeft     = 2,
             PlayerMoveRight    = 3,
-            MaxEnumValue       = 4,
+            CursorAttach       = 4,
+            CursorDetach       = 5,
+            MaxEnumValue       = 6,
         };
 
         static constexpr std::size_t ActionMaxValue =
@@ -91,14 +93,15 @@ namespace gfx
         [[nodiscard]] float getDeltaTimeSeconds() const;
         [[nodiscard]] Delta getMouseDelta() const;
 
-        // void attachCursor() const;
-        // void detachCursor() const;
+        void attachCursor() const;
+        void detachCursor() const;
         void pollEvents();
 
         void blockThisThreadWhileMinimized() const;
     private:
         static void frameBufferResizeCallback(GLFWwindow*, int, int);
         static void keypressCallback(GLFWwindow*, int, int, int, int);
+        static void windowFocusCallback(GLFWwindow*, int);
 
         GLFWwindow* window;
 
@@ -110,6 +113,8 @@ namespace gfx
         AtomicSize        width_height;
         std::atomic<bool> was_resized;
 
+        std::atomic<std::size_t> input_ignore_frames;
+
         // Keyboard
         std::array<std::atomic<bool>, ActionMaxValue> keyboard_states;
         std::unordered_map<GlfwKeyType, Action>       key_map;
@@ -117,6 +122,7 @@ namespace gfx
         // Mouse
         std::pair<double, double> previous_mouse_position;
         std::pair<double, double> mouse_delta_pixels;
+        mutable std::atomic<bool> is_cursor_attached;
 
     }; // class Window
 } // namespace gfx

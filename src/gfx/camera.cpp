@@ -74,51 +74,38 @@ namespace gfx
 
     void Camera::updateState(const Window& window)
     {
-        // TODO: fix this, current moving diagionmaly is faster
-
-        const float MoveScale = 65.0;
+        // TODO: moving diaginally is faster
+        const float MoveScale        = 650.0;
+        const float rotateSpeedScale = 1500000.255;
+        const float deltaTime        = window.getDeltaTimeSeconds();
 
         if (window.isActionActive(Window::Action::PlayerMoveForward))
         {
-            this->addPosition(
-                this->getForwardVector() * window.getDeltaTimeSeconds()
-                * MoveScale);
+            this->addPosition(this->getForwardVector() * deltaTime * MoveScale);
         }
 
         if (window.isActionActive(Window::Action::PlayerMoveBackward))
         {
             this->addPosition(
-                -this->getForwardVector() * window.getDeltaTimeSeconds()
-                * MoveScale);
+                -this->getForwardVector() * deltaTime * MoveScale);
         }
 
         if (window.isActionActive(Window::Action::PlayerMoveLeft))
         {
-            this->addPosition(
-                -this->getRightVector() * window.getDeltaTimeSeconds()
-                * MoveScale);
+            this->addPosition(-this->getRightVector() * deltaTime * MoveScale);
         }
 
         if (window.isActionActive(Window::Action::PlayerMoveRight))
         {
-            this->addPosition(
-                this->getRightVector() * window.getDeltaTimeSeconds()
-                * MoveScale);
+            this->addPosition(this->getRightVector() * deltaTime * MoveScale);
         }
+
+        auto [xDelta, yDelta] = window.getMouseDelta();
+
+        // util::logTrace("mouse deltas {} | {}", xDelta, yDelta);
+
+        // TODO: clamp!
+        this->addYaw(xDelta * deltaTime * rotateSpeedScale);
+        this->addPitch(yDelta * deltaTime * rotateSpeedScale);
     }
-
-    // void updateRotationInTransform()
-    // {
-    //     glm::quat q {1.0f, 0.0f, 0.0f, 0.0f};
-
-    //     this->pitch = std::clamp(
-    //         this->pitch, -glm::half_pi<float>(), glm::half_pi<float>());
-    //     this->yaw = glm::mod(this->yaw, glm::two_pi<float>());
-
-    //     q *= glm::angleAxis(this->pitch, glm::vec3 {1.0f, 0.0f, 0.0f});
-
-    //     q = glm::angleAxis(this->yaw, glm::vec3 {0.0f, -1.0f, 0.0f}) * q;
-
-    //     this->transform.rotation = q;
-    // }
 } // namespace gfx

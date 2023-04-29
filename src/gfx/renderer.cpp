@@ -111,7 +111,7 @@ namespace gfx
     void Renderer::drawObjects(
         const Camera& camera, std::span<const Object*> objects)
     {
-        util::logTrace("Frame time {}", this->window.getDeltaTimeSeconds());
+        // util::logTrace("Frame time {}", this->window.getDeltaTimeSeconds());
 
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 

@@ -13,16 +13,50 @@ namespace gfx
     /// @brief Abstraction over a cross platform window with an easily creatable
     /// draw surface
     ///
-    /// Because of glfw implementation details this must also manage the
-    /// keyboard
+    /// Because of glfw implementation details this must do a lot of disparte
+    /// things
     class Window
     {
     public:
-        /// @brief Normalized 0 - 1 values accross screen space
+        /// @brief Normalized 0 - 1 values across screen space
         struct Delta
         {
             float x;
             float y;
+        };
+
+        class AtomicSize
+        {
+        public:
+            AtomicSize(std::uint32_t width, std::uint32_t height)
+                : width_height {std::atomic<std::uint64_t>(0)}
+            {
+                this->set(width, height);
+            }
+
+            AtomicSize(const AtomicSize&)             = delete;
+            AtomicSize(AtomicSize&&)                  = delete;
+            AtomicSize& operator= (const AtomicSize&) = delete;
+            AtomicSize& operator= (AtomicSize&&)      = delete;
+
+            [[nodiscard]] std::pair<std::uint32_t, std::uint32_t> load() const
+            {
+                std::uint64_t copy = this->width_height.load();
+
+                return std::make_pair(
+                    static_cast<std::uint32_t>(copy >> 32),
+                    static_cast<std::uint32_t>(copy));
+            }
+
+            void set(std::uint32_t width, std::uint32_t height)
+            {
+                this->width_height.store(
+                    (static_cast<std::uint64_t>(width) << 32)
+                    | (static_cast<std::uint64_t>(height)));
+            }
+
+        private:
+            std::atomic<std::uint64_t> width_height;
         };
 
         enum class Action : std::uint_fast8_t // :bike:
@@ -73,14 +107,16 @@ namespace gfx
         std::chrono::duration<float>                       last_frame_duration;
 
         // Window
-        util::Mutex<std::uint32_t, std::uint32_t> width_height;
-        std::atomic<bool>                         was_resized;
+        AtomicSize        width_height;
+        std::atomic<bool> was_resized;
 
         // Keyboard
         std::array<std::atomic<bool>, ActionMaxValue> keyboard_states;
         std::unordered_map<GlfwKeyType, Action>       key_map;
 
         // Mouse
+        std::pair<double, double> previous_mouse_position;
+        std::pair<double, double> mouse_delta_pixels;
 
     }; // class Window
 } // namespace gfx

@@ -51,6 +51,7 @@ int main()
     {
         gfx::Renderer renderer {};
 
+        // TODO: make everything resonablly sized
         std::vector<std::shared_ptr<gfx::Object>> objects {};
         objects.push_back(renderer.createFlatObject(vertices, indicies));
         objects.at(0)->transform.scale *= 1000;
@@ -59,9 +60,9 @@ int main()
 
         auto drawingObjects = getPointerVector(objects);
 
-        gfx::Camera camera {{-0.0f, 0.0f, 1500.0f}};
-        camera.addPitch(-0.570792479f);
-        camera.addYaw(0.785398f);
+        gfx::Camera camera {{-0.0f, 0.0f, 2250.0f}};
+        // camera.addPitch(-0.570792479f);
+        // camera.addYaw(0.785398f);
 
         while (!renderer.shouldClose())
         {

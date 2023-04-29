@@ -79,15 +79,7 @@ namespace gfx
 
     vk::Extent2D Window::size() const
     {
-        std::uint32_t width  = 0;
-        std::uint32_t height = 0;
-
-        this->width_height.lock(
-            [&](std::uint32_t width_, std::uint32_t height_)
-            {
-                width  = width_;
-                height = height_;
-            });
+        auto [width, height] = this->width_height.load();
 
         return vk::Extent2D {.width {width}, .height {height}};
     }
@@ -108,10 +100,36 @@ namespace gfx
         return this->last_frame_duration.count();
     }
 
+    auto Window::getMouseDelta() const -> Delta
+    {
+        return Delta {
+            .x {static_cast<float>(this->mouse_delta_pixels.first)
+                / this->size().width},
+            .y {static_cast<float>(this->mouse_delta_pixels.second)
+                / this->size().height},
+        };
+    }
+
     void Window::pollEvents()
     {
         glfwPollEvents();
 
+        // Mouse processing
+        std::pair<double, double> currentMousePosition {
+            std::nan(""), std::nan("")};
+
+        glfwGetCursorPos(
+            this->window,
+            &currentMousePosition.first,
+            &currentMousePosition.second);
+
+        this->mouse_delta_pixels = {
+            currentMousePosition.first - this->previous_mouse_position.first,
+            currentMousePosition.second - this->previous_mouse_position.second};
+
+        this->previous_mouse_position = currentMousePosition;
+
+        // Delta time processing
         const auto currentTime = std::chrono::steady_clock::now();
 
         this->last_frame_duration = currentTime - this->last_frame_end_time;
@@ -121,7 +139,6 @@ namespace gfx
 
     void Window::blockThisThreadWhileMinimized() const
     {
-        // TODO: replace with spawnin
         while (this->size().width == 0 || this->size().height == 0)
         {
             glfwWaitEvents();
@@ -136,12 +153,7 @@ namespace gfx
             static_cast<gfx::Window*>(glfwGetWindowUserPointer(glfwWindow));
 
         window->was_resized.store(true);
-        window->width_height.lock(
-            [&](std::uint32_t& width, std::uint32_t& height)
-            {
-                width  = static_cast<std::uint32_t>(newWidth);
-                height = static_cast<std::uint32_t>(newHeight);
-            });
+        window->width_height.set(newWidth, newHeight);
     }
     void Window::keypressCallback(
         GLFWwindow*          glfwWindow,

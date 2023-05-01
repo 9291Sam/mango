@@ -112,10 +112,10 @@ namespace gfx
         const Camera& camera, std::span<const Object*> objects)
     {
         // util::logTrace("Frame time {}", this->window.getDeltaTimeSeconds());
-        util::logTrace(
-            "Mouse delta {} | {}",
-            this->window.getMouseDelta().x,
-            this->window.getMouseDelta().y);
+        // util::logTrace(
+        //     "Mouse delta {} | {}",
+        //     this->window.getMouseDelta().x,
+        //     this->window.getMouseDelta().y);
 
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 

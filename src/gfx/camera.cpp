@@ -57,25 +57,33 @@ namespace gfx
 
     void Camera::addPitch(float pitchToAdd)
     {
-        const float pitchBefore = glm::eulerAngles(this->transform.rotation).p;
-        if (pitchBefore + pitchToAdd > glm::half_pi<float>())
-        {
-            this->transform.pitchBy(glm::half_pi<float>() - pitchBefore);
-        }
-        else
-        {
-            this->transform.pitchBy(pitchToAdd);
-        }
+        this->pitch += pitchToAdd;
+        this->updateTransformFromRotations();
+        // const float pitchBefore =
+        // glm::eulerAngles(this->transform.rotation).p; if (pitchBefore +
+        // pitchToAdd > glm::half_pi<float>())
+        // {
+        //     this->transform.pitchBy(glm::half_pi<float>() - pitchBefore);
+
+        //     util::logTrace("Yawing by {:.8f}", yawToAdd);
+        // }
+        // else
+        // {
+        //     this->transform.pitchBy(pitchToAdd);
+        // }
     }
 
     void Camera::addYaw(float yawToAdd)
     {
-        util::logTrace("Yawing by {:.8f}", yawToAdd);
+        this->yaw += yawToAdd;
+        this->updateTransformFromRotations();
 
-        util::logTrace(
-            "yawing rotation! {}", glm::to_string(this->transform.rotation));
+        // util::logTrace("Yawing by {:.8f}", yawToAdd);
 
-        this->transform.yawBy(yawToAdd);
+        // util::logTrace(
+        //     "yawing rotation! {}", glm::to_string(this->transform.rotation));
+
+        // this->transform.yawBy(yawToAdd);
     }
 
     void Camera::updateState(const Window& window)
@@ -106,10 +114,44 @@ namespace gfx
             this->addPosition(this->getRightVector() * deltaTime * MoveScale);
         }
 
+        // TODO: what why are these flipped
+        if (window.isActionActive(Window::Action::PlayerMoveUp))
+        {
+            this->addPosition(-this->getUpVector() * deltaTime * MoveScale);
+        }
+
+        if (window.isActionActive(Window::Action::PlayerMoveDown))
+        {
+            this->addPosition(this->getUpVector() * deltaTime * MoveScale);
+        }
+
         auto [xDelta, yDelta] = window.getMouseDelta();
 
-        // TODO: clamp!
         this->addYaw(xDelta * deltaTime * rotateSpeedScale);
         this->addPitch(yDelta * deltaTime * rotateSpeedScale);
+    }
+
+    Camera::operator std::string () const
+    {
+        return fmt::format(
+            "{} | Pitch {} | Yaw {}",
+            static_cast<std::string>(this->transform),
+            this->pitch,
+            this->yaw);
+    }
+
+    void Camera::updateTransformFromRotations()
+    {
+        glm::quat q {1.0f, 0.0f, 0.0f, 0.0f};
+
+        this->pitch = std::clamp(
+            this->pitch, -glm::half_pi<float>(), glm::half_pi<float>());
+        this->yaw = glm::mod(this->yaw, glm::two_pi<float>());
+
+        q *= glm::angleAxis(this->pitch, -Transform::RightVector);
+
+        q = glm::angleAxis(this->yaw, Transform::UpVector) * q;
+
+        this->transform.rotation = q;
     }
 } // namespace gfx

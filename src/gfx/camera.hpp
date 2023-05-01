@@ -31,7 +31,14 @@ namespace gfx
 
         void updateState(const Window&);
 
+        explicit operator std::string () const;
+
     private:
+        void updateTransformFromRotations();
+
+        float pitch;
+        float yaw;
+
         Transform transform;
     };
 } // namespace gfx

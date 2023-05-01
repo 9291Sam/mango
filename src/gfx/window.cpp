@@ -32,12 +32,14 @@ namespace gfx
             util::panic("Failed to create glfw window");
         }
 
-        this->key_map[GLFW_KEY_W] = Action::PlayerMoveForward;
-        this->key_map[GLFW_KEY_S] = Action::PlayerMoveBackward;
-        this->key_map[GLFW_KEY_A] = Action::PlayerMoveLeft;
-        this->key_map[GLFW_KEY_D] = Action::PlayerMoveRight;
-        this->key_map[GLFW_KEY_I] = Action::CursorAttach;
-        this->key_map[GLFW_KEY_O] = Action::CursorDetach;
+        this->key_map[GLFW_KEY_W]            = Action::PlayerMoveForward;
+        this->key_map[GLFW_KEY_S]            = Action::PlayerMoveBackward;
+        this->key_map[GLFW_KEY_A]            = Action::PlayerMoveLeft;
+        this->key_map[GLFW_KEY_D]            = Action::PlayerMoveRight;
+        this->key_map[GLFW_KEY_LEFT_CONTROL] = Action::PlayerMoveDown;
+        this->key_map[GLFW_KEY_SPACE]        = Action::PlayerMoveUp;
+        this->key_map[GLFW_KEY_I]            = Action::CursorAttach;
+        this->key_map[GLFW_KEY_O]            = Action::CursorDetach;
 
         // Putting a reference to `this` inside of GLFW so that it can be passed
         // to the callback function
@@ -110,7 +112,7 @@ namespace gfx
 
     auto Window::getMouseDelta() const -> Delta
     {
-        if (this->is_cursor_attached.load())
+        if (this->is_cursor_attached.load() && this->input_ignore_frames == 0)
         {
             return Delta {
                 .x {static_cast<float>(this->mouse_delta_pixels.first)
@@ -128,6 +130,11 @@ namespace gfx
     void Window::pollEvents()
     {
         glfwPollEvents();
+
+        if (this->input_ignore_frames > 0)
+        {
+            --this->input_ignore_frames;
+        }
 
         // Mouse processing
         std::pair<double, double> currentMousePosition {

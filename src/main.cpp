@@ -41,6 +41,7 @@ int main()
         std::vector<gfx::Object> objects {};
         objects.push_back(renderer.createObject(
             gfx::Renderer::PipelineType::FlatPipeline, vertices, indicies));
+        objects.at(0).transform.scale *= 25;
 
         std::vector<const gfx::Object*> drawingObjects {};
         drawingObjects.reserve(objects.size());

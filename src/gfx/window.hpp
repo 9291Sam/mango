@@ -65,9 +65,11 @@ namespace gfx
             PlayerMoveBackward = 1,
             PlayerMoveLeft     = 2,
             PlayerMoveRight    = 3,
-            CursorAttach       = 4,
-            CursorDetach       = 5,
-            MaxEnumValue       = 6,
+            PlayerMoveUp       = 5,
+            PlayerMoveDown     = 6,
+            CursorAttach       = 7,
+            CursorDetach       = 8,
+            MaxEnumValue       = 9,
         };
 
         static constexpr std::size_t ActionMaxValue =
@@ -113,7 +115,7 @@ namespace gfx
         AtomicSize        width_height;
         std::atomic<bool> was_resized;
 
-        std::atomic<std::size_t> input_ignore_frames;
+        std::size_t input_ignore_frames;
 
         // Keyboard
         std::array<std::atomic<bool>, ActionMaxValue> keyboard_states;

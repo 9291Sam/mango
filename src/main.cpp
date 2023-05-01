@@ -8,30 +8,129 @@ int main()
 {
     util::logLog("mango started");
 
-    const std::array<gfx::vulkan::Vertex, 3> vertices {
+    // const std::array<gfx::vulkan::Vertex, 3> vertices {
+    //     gfx::vulkan::Vertex {
+    //         .position {1.0f, 1.0f, 0.0f},
+    //         .color {1.0f, 0.0f, 0.0f},
+    //         .normal {},
+    //         .uv {},
+    //     },
+
+    //     gfx::vulkan::Vertex {
+    //         .position {-1.0f, 1.0f, 0.0f},
+    //         .color {0.0f, 1.0f, 0.0f},
+    //         .normal {},
+    //         .uv {},
+    //     },
+
+    //     gfx::vulkan::Vertex {
+    //         .position {0.0f, -1.0f, 0.0f},
+    //         .color {0.0f, 0.0f, 1.0f},
+    //         .normal {},
+    //         .uv {},
+    //     },
+    // };
+
+    // const std::array<gfx::vulkan::Index, 3> indicies {0, 1, 2};
+
+    const std::array<gfx::vulkan::Vertex, 8> vertices {
         gfx::vulkan::Vertex {
-            .position {1.0f, 1.0f, 0.0f},
-            .color {1.0f, 0.0f, 0.0f},
+            .position {-1.0f, -1.0f, -1.0f},
+            .color {0.0f, 0.0f, 0.0f},
             .normal {},
             .uv {},
         },
-
         gfx::vulkan::Vertex {
-            .position {-1.0f, 1.0f, 0.0f},
+            .position {-1.0f, -1.0f, 1.0f},
+            .color {0.0f, 0.0f, 1.0f},
+            .normal {},
+            .uv {},
+        },
+        gfx::vulkan::Vertex {
+            .position {-1.0f, 1.0f, -1.0f},
             .color {0.0f, 1.0f, 0.0f},
             .normal {},
             .uv {},
         },
-
         gfx::vulkan::Vertex {
-            .position {0.0f, -1.0f, 0.0f},
-            .color {0.0f, 0.0f, 1.0f},
+            .position {-1.0f, 1.0f, 1.0f},
+            .color {0.0f, 1.0f, 1.0f},
+            .normal {},
+            .uv {},
+        },
+        gfx::vulkan::Vertex {
+            .position {1.0f, -1.0f, -1.0f},
+            .color {1.0f, 0.0f, 0.0f},
+            .normal {},
+            .uv {},
+        },
+        gfx::vulkan::Vertex {
+            .position {1.0f, -1.0f, 1.0f},
+            .color {1.0f, 0.0f, 1.0f},
+            .normal {},
+            .uv {},
+        },
+        gfx::vulkan::Vertex {
+            .position {1.0f, 1.0f, -1.0f},
+            .color {1.0f, 1.0f, 0.0f},
+            .normal {},
+            .uv {},
+        },
+        gfx::vulkan::Vertex {
+            .position {1.0f, 1.0f, 1.0f},
+            .color {1.0f, 1.0f, 1.0f},
             .normal {},
             .uv {},
         },
     };
 
-    const std::array<gfx::vulkan::Index, 3> indicies {0, 1, 2};
+    const std::array<gfx::vulkan::Index, 36> indicies {
+        2,
+        6,
+        7,
+        2,
+        3,
+        7,
+
+        // Bottom
+        0,
+        4,
+        5,
+        0,
+        1,
+        5,
+
+        // Left
+        0,
+        2,
+        6,
+        0,
+        4,
+        6,
+
+        // Right
+        1,
+        3,
+        7,
+        1,
+        5,
+        7,
+
+        // Front
+        0,
+        2,
+        3,
+        0,
+        1,
+        3,
+
+        // Back
+        4,
+        6,
+        7,
+        4,
+        5,
+        7};
 
     try
     {

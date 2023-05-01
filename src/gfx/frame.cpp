@@ -235,7 +235,8 @@ namespace gfx
                             reinterpret_cast<const VkPresentInfoKHR*>(
                                 &presentInfo));
 
-                    if (result == VK_ERROR_OUT_OF_DATE_KHR || VK_SUBOPTIMAL_KHR)
+                    if (result == VK_ERROR_OUT_OF_DATE_KHR
+                        || result == VK_SUBOPTIMAL_KHR)
                     {
                         returnValue = true;
                         return;

@@ -1,5 +1,6 @@
 #include "camera.hpp"
 #include "window.hpp"
+#include <fmt/format.h>
 
 namespace gfx
 {

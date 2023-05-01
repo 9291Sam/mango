@@ -5,7 +5,6 @@
 
 namespace gfx
 {
-    // TODO: seperate these files
     struct Transform
     {
         static constexpr glm::vec3 ForwardVector {0.0f, 0.0f, -1.0f};

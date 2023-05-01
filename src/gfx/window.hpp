@@ -1,10 +1,8 @@
-#include "util/threads.hpp"
 #include "vulkan/includes.hpp"
 #include <array>
 #include <atomic>
 #include <chrono>
-#include <memory>
-#include <semaphore>
+#include <unordered_map>
 
 struct GLFWwindow;
 

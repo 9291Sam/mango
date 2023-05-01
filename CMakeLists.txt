@@ -34,6 +34,11 @@ add_executable(mango
 
   src/util/log.cpp
 
+  src/game/system/system.cpp
+  src/game/system/cube.cpp
+
+  src/game/game.cpp
+
   src/main.cpp
 
 )

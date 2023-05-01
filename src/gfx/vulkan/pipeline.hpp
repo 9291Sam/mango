@@ -3,27 +3,14 @@
 
 #include "includes.hpp"
 #include "util/log.hpp"
-#include <concepts>
 #include <memory>
 #include <optional>
-#include <span>
 
 namespace gfx::vulkan
 {
     class Device;
     class RenderPass;
     class Swapchain;
-
-    template<class T>
-    concept PipelineVertex = requires {
-        {
-            T::getBindingDescription()
-        } -> std::same_as<const vk::VertexInputBindingDescription*>;
-        {
-            T::getAttributeDescriptions()
-        } -> std::same_as<
-            const std::array<vk::VertexInputAttributeDescription, 4>*>;
-    };
 
     class Pipeline
     {

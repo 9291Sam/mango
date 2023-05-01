@@ -38,6 +38,7 @@ namespace gfx
         this->key_map[GLFW_KEY_D]            = Action::PlayerMoveRight;
         this->key_map[GLFW_KEY_LEFT_CONTROL] = Action::PlayerMoveDown;
         this->key_map[GLFW_KEY_SPACE]        = Action::PlayerMoveUp;
+        this->key_map[GLFW_KEY_LEFT_SHIFT]   = Action::PlayerSprint;
         this->key_map[GLFW_KEY_I]            = Action::CursorAttach;
         this->key_map[GLFW_KEY_O]            = Action::CursorDetach;
 

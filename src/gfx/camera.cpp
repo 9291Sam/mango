@@ -89,7 +89,10 @@ namespace gfx
     void Camera::updateState(const Window& window)
     {
         // TODO: moving diaginally is faster
-        const float MoveScale        = 50.0;
+        const float MoveScale =
+            50.0f
+            * (window.isActionActive(Window::Action::PlayerSprint) ? 2.0f
+                                                                   : 1.0f);
         const float rotateSpeedScale = 150.255f;
         const float deltaTime        = window.getDeltaTimeSeconds();
 

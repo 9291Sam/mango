@@ -228,14 +228,26 @@ namespace gfx
                     .pResults {nullptr},
                 };
 
-                try
                 {
-                    std::ignore = queue.presentKHR(presentInfo);
-                }
-                catch (const vk::OutOfDateKHRError&)
-                {
-                    returnValue = true;
-                    return;
+                    VkResult result =
+                        VULKAN_HPP_DEFAULT_DISPATCHER.vkQueuePresentKHR(
+                            static_cast<VkQueue>(queue),
+                            reinterpret_cast<const VkPresentInfoKHR*>(
+                                &presentInfo));
+
+                    if (result == VK_ERROR_OUT_OF_DATE_KHR || VK_SUBOPTIMAL_KHR)
+                    {
+                        returnValue = true;
+                        return;
+                    }
+                    else if (result == VK_SUCCESS)
+                    {}
+                    else
+                    {
+                        util::panic(
+                            "Unhandled error! {}",
+                            vk::to_string(vk::Result {result}));
+                    }
                 }
 
                 const vk::Result result =

@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include "system/cube.hpp"
+#include "system/disk_object.hpp"
 #include <gfx/renderer.hpp>
 
 namespace game
@@ -10,6 +11,8 @@ namespace game
         , camera {{0.0f, 0.0f, 20.0f}}
     {
         this->systems.push_back(std::make_unique<system::Cube>(this->renderer));
+        this->systems.push_back(std::make_unique<system::DiskObject>(
+            this->renderer, "../models/gizmo.obj"));
     }
 
     Game::~Game() {}

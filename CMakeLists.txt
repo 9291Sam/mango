@@ -36,6 +36,7 @@ add_executable(mango
 
   src/game/system/system.cpp
   src/game/system/cube.cpp
+  src/game/system/disk_object.cpp
 
   src/game/game.cpp
 
@@ -152,6 +153,12 @@ set_target_properties(glm PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/glm
 )
 target_link_libraries(mango glm)
+
+add_library(tinyobjloader INTERFACE)
+set_target_properties(tinyobjloader PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/tinyobjloader
+)
+target_link_libraries(mango tinyobjloader)
 
 add_library(vulkan INTERFACE)
 target_include_directories(vulkan INTERFACE ${CMAKE_SOURCE_DIR}/inc/Vulkan-Headers/include)

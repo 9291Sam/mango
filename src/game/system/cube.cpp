@@ -66,7 +66,7 @@ namespace game::system
         this->objects.push_back(this->renderer->createObject(
             gfx::Renderer::PipelineType::FlatPipeline, vertices, indicies));
 
-        this->objects.at(0).transform.scale *= 25;
+        this->objects.at(0).transform.translation.y += 12.5f;
     }
 
     void Cube::tick(float deltaTime)

@@ -121,12 +121,12 @@ namespace gfx
         // TODO: what why are these flipped
         if (window.isActionActive(Window::Action::PlayerMoveUp))
         {
-            this->addPosition(-this->getUpVector() * deltaTime * MoveScale);
+            this->addPosition(-Transform::UpVector * deltaTime * MoveScale);
         }
 
         if (window.isActionActive(Window::Action::PlayerMoveDown))
         {
-            this->addPosition(this->getUpVector() * deltaTime * MoveScale);
+            this->addPosition(Transform::UpVector * deltaTime * MoveScale);
         }
 
         auto [xDelta, yDelta] = window.getMouseDelta();

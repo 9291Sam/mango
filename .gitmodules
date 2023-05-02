@@ -16,3 +16,6 @@
 [submodule "inc/glm"]
 	path = inc/glm
 	url = https://github.com/g-truc/glm
+[submodule "inc/tinyobjloader"]
+	path = inc/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader

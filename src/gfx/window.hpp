@@ -103,6 +103,7 @@ namespace gfx
         static void frameBufferResizeCallback(GLFWwindow*, int, int);
         static void keypressCallback(GLFWwindow*, int, int, int, int);
         static void windowFocusCallback(GLFWwindow*, int);
+        static void mouseButtonCallback(GLFWwindow*, int, int, int);
 
         GLFWwindow* window;
 
@@ -118,6 +119,7 @@ namespace gfx
 
         // Keyboard
         std::array<std::atomic<bool>, ActionMaxValue> keyboard_states;
+        std::array<std::atomic<bool>, 8>              mouse_states;
         std::unordered_map<GlfwKeyType, Action>       key_map;
 
         // Mouse

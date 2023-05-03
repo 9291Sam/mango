@@ -4,6 +4,14 @@
 
 namespace gfx::vulkan
 {
+    Buffer::Buffer()
+        : allocator {nullptr}
+        , buffer {nullptr}
+        , allocation {nullptr}
+        , size {~0UZ}
+        , mapped_memory {nullptr}
+    {}
+
     Buffer::Buffer(
         std::shared_ptr<Allocator> allocator_,
         std::size_t                sizeBytes,

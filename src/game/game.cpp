@@ -26,13 +26,9 @@ namespace game
         {
             s->tick(deltaTime);
 
-            if (const system::ObjectSystem* o =
-                    dynamic_cast<system::ObjectSystem*>(s.get()))
+            for (const gfx::Object* obj : s->lend())
             {
-                for (const gfx::Object* obj : o->lend())
-                {
-                    drawObjects.push_back(obj);
-                }
+                drawObjects.push_back(obj);
             }
         }
 

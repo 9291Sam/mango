@@ -11,22 +11,19 @@ namespace gfx
 
 namespace game::system
 {
-    class DiskObject : public ObjectSystem
+    class DiskObject final : public System
     {
     public:
 
         DiskObject(std::shared_ptr<gfx::Renderer>, const char* filepath);
         ~DiskObject() override;
 
-        DiskObject(const DiskObject&)             = delete;
-        DiskObject(DiskObject&&)                  = delete;
-        DiskObject& operator= (const DiskObject&) = delete;
-        DiskObject& operator= (DiskObject&&)      = delete;
-
         void tick(float) override;
 
         [[nodiscard]] std::vector<const gfx::Object*> lend() const override;
 
+    private:
+        gfx::Object object;
     }; // class DiskObject
 
 } // namespace game::system

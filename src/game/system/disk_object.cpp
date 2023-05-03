@@ -15,7 +15,8 @@ namespace game::system
 {
     DiskObject::DiskObject(
         std::shared_ptr<gfx::Renderer> renderer_, const char* filepath)
-        : ObjectSystem {std::move(renderer_)}
+        : System {std::move(renderer_)}
+        , object {}
     {
         tinyobj::attrib_t                attribute {};
         std::vector<tinyobj::shape_t>    shapes;
@@ -95,8 +96,8 @@ namespace game::system
             }
         }
 
-        this->objects.push_back(this->renderer->createObject(
-            gfx::Renderer::PipelineType::FlatPipeline, vertices, indices));
+        this->object = this->renderer->createObject(
+            gfx::Renderer::PipelineType::FlatPipeline, vertices, indices);
     }
 
     DiskObject::~DiskObject() {}
@@ -110,6 +111,6 @@ namespace game::system
 
     std::vector<const gfx::Object*> DiskObject::lend() const
     {
-        return {&this->objects.at(0)};
+        return {&this->object};
     }
 } // namespace game::system

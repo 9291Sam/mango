@@ -30,6 +30,7 @@ namespace gfx
     class Object
     {
     public:
+        Object() = default;
         Object(
             std::shared_ptr<vulkan::Allocator>,
             std::size_t pipelineNumber,

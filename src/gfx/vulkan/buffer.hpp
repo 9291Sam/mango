@@ -16,6 +16,7 @@ namespace gfx::vulkan
     {
     public:
 
+        Buffer();
         Buffer(
             std::shared_ptr<Allocator>,
             std::size_t sizeBytes,

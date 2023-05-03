@@ -3,11 +3,9 @@
 
 namespace game::system
 {
-    System::~System() {}
-
-    ObjectSystem::ObjectSystem(std::shared_ptr<gfx::Renderer> renderer_)
+    System::System(std::shared_ptr<gfx::Renderer> renderer_)
         : renderer {std::move(renderer_)}
     {}
 
-    ObjectSystem::~ObjectSystem() {}
+    System::~System() {}
 } // namespace game::system

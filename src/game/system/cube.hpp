@@ -11,15 +11,19 @@ namespace gfx
 
 namespace game::system
 {
-    class Cube : public ObjectSystem
+    class Cube final : public System
     {
     public:
+
         Cube(std::shared_ptr<gfx::Renderer>);
         ~Cube() override = default;
 
         void tick(float) override;
 
         [[nodiscard]] std::vector<const gfx::Object*> lend() const override;
+
+    private:
+        gfx::Object object;
     };
 } // namespace game::system
 

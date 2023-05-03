@@ -39,8 +39,8 @@ namespace gfx
         this->key_map[GLFW_KEY_LEFT_CONTROL] = Action::PlayerMoveDown;
         this->key_map[GLFW_KEY_SPACE]        = Action::PlayerMoveUp;
         this->key_map[GLFW_KEY_LEFT_SHIFT]   = Action::PlayerSprint;
-        this->key_map[GLFW_KEY_I]            = Action::CursorAttach;
-        this->key_map[GLFW_KEY_O]            = Action::CursorDetach;
+        // this->key_map[GLFW_KEY_I]            = Action::CursorAttach;
+        this->key_map[GLFW_KEY_ESCAPE]       = Action::CursorDetach;
 
         // Putting a reference to `this` inside of GLFW so that it can be passed
         // to the callback function
@@ -54,6 +54,9 @@ namespace gfx
 
         std::ignore = glfwSetWindowFocusCallback(
             this->window, Window::windowFocusCallback);
+
+        std::ignore = glfwSetMouseButtonCallback(
+            this->window, Window::mouseButtonCallback);
 
         this->last_frame_end_time = std::chrono::steady_clock::now();
 
@@ -137,6 +140,20 @@ namespace gfx
             --this->input_ignore_frames;
         }
 
+        if (this->keyboard_states
+                .at(static_cast<std::size_t>(Action::CursorAttach))
+                .load())
+        {
+            this->attachCursor();
+        }
+
+        if (this->keyboard_states
+                .at(static_cast<std::size_t>(Action::CursorDetach))
+                .load())
+        {
+            this->detachCursor();
+        }
+
         // Mouse processing
         std::pair<double, double> currentMousePosition {
             std::nan(""), std::nan("")};
@@ -169,6 +186,11 @@ namespace gfx
 
     void Window::detachCursor() const
     {
+        if (!this->is_cursor_attached.load())
+        {
+            return;
+        }
+
         glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwSetCursorPos(
             this->window,
@@ -246,20 +268,6 @@ namespace gfx
         default:
             util::panic("Unexpected action! {}", action);
         }
-
-        if (window->keyboard_states
-                .at(static_cast<std::size_t>(Action::CursorAttach))
-                .load())
-        {
-            window->attachCursor();
-        }
-
-        if (window->keyboard_states
-                .at(static_cast<std::size_t>(Action::CursorDetach))
-                .load())
-        {
-            window->detachCursor();
-        }
     }
 
     void Window::windowFocusCallback(GLFWwindow* glfwWindow, int isFocused)
@@ -268,6 +276,49 @@ namespace gfx
             static_cast<gfx::Window*>(glfwGetWindowUserPointer(glfwWindow));
 
         if (isFocused)
+        {
+            window->attachCursor();
+        }
+    }
+
+    void Window::mouseButtonCallback(
+        GLFWwindow* glfwWindow, int button, int action, int)
+    {
+        gfx::Window* window =
+            static_cast<gfx::Window*>(glfwGetWindowUserPointer(glfwWindow));
+
+        std::atomic<bool>& buttonToModify = window->mouse_states.at(button);
+
+        switch (action)
+        {
+        case GLFW_RELEASE:
+            if (!buttonToModify.exchange(false))
+            {
+                util::logWarn("Mouse button #{} already released!", button);
+            }
+            break;
+
+        case GLFW_PRESS:
+            if (buttonToModify.exchange(true))
+            {
+                util::logWarn("Mouse button #{} already depressed!", button);
+            }
+            break;
+
+        case GLFW_REPEAT:
+            buttonToModify.store(true);
+            break;
+
+        default:
+            util::panic("Unexpected action! {}", action);
+        }
+
+        // TODO: do this properly?
+        // you need to switch the mapping from keys -> actions
+        // into seperate keys -> actions and current action states so you can
+        // just poll if the attack state is desired
+        if (window->mouse_states.at(0).load()
+            || window->mouse_states.at(1).load())
         {
             window->attachCursor();
         }

@@ -3,10 +3,10 @@
 #include <gfx/renderer.hpp>
 #include <gfx/vulkan/gpu_data.hpp>
 
-namespace game::system
+namespace game::entity
 {
     Cube::Cube(std::shared_ptr<gfx::Renderer> renderer_)
-        : System {std::move(renderer_)}
+        : Entity {std::move(renderer_)}
     {
         const std::array<gfx::vulkan::Vertex, 8> vertices {
             gfx::vulkan::Vertex {
@@ -78,4 +78,4 @@ namespace game::system
     {
         return {&this->object};
     }
-} // namespace game::system
+} // namespace game::entity

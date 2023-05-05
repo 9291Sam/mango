@@ -1,17 +1,18 @@
 #include "game.hpp"
-#include "system/cube.hpp"
-#include "system/disk_object.hpp"
+#include "entity/cube.hpp"
+#include "entity/disk_object.hpp"
 #include <gfx/renderer.hpp>
 
 namespace game
 {
     Game::Game(std::shared_ptr<gfx::Renderer> renderer_)
         : renderer {std::move(renderer_)}
-        , systems {}
+        , entities {}
         , camera {{0.0f, 0.0f, 20.0f}}
     {
-        this->systems.push_back(std::make_unique<system::Cube>(this->renderer));
-        this->systems.push_back(std::make_unique<system::DiskObject>(
+        this->entities.push_back(
+            std::make_unique<entity::Cube>(this->renderer));
+        this->entities.push_back(std::make_unique<entity::DiskObject>(
             this->renderer, "../models/gizmo.obj"));
     }
 
@@ -22,7 +23,7 @@ namespace game
         const float deltaTime = this->renderer->getDeltaTimeSeconds();
         std::vector<const gfx::Object*> drawObjects {};
 
-        for (const std::unique_ptr<system::System>& s : this->systems)
+        for (const std::unique_ptr<entity::Entity>& s : this->entities)
         {
             s->tick(deltaTime);
 

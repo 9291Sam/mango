@@ -13,6 +13,9 @@ namespace gfx
     ///
     /// Because of glfw implementation details this must do a lot of disparte
     /// things
+    /// TODO: this is becoming a mess. Now that you know everything this class
+    /// needs to do, go back design it properly and dont live with your bad
+    /// choices
     class Window
     {
     public:

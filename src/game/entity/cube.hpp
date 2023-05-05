@@ -1,7 +1,7 @@
-#ifndef SRC_GAME_SYSTEM_CUBE_HPP
-#define SRC_GAME_SYSTEM_CUBE_HPP
+#ifndef SRC_GAME_ENTITY_CUBE_HPP
+#define SRC_GAME_ENTITY_CUBE_HPP
 
-#include "system.hpp"
+#include "entity.hpp"
 #include <memory>
 
 namespace gfx
@@ -9,9 +9,9 @@ namespace gfx
     class Renderer;
 }
 
-namespace game::system
+namespace game::entity
 {
-    class Cube final : public System
+    class Cube final : public Entity
     {
     public:
 
@@ -25,6 +25,6 @@ namespace game::system
     private:
         gfx::Object object;
     };
-} // namespace game::system
+} // namespace game::entity
 
-#endif // SRC_GAME_SYSTEM_CUBE_HPP
+#endif // SRC_GAME_ENTITY_CUBE_HPP

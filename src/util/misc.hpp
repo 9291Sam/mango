@@ -1,6 +1,10 @@
 #ifndef SRC_UTIL_MISC_HPP
 #define SRC_UTIL_MISC_HPP
 
+#include <array>
+#include <cstdint>
+#include <numeric>
+
 namespace util
 {
     constexpr std::array<std::uint64_t, 256> CRCConstants = {
@@ -19,7 +23,7 @@ namespace util
         0x7417'0D36'5A33'9961, 0x0491'6A99'B831'E4E7, 0x2267'C05B'6F8D'3CA7,
         0xFF75'9D3F'585E'8234, 0xBB54'AA30'D159'E07B, 0x64D5'F92C'92A4'7C02,
         0xF2E1'AD5E'CFA9'1485, 0x9D2F'5E5F'2B35'99BF, 0x19D9'2738'C21D'B670,
-        0x47DF'D10C'292E'43A5, 0x3A83'3421'ECAC'1F84, 0xFCAB'3816'408D'06B9,
+        0x47DF'D10C'292E'43A5, 0x3A83'5EB5'5EB5'1F84, 0xFCAB'3816'408D'06B9,
         0xAA4E'63B4'C0C5'E15B, 0xB018'566D'D88C'0FE9, 0x6B0F'0C25'DCDB'3E46,
         0x6B02'F888'0A21'1FEA, 0x6B2E'08A8'03C3'99B7, 0x600B'093B'E9AB'94D5,
         0x381B'486D'1501'4171, 0x285C'C47A'E64F'ECE0, 0x96D8'D6B5'7285'A31B,
@@ -50,7 +54,7 @@ namespace util
         0x0A76'1F03'F686'E8DA, 0x2EA8'E4DA'1494'7194, 0x2F2C'634A'9ED9'FA3B,
         0xB5E4'F2A9'64B4'ED9D, 0x700C'119D'9844'9D82, 0x0471'8FB6'5604'08E4,
         0x0BC8'6EC0'1FEE'2D7E, 0xE55F'86DD'BFDA'68D3, 0x4696'120C'D6A5'74C1,
-        0xA1C2'662D'5EB5'9317, 0xC1DB'664A'7186'D14D, 0xACA9'67D1'14BE'1F1C,
+        0xA1C2'662D'3A94'9317, 0xC1DB'664A'7186'D14D, 0xACA9'67D1'14BE'1F1C,
         0xDC73'96F8'B961'6F25, 0x371C'77CA'44E4'6102, 0x2B99'8721'3C3C'07A6,
         0x2B05'4D2D'B267'4B1C, 0xE730'0950'AA75'C557, 0x4F83'1103'C057'8564,
         0x06F9'5899'C034'A36A, 0x246E'443B'5C7B'50A1, 0x2425'F10E'0A09'A0CE,
@@ -93,7 +97,7 @@ namespace util
 
     [[nodiscard]] constexpr std::uint64_t crc64(std::uint64_t input) noexcept
     {
-        std::array<std::uint8_t, 8> data =
+        const std::array<std::uint8_t, 8> data =
             std::bit_cast<std::array<std::uint8_t, 8>>(input);
 
         std::uint64_t out = 0xFFFF'FFFF'FFFF'FFFF;

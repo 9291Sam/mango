@@ -1,7 +1,7 @@
-#ifndef SRC_GAME_SYSTEM_DISK__OBJECT_HPP
-#define SRC_GAME_SYSTEM_DISK__OBJECT_HPP
+#ifndef SRC_GAME_ENTITY_DISK__OBJECT_HPP
+#define SRC_GAME_ENTITY_DISK__OBJECT_HPP
 
-#include "system.hpp"
+#include "entity.hpp"
 
 namespace gfx
 {
@@ -9,9 +9,9 @@ namespace gfx
     class Object;
 } // namespace gfx
 
-namespace game::system
+namespace game::entity
 {
-    class DiskObject final : public System
+    class DiskObject final : public Entity
     {
     public:
 
@@ -26,6 +26,6 @@ namespace game::system
         gfx::Object object;
     }; // class DiskObject
 
-} // namespace game::system
+} // namespace game::entity
 
-#endif // SRC_GAME_SYSTEM_DISK__OBJECT_HPP
+#endif // SRC_GAME_ENTITY_DISK__OBJECT_HPP

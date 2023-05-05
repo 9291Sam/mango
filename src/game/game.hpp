@@ -11,9 +11,9 @@ namespace gfx
 
 namespace game
 {
-    namespace system
+    namespace entity
     {
-        class System;
+        class Entity;
     }
 
     class Game
@@ -32,7 +32,7 @@ namespace game
 
     private:
         std::shared_ptr<gfx::Renderer>               renderer;
-        std::vector<std::unique_ptr<system::System>> systems;
+        std::vector<std::unique_ptr<entity::Entity>> entities;
         gfx::Camera                                  camera;
     }; // class Game
 

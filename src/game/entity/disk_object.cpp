@@ -11,11 +11,11 @@
 
 #pragma clang diagnostic pop
 
-namespace game::system
+namespace game::entity
 {
     DiskObject::DiskObject(
         std::shared_ptr<gfx::Renderer> renderer_, const char* filepath)
-        : System {std::move(renderer_)}
+        : Entity {std::move(renderer_)}
         , object {}
     {
         tinyobj::attrib_t                attribute {};
@@ -102,15 +102,10 @@ namespace game::system
 
     DiskObject::~DiskObject() {}
 
-    void DiskObject::tick(float)
-    {
-        // this->objects.at(0).transform.yawBy(45.0f / 43.0f * deltaTime);
-        // this->objects.at(0).transform.pitchBy(37.0f / 31.0f * deltaTime);
-        // this->objects.at(0).transform.rollBy(61.0f / 67.0f * deltaTime);
-    }
+    void DiskObject::tick(float) {}
 
     std::vector<const gfx::Object*> DiskObject::lend() const
     {
         return {&this->object};
     }
-} // namespace game::system
+} // namespace game::entity

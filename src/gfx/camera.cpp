@@ -1,14 +1,19 @@
 #include "camera.hpp"
 #include "window.hpp"
 #include <fmt/format.h>
+#include <util/log.hpp>
 
 namespace gfx
 {
     Camera::Camera(glm::vec3 position)
+        // clang-format off
         : transform {
             .translation {position},
             .rotation {1.0f, 0.0f, 0.0f, 0.0f},
             .scale {1.0f, 1.0f, 1.0f}}
+        // clang-format on
+        , pitch {0.0f}
+        , yaw {0.0f}
     {}
 
     glm::mat4 Camera::getPerspectiveMatrix(
@@ -129,10 +134,19 @@ namespace gfx
             this->addPosition(Transform::UpVector * deltaTime * MoveScale);
         }
 
+        if (this->pitch < -1.5507964)
+        {
+            util::panic("toofar");
+        }
+
         auto [xDelta, yDelta] = window.getMouseDelta();
 
         this->addYaw(xDelta * deltaTime * rotateSpeedScale);
         this->addPitch(yDelta * deltaTime * rotateSpeedScale);
+        if (this->pitch < -1.5507964)
+        {
+            util::panic("toofar");
+        }
     }
 
     Camera::operator std::string () const

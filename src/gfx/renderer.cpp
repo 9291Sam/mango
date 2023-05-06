@@ -85,6 +85,11 @@ namespace gfx
         std::span<const vulkan::Vertex> vertices,
         std::span<const vulkan::Index>  indices) const
     {
+        util::assertFatal(
+            vertices.size() > 0, "Span of size 0 was passed for vertices");
+        util::assertFatal(
+            indices.size() > 0, "Span of size 0 was passed for indices");
+
         return Object {
             this->allocator,
             static_cast<std::size_t>(pipelineType),

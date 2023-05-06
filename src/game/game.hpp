@@ -1,6 +1,7 @@
 #ifndef SRC_GAME_GAME_HPP
 #define SRC_GAME_GAME_HPP
 
+#include "world/world.hpp"
 #include <gfx/camera.hpp>
 #include <memory>
 
@@ -34,6 +35,7 @@ namespace game
         std::shared_ptr<gfx::Renderer>               renderer;
         std::vector<std::unique_ptr<entity::Entity>> entities;
         gfx::Camera                                  camera;
+        world::World                                 world;
     }; // class Game
 
 } // namespace game

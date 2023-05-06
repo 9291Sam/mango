@@ -90,13 +90,13 @@ namespace util
             const std::source_location& location =
                 std::source_location::current())
         {
-            using enum Level;
-            logFormatted(
-                Fatal,
-                location,
+            const std::string PanicString = fmt::format(
+                "Thread panic! | Message: {}",
                 fmt::vformat(fmt, fmt::make_format_args(args...)));
-            throw std::runtime_error {
-                fmt::vformat(fmt, fmt::make_format_args(args...))};
+
+            using enum Level;
+            logFormatted(Fatal, location, PanicString);
+            throw std::runtime_error {PanicString};
         }
     };
     template<class... J>

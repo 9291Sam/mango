@@ -6,14 +6,13 @@
 namespace gfx
 {
     Camera::Camera(glm::vec3 position)
-        // clang-format off
-        : transform {
+        : pitch {0.0f}
+        , yaw {0.0f} // clang-format off
+        , transform {
             .translation {position},
             .rotation {1.0f, 0.0f, 0.0f, 0.0f},
             .scale {1.0f, 1.0f, 1.0f}}
-        // clang-format on
-        , pitch {0.0f}
-        , yaw {0.0f}
+    // clang-format on
     {}
 
     glm::mat4 Camera::getPerspectiveMatrix(
@@ -127,7 +126,7 @@ namespace gfx
             this->addPosition(Transform::UpVector * deltaTime * MoveScale);
         }
 
-        if (this->pitch < -1.5507964)
+        if (this->pitch < -1.5507964f)
         {
             util::panic("toofar");
         }
@@ -136,7 +135,7 @@ namespace gfx
 
         this->addYaw(xDelta * deltaTime * rotateSpeedScale);
         this->addPitch(yDelta * deltaTime * rotateSpeedScale);
-        if (this->pitch < -1.5507964)
+        if (this->pitch < -1.5507964f)
         {
             util::panic("toofar");
         }

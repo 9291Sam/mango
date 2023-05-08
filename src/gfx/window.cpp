@@ -287,7 +287,8 @@ namespace gfx
         gfx::Window* window =
             static_cast<gfx::Window*>(glfwGetWindowUserPointer(glfwWindow));
 
-        std::atomic<bool>& buttonToModify = window->mouse_states.at(button);
+        std::atomic<bool>& buttonToModify =
+            window->mouse_states.at(static_cast<std::size_t>(button));
 
         switch (action)
         {

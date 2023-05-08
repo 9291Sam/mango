@@ -4,8 +4,8 @@
 namespace game::world
 {
     World::World(
-        std::shared_ptr<gfx::Renderer> renderer_,
-        std::optional<std::size_t>     seed)
+        std::shared_ptr<gfx::Renderer>              renderer_,
+        [[maybe_unused]] std::optional<std::size_t> seed)
         : renderer {std::move(renderer_)} // clang-format off
         , voxels {
             gfx::Transform {

@@ -98,6 +98,8 @@ getVoxelVertexPosition(float voxelEdgeLength, std::size_t cornerNumber)
     default:
         util::panic("Invalid cornerNumber {}", cornerNumber);
     }
+
+    std::unreachable();
 }
 
 constexpr inline glm::vec3 getVoxelNormal(std::size_t normalNumber)
@@ -119,6 +121,8 @@ constexpr inline glm::vec3 getVoxelNormal(std::size_t normalNumber)
     default:
         util::panic("Invalid normalNumber {}", normalNumber);
     }
+
+    std::unreachable();
 }
 
 constexpr inline void createVoxelTriangle(
@@ -204,7 +208,6 @@ namespace game::world
     {
         const float VoxelSize =
             1.0f; // TODO: add this as a configurable parameter
-        const std::array<float, 2> VoxelEdgePoints {0.0f, VoxelSize};
         const auto  SideIterator = std::views::iota(0UZ, this->side_dimension);
         const float SpreadFactor = 5.0f;
 
@@ -216,34 +219,36 @@ namespace game::world
             {
                 for (std::size_t z : SideIterator)
                 {
-#define EMIT_VOXEL_TRIANGLE(t1, t2, t3, normalNumber)                                                            \
-    createVoxelTriangle(                                                                                         \
-        VoxelSize,                                                                                               \
-        {t1, t2, t3},                                                                                            \
-        this->transform.translation                                                                              \
-            + glm::                                                                                              \
-                vec3 {x * VoxelSize * SpreadFactor, y * VoxelSize * SpreadFactor, z * VoxelSize * SpreadFactor}, \
-        this->at(x, y, z).getFloatColors(),                                                                      \
-        normalNumber,                                                                                            \
+                    const glm::vec3 OffsetVector {
+                        static_cast<float>(x) * VoxelSize * SpreadFactor,
+                        static_cast<float>(y) * VoxelSize * SpreadFactor,
+                        static_cast<float>(z) * VoxelSize * SpreadFactor};
+#define EMIT_VOXEL_TRIANGLE(t1, t2, t3, normalNumber)                          \
+    createVoxelTriangle(                                                       \
+        VoxelSize,                                                             \
+        {t1, t2, t3},                                                          \
+        this->transform.translation + OffsetVector,                            \
+        this->at(x, y, z).getFloatColors(),                                    \
+        normalNumber,                                                          \
         duplicatedVertices);
 
-                    EMIT_VOXEL_TRIANGLE(2, 6, 7, 0);
-                    EMIT_VOXEL_TRIANGLE(2, 7, 3, 0);
+                    EMIT_VOXEL_TRIANGLE(2, 6, 7, 0)
+                    EMIT_VOXEL_TRIANGLE(2, 7, 3, 0)
 
-                    EMIT_VOXEL_TRIANGLE(0, 4, 5, 1);
-                    EMIT_VOXEL_TRIANGLE(0, 5, 1, 1);
+                    EMIT_VOXEL_TRIANGLE(0, 4, 5, 1)
+                    EMIT_VOXEL_TRIANGLE(0, 5, 1, 1)
 
-                    EMIT_VOXEL_TRIANGLE(6, 2, 1, 2);
-                    EMIT_VOXEL_TRIANGLE(6, 1, 5, 2);
+                    EMIT_VOXEL_TRIANGLE(6, 2, 1, 2)
+                    EMIT_VOXEL_TRIANGLE(6, 1, 5, 2)
 
-                    EMIT_VOXEL_TRIANGLE(3, 7, 4, 3);
-                    EMIT_VOXEL_TRIANGLE(3, 4, 0, 3);
+                    EMIT_VOXEL_TRIANGLE(3, 7, 4, 3)
+                    EMIT_VOXEL_TRIANGLE(3, 4, 0, 3)
 
-                    EMIT_VOXEL_TRIANGLE(7, 6, 5, 4);
-                    EMIT_VOXEL_TRIANGLE(7, 5, 4, 4);
+                    EMIT_VOXEL_TRIANGLE(7, 6, 5, 4)
+                    EMIT_VOXEL_TRIANGLE(7, 5, 4, 4)
 
-                    EMIT_VOXEL_TRIANGLE(2, 3, 0, 5);
-                    EMIT_VOXEL_TRIANGLE(2, 0, 1, 5);
+                    EMIT_VOXEL_TRIANGLE(2, 3, 0, 5)
+                    EMIT_VOXEL_TRIANGLE(2, 0, 1, 5)
 
 #undef EMIT_VOXEL_TRIANGLE
                 }

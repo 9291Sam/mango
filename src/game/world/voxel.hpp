@@ -19,7 +19,7 @@ namespace gfx
     {
         using Index = std::uint32_t;
 
-        class Vertex;
+        struct Vertex;
     } // namespace vulkan
 } // namespace gfx
 

@@ -13,8 +13,13 @@ namespace game
         , camera {{-30.0f, 20.0f, -20.0f}}
         , world {this->renderer, 78234789234}
     {
-        this->entities.push_back(
-            std::make_unique<entity::Cube>(this->renderer));
+        this->entities.push_back(std::make_unique<entity::Cube>(
+            this->renderer,
+            gfx::Transform {
+                .translation {0.0f, 12.5f, 0.0f},
+                .rotation {1.0f, 0.0f, 0.0f, 0.0f},
+                .scale {1.0f, 1.0f, 1.0f}}));
+
         this->entities.push_back(std::make_unique<entity::DiskObject>(
             this->renderer, "../models/gizmo.obj"));
 

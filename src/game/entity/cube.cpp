@@ -5,7 +5,8 @@
 
 namespace game::entity
 {
-    Cube::Cube(std::shared_ptr<gfx::Renderer> renderer_)
+    Cube::Cube(
+        std::shared_ptr<gfx::Renderer> renderer_, gfx::Transform transform)
         : Entity {std::move(renderer_)}
     {
         const std::array<gfx::vulkan::Vertex, 8> vertices {
@@ -60,13 +61,13 @@ namespace game::entity
         };
 
         const std::array<gfx::vulkan::Index, 36> indices {
-            2, 6, 7, 2, 3, 7, 0, 4, 5, 0, 1, 5, 0, 2, 6, 0, 4, 6,
-            1, 3, 7, 1, 5, 7, 0, 2, 3, 0, 1, 3, 4, 6, 7, 4, 5, 7};
+            6, 2, 7, 2, 3, 7, 0, 4, 5, 1, 0, 5, 0, 2, 6, 4, 0, 6,
+            3, 1, 7, 1, 5, 7, 2, 0, 3, 0, 1, 3, 4, 6, 7, 5, 4, 7};
 
         this->object = this->renderer->createObject(
             gfx::Renderer::PipelineType::FlatPipeline, vertices, indices);
 
-        this->object.transform.translation.y += 12.5f;
+        this->object.transform = transform;
     }
 
     void Cube::tick(float deltaTime)

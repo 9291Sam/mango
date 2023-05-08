@@ -1,4 +1,5 @@
 #include "voxel.hpp"
+#include <map>
 #include <numeric>
 #include <random>
 #include <ranges>
@@ -255,14 +256,34 @@ namespace game::world
             }
         }
 
-        util::logLog("Vertices {}", duplicatedVertices.size());
+        std::map<gfx::vulkan::Vertex, std::size_t> vertexToIndexOfIndexMap;
+
+        std::vector<gfx::vulkan::Vertex> uniqueVertices;
+        uniqueVertices.reserve(duplicatedVertices.size());
 
         std::vector<gfx::vulkan::Index> indices;
-        indices.resize(duplicatedVertices.size());
+        indices.reserve(duplicatedVertices.size());
 
-        std::iota(indices.begin(), indices.end(), 0);
+        for (const gfx::vulkan::Vertex& v : duplicatedVertices)
+        {
+            if (vertexToIndexOfIndexMap.contains(v))
+            {
+                indices.push_back(static_cast<gfx::vulkan::Index>(
+                    vertexToIndexOfIndexMap[v]));
+            }
+            else
+            {
+                vertexToIndexOfIndexMap[v] = uniqueVertices.size();
+                uniqueVertices.push_back(v);
+                indices.push_back(static_cast<gfx::vulkan::Index>(
+                    vertexToIndexOfIndexMap[v]));
+            }
+        }
 
-        return {duplicatedVertices, indices};
+        util::logLog(
+            "Vertices {} | Indices: {}", uniqueVertices.size(), indices.size());
+
+        return {uniqueVertices, indices};
     } // namespace game::world
 
     Voxel& VoxelCube::at(std::size_t x, std::size_t y, std::size_t z)

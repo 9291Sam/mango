@@ -15,7 +15,7 @@ namespace game::entity
     {
     public:
 
-        Cube(std::shared_ptr<gfx::Renderer>);
+        Cube(std::shared_ptr<gfx::Renderer>, gfx::Transform);
         ~Cube() override = default;
 
         void tick(float) override;

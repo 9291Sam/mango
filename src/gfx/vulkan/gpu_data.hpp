@@ -71,6 +71,31 @@ namespace gfx::vulkan
 
         [[nodiscard]] operator std::string () const;
         [[nodiscard]] bool operator== (const Vertex&) const = default;
+        [[nodiscard]] std::partial_ordering
+        operator<=> (const Vertex& other) const
+        {
+#define EMIT_ORDERING(field)                                                   \
+    if (this->field <=> other.field != std::partial_ordering::equivalent)      \
+    {                                                                          \
+        return this->field <=> other.field;                                    \
+    }
+            EMIT_ORDERING(position.x)
+            EMIT_ORDERING(position.y)
+            EMIT_ORDERING(position.z)
+
+            EMIT_ORDERING(color.r)
+            EMIT_ORDERING(color.g)
+            EMIT_ORDERING(color.b)
+
+            EMIT_ORDERING(normal.x)
+            EMIT_ORDERING(normal.y)
+            EMIT_ORDERING(normal.z)
+
+            EMIT_ORDERING(uv.x)
+            EMIT_ORDERING(uv.y)
+
+            return std::partial_ordering::equivalent;
+        }
     };
 
     struct PushConstants

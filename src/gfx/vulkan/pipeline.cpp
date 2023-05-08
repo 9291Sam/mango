@@ -184,7 +184,7 @@ namespace gfx::vulkan
             .depthClampEnable {false},
             .rasterizerDiscardEnable {false},
             .polygonMode {vk::PolygonMode::eFill},
-            .cullMode {vk::CullModeFlagBits::eNone},
+            .cullMode {vk::CullModeFlagBits::eBack},
             .frontFace {vk::FrontFace::eCounterClockwise},
             .depthBiasEnable {false},
             .depthBiasConstantFactor {0.0f},
@@ -207,9 +207,9 @@ namespace gfx::vulkan
             };
 
         const vk::PipelineColorBlendAttachmentState colorBlendAttachment {
-            .blendEnable {false},
-            .srcColorBlendFactor {vk::BlendFactor::eZero},
-            .dstColorBlendFactor {vk::BlendFactor::eOne},
+            .blendEnable {true},
+            .srcColorBlendFactor {vk::BlendFactor::eSrcAlpha},
+            .dstColorBlendFactor {vk::BlendFactor::eOneMinusSrcAlpha},
             .colorBlendOp {vk::BlendOp::eAdd},
             .srcAlphaBlendFactor {vk::BlendFactor::eOne},
             .dstAlphaBlendFactor {vk::BlendFactor::eZero},

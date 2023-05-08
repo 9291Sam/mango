@@ -36,9 +36,12 @@ namespace game::world
         constexpr inline glm::vec3 getFloatColors() const
         {
             return glm::vec3 {
-                util::map<float>(this->r, 0, 255, 0.0f, 1.0f),
-                util::map<float>(this->g, 0, 255, 0.0f, 1.0f),
-                util::map<float>(this->b, 0, 255, 0.0f, 1.0f)};
+                util::map<float>(
+                    static_cast<float>(this->r), 0.0f, 255.0f, 0.0f, 1.0f),
+                util::map<float>(
+                    static_cast<float>(this->g), 0.0f, 255.0f, 0.0f, 1.0f),
+                util::map<float>(
+                    static_cast<float>(this->b), 0.0f, 255.0f, 0.0f, 1.0f)};
         }
     };
 
@@ -47,7 +50,7 @@ namespace game::world
     public:
 
         VoxelCube(
-            gfx::Transform,
+            glm::vec3            position,
             std::size_t          sideDimension,
             std::optional<Voxel> fillVoxel = std::nullopt);
         ~VoxelCube() = default;
@@ -59,8 +62,9 @@ namespace game::world
 
         Voxel& at(std::size_t x, std::size_t y, std::size_t z);
         Voxel  at(std::size_t x, std::size_t y, std::size_t z) const;
+        bool   voxelExistsAt(std::size_t x, std::size_t y, std::size_t z) const;
 
-        gfx::Transform transform;
+        glm::vec3 position;
     private:
         std::size_t        side_dimension;
         std::vector<Voxel> voxels;

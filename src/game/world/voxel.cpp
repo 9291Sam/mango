@@ -164,10 +164,10 @@ constexpr inline void createVoxelTriangle(
 namespace game::world
 {
     VoxelCube::VoxelCube(
-        gfx::Transform       transform_,
+        glm::vec3            position_,
         std::size_t          sideDimension,
         std::optional<Voxel> fillVoxel)
-        : transform {transform_}
+        : position {position_}
         , side_dimension {sideDimension}
     {
         const std::size_t VoxelVolumeSize =
@@ -182,8 +182,9 @@ namespace game::world
             this->voxels.resize(VoxelVolumeSize);
         }
 
-        const auto SideIterator = std::views::iota(0UZ, this->side_dimension);
-        const std::uint8_t colorSpreadPerInstance = 255 / this->side_dimension;
+        const auto  SideIterator = std::views::iota(0UZ, this->side_dimension);
+        const float colorSpreadPerInstance =
+            255.0f / static_cast<float>(this->side_dimension);
 
         for (std::size_t x : SideIterator)
         {
@@ -210,7 +211,7 @@ namespace game::world
         const float VoxelSize =
             1.0f; // TODO: add this as a configurable parameter
         const auto  SideIterator = std::views::iota(0UZ, this->side_dimension);
-        const float SpreadFactor = 5.0f;
+        const float SpreadFactor = 1.0f;
 
         std::vector<gfx::vulkan::Vertex> duplicatedVertices;
 
@@ -224,33 +225,51 @@ namespace game::world
                         static_cast<float>(x) * VoxelSize * SpreadFactor,
                         static_cast<float>(y) * VoxelSize * SpreadFactor,
                         static_cast<float>(z) * VoxelSize * SpreadFactor};
+
 #define EMIT_VOXEL_TRIANGLE(t1, t2, t3, normalNumber)                          \
     createVoxelTriangle(                                                       \
         VoxelSize,                                                             \
         {t1, t2, t3},                                                          \
-        this->transform.translation + OffsetVector,                            \
+        this->position + OffsetVector,                                         \
         this->at(x, y, z).getFloatColors(),                                    \
         normalNumber,                                                          \
         duplicatedVertices);
 
-                    EMIT_VOXEL_TRIANGLE(2, 6, 7, 0)
-                    EMIT_VOXEL_TRIANGLE(2, 7, 3, 0)
+                    if (!this->voxelExistsAt(x + 1, y, z))
+                    {
+                        EMIT_VOXEL_TRIANGLE(2, 6, 7, 0)
+                        EMIT_VOXEL_TRIANGLE(2, 7, 3, 0)
+                    }
 
-                    EMIT_VOXEL_TRIANGLE(0, 4, 5, 1)
-                    EMIT_VOXEL_TRIANGLE(0, 5, 1, 1)
+                    if (!this->voxelExistsAt(x - 1, y, z))
+                    {
+                        EMIT_VOXEL_TRIANGLE(0, 4, 5, 1)
+                        EMIT_VOXEL_TRIANGLE(0, 5, 1, 1)
+                    }
 
-                    EMIT_VOXEL_TRIANGLE(6, 2, 1, 2)
-                    EMIT_VOXEL_TRIANGLE(6, 1, 5, 2)
+                    if (!this->voxelExistsAt(x, y + 1, z))
+                    {
+                        EMIT_VOXEL_TRIANGLE(6, 2, 1, 2)
+                        EMIT_VOXEL_TRIANGLE(6, 1, 5, 2)
+                    }
 
-                    EMIT_VOXEL_TRIANGLE(3, 7, 4, 3)
-                    EMIT_VOXEL_TRIANGLE(3, 4, 0, 3)
+                    if (!this->voxelExistsAt(x, y - 1, z))
+                    {
+                        EMIT_VOXEL_TRIANGLE(3, 7, 4, 3)
+                        EMIT_VOXEL_TRIANGLE(3, 4, 0, 3)
+                    }
 
-                    EMIT_VOXEL_TRIANGLE(7, 6, 5, 4)
-                    EMIT_VOXEL_TRIANGLE(7, 5, 4, 4)
+                    if (!this->voxelExistsAt(x, y, z + 1))
+                    {
+                        EMIT_VOXEL_TRIANGLE(7, 6, 5, 4)
+                        EMIT_VOXEL_TRIANGLE(7, 5, 4, 4)
+                    }
 
-                    EMIT_VOXEL_TRIANGLE(2, 3, 0, 5)
-                    EMIT_VOXEL_TRIANGLE(2, 0, 1, 5)
-
+                    if (!this->voxelExistsAt(x, y, z - 1))
+                    {
+                        EMIT_VOXEL_TRIANGLE(2, 3, 0, 5)
+                        EMIT_VOXEL_TRIANGLE(2, 0, 1, 5)
+                    }
 #undef EMIT_VOXEL_TRIANGLE
                 }
             }
@@ -299,5 +318,22 @@ namespace game::world
     Voxel VoxelCube::at(std::size_t x, std::size_t y, std::size_t z) const
     {
         return const_cast<VoxelCube*>(this)->at(x, y, z);
+    }
+
+    bool
+    VoxelCube::voxelExistsAt(std::size_t x, std::size_t y, std::size_t z) const
+    {
+        if (x > this->side_dimension - 1 || y > this->side_dimension - 1
+            || z > this->side_dimension - 1)
+        {
+            return false;
+        }
+
+        if (this->at(x, y, z).a == 0)
+        {
+            return false;
+        }
+
+        return true;
     }
 } // namespace game::world

@@ -24,7 +24,7 @@ namespace gfx::vulkan
             std::shared_ptr<Swapchain>,
             std::optional<vk::UniqueShaderModule> fragmentShader,
             std::optional<vk::UniqueShaderModule> vertexShader);
-        ~Pipeline();
+        ~Pipeline() = default;
 
         Pipeline(const Pipeline&)             = delete;
         Pipeline(Pipeline&&)                  = delete;

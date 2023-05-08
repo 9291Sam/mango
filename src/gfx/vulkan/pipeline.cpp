@@ -280,8 +280,6 @@ namespace gfx::vulkan
         this->pipeline = std::move(maybeGraphicsPipeline);
     }
 
-    Pipeline::~Pipeline() {}
-
     vk::Pipeline Pipeline::operator* () const
     {
         return *this->pipeline;

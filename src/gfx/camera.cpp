@@ -83,13 +83,6 @@ namespace gfx
     {
         this->yaw += yawToAdd;
         this->updateTransformFromRotations();
-
-        // util::logTrace("Yawing by {:.8f}", yawToAdd);
-
-        // util::logTrace(
-        //     "yawing rotation! {}", glm::to_string(this->transform.rotation));
-
-        // this->transform.yawBy(yawToAdd);
     }
 
     void Camera::updateState(const Window& window)

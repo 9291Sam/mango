@@ -5,6 +5,157 @@
 #include <util/log.hpp>
 #include <util/misc.hpp>
 
+/*
+# cube.obj
+# Import into Blender with Y-forward, Z-up
+#
+# Vertices:                        Faces:
+#      f-------g                          +-------+
+#     /.      /|                         /.  5   /|  3 back
+#    / .     / |                        / .     / |
+#   e-------h  |                   2   +-------+ 1|
+#   |  b . .|. c      z          right |  . . .|. +
+#   | .     | /       | /y             | . 4   | /
+#   |.      |/        |/               |.      |/
+#   a-------d         +---- x          +-------+
+#                                           6
+#                                        bottom
+
+g cube
+
+# Vertices
+v 0.0 0.0 0.0  # 1 a
+v 0.0 1.0 0.0  # 2 b
+v 1.0 1.0 0.0  # 3 c
+v 1.0 0.0 0.0  # 4 d
+v 0.0 0.0 1.0  # 5 e
+v 0.0 1.0 1.0  # 6 f
+v 1.0 1.0 1.0  # 7 g
+v 1.0 0.0 1.0  # 8 h
+
+# Normal vectors
+# One for each face. Shared by all vertices in that face.
+vn  1.0  0.0  0.0  # 1 cghd
+vn -1.0  0.0  0.0  # 2 aefb
+vn  0.0  1.0  0.0  # 3 gcbf
+vn  0.0 -1.0  0.0  # 4 dhea
+vn  0.0  0.0  1.0  # 5 hgfe
+vn  0.0  0.0 -1.0  # 6 cdab
+
+# Faces v/vt/vn
+#   3-------2
+#   | -     |
+#   |   #   |  Each face = 2 triangles (ccw)
+#   |     - |            = 1-2-3 + 1-3-4
+#   4-------1
+
+# Face 1: cghd = cgh + chd
+f 3//1 7//1 8//1
+f 3//1 8//1 4//1
+
+# Face 2: aefb = aef + afb
+f 1//2 5//2 6//2
+f 1//2 6//2 2//2
+
+# Face 3: gcbf = gcb + gbf
+f 7//3 3//3 2//3
+f 7//3 2//3 6//3
+
+# Face 4: dhea = dhe + dea
+f 4//4 8//4 5//4
+f 4//4 5//4 1//4
+
+# Face 5: hgfe = hgf + hfe
+f 8//5 7//5 6//5
+f 8//5 6//5 5//5
+
+# Face 6: cdab = cda + cab
+f 3//6 4//6 1//6
+f 3//6 1//6 2//6
+*/
+
+constexpr inline glm::vec3
+getVoxelVertexPosition(float voxelEdgeLength, std::size_t cornerNumber)
+{
+    switch (cornerNumber)
+    {
+    case 0:
+        return glm::vec3 {0.0f, 0.0f, 0.0f};
+    case 1:
+        return glm::vec3 {0.0f, voxelEdgeLength, 0.0f};
+    case 2:
+        return glm::vec3 {voxelEdgeLength, voxelEdgeLength, 0.0f};
+    case 3:
+        return glm::vec3 {voxelEdgeLength, 0.0f, 0.0f};
+    case 4:
+        return glm::vec3 {0.0f, 0.0f, voxelEdgeLength};
+    case 5:
+        return glm::vec3 {0.0f, voxelEdgeLength, voxelEdgeLength};
+    case 6:
+        return glm::vec3 {voxelEdgeLength, voxelEdgeLength, voxelEdgeLength};
+    case 7:
+        return glm::vec3 {voxelEdgeLength, 0.0f, voxelEdgeLength};
+    default:
+        util::panic("Invalid cornerNumber {}", cornerNumber);
+    }
+}
+
+constexpr inline glm::vec3 getVoxelNormal(std::size_t normalNumber)
+{
+    switch (normalNumber)
+    {
+    case 0:
+        return glm::vec3 {1.0f, 0.0f, 0.0f};
+    case 1:
+        return glm::vec3 {-1.0f, 0.0f, 0.0f};
+    case 2:
+        return glm::vec3 {0.0f, 1.0f, 0.0f};
+    case 3:
+        return glm::vec3 {0.0f, -1.0f, 0.0f};
+    case 4:
+        return glm::vec3 {0.0f, 0.0f, 1.0f};
+    case 5:
+        return glm::vec3 {0.0f, 0.0f, -1.0f};
+    default:
+        util::panic("Invalid normalNumber {}", normalNumber);
+    }
+}
+
+constexpr inline void createVoxelTriangle(
+    float                             size,
+    std::array<std::size_t, 3>        trianglePositionNumbers,
+    glm::vec3                         positionOffset,
+    glm::vec3                         color,
+    std::size_t                       normalNumber,
+    std::vector<gfx::vulkan::Vertex>& output)
+{
+    // TODO: uvs?
+    output.push_back(gfx::vulkan::Vertex {
+        .position {
+            positionOffset
+            + getVoxelVertexPosition(size, trianglePositionNumbers[0])},
+        .color {color},
+        .normal {getVoxelNormal(normalNumber)},
+        .uv {0.0, 0.0}});
+
+    output.push_back(gfx::vulkan::Vertex {
+        .position {
+            positionOffset
+            + getVoxelVertexPosition(size, trianglePositionNumbers[1])},
+        .color {color},
+        .normal {getVoxelNormal(normalNumber)},
+        .uv {0.0, 0.0}});
+
+    output.push_back(gfx::vulkan::Vertex {
+        .position {
+            positionOffset
+            + getVoxelVertexPosition(size, trianglePositionNumbers[2])},
+        .color {color},
+        .normal {getVoxelNormal(normalNumber)},
+        .uv {0.0, 0.0},
+    });
+}
+
 namespace game::world
 {
     VoxelCube::VoxelCube(
@@ -25,17 +176,37 @@ namespace game::world
         {
             this->voxels.resize(VoxelVolumeSize);
         }
+
+        const auto SideIterator = std::views::iota(0UZ, this->side_dimension);
+        const std::uint8_t colorSpreadPerInstance = 255 / this->side_dimension;
+
+        for (std::size_t x : SideIterator)
+        {
+            for (std::size_t y : SideIterator)
+            {
+                for (std::size_t z : SideIterator)
+                {
+                    this->at(x, y, z) = Voxel {
+                        .r {static_cast<std::uint8_t>(
+                            colorSpreadPerInstance * x)},
+                        .g {static_cast<std::uint8_t>(
+                            colorSpreadPerInstance * y)},
+                        .b {static_cast<std::uint8_t>(
+                            colorSpreadPerInstance * z)},
+                        .a {255}};
+                }
+            }
+        }
     }
 
-    VoxelCube::~VoxelCube() {}
-
     std::pair<std::vector<gfx::vulkan::Vertex>, std::vector<gfx::vulkan::Index>>
-    VoxelCube::getVerticesAndIndicies() const
+    VoxelCube::getVerticesAndIndices() const
     {
         const float VoxelSize =
             1.0f; // TODO: add this as a configurable parameter
         const std::array<float, 2> VoxelEdgePoints {0.0f, VoxelSize};
-        const auto SideIterator = std::views::iota(0UZ, this->side_dimension);
+        const auto  SideIterator = std::views::iota(0UZ, this->side_dimension);
+        const float SpreadFactor = 5.0f;
 
         std::vector<gfx::vulkan::Vertex> duplicatedVertices;
 
@@ -45,68 +216,49 @@ namespace game::world
             {
                 for (std::size_t z : SideIterator)
                 {
-                    const glm::vec3 CornerPosition {
-                        this->transform.translation
-                        + glm::vec3 {
-                            x * VoxelSize, y * VoxelSize, z * VoxelSize}};
+#define EMIT_VOXEL_TRIANGLE(t1, t2, t3, normalNumber)                                                            \
+    createVoxelTriangle(                                                                                         \
+        VoxelSize,                                                                                               \
+        {t1, t2, t3},                                                                                            \
+        this->transform.translation                                                                              \
+            + glm::                                                                                              \
+                vec3 {x * VoxelSize * SpreadFactor, y * VoxelSize * SpreadFactor, z * VoxelSize * SpreadFactor}, \
+        this->at(x, y, z).getFloatColors(),                                                                      \
+        normalNumber,                                                                                            \
+        duplicatedVertices);
 
-                    for (float voxelX : VoxelEdgePoints)
-                    {
-                        for (float voxelY : VoxelEdgePoints)
-                        {
-                            for (float voxelZ : VoxelEdgePoints)
-                            {
-                                duplicatedVertices.push_back(
-                                    gfx::vulkan::Vertex {
-                                        .position {
-                                            CornerPosition
-                                            + glm::
-                                                vec3 {voxelX, voxelY, voxelZ}},
-                                        // .color {
-                                        // this->at(x, y, z).r,
-                                        // this->at(x, y, z).g,
-                                        // this->at(x, y, z).b},
-                                        .color {
-                                            util::map<float>(
-                                                x,
-                                                0,
-                                                this->side_dimension,
-                                                0.0f,
-                                                1.0f),
-                                            util::map<float>(
-                                                y,
-                                                0,
-                                                this->side_dimension,
-                                                0.0f,
-                                                1.0f),
-                                            util::map<float>(
-                                                z,
-                                                0,
-                                                this->side_dimension,
-                                                0.0f,
-                                                1.0f)},
-                                        .normal {0.0f, 0.0f, 0.0f},
-                                        .uv {
-                                            0.0f,
-                                            0.0f}}); // TODO: deal with normals
-                                                     // and uvs :skull:
-                            }
-                        }
-                    }
+                    EMIT_VOXEL_TRIANGLE(2, 6, 7, 0);
+                    EMIT_VOXEL_TRIANGLE(2, 7, 3, 0);
+
+                    EMIT_VOXEL_TRIANGLE(0, 4, 5, 1);
+                    EMIT_VOXEL_TRIANGLE(0, 5, 1, 1);
+
+                    EMIT_VOXEL_TRIANGLE(6, 2, 1, 2);
+                    EMIT_VOXEL_TRIANGLE(6, 1, 5, 2);
+
+                    EMIT_VOXEL_TRIANGLE(3, 7, 4, 3);
+                    EMIT_VOXEL_TRIANGLE(3, 4, 0, 3);
+
+                    EMIT_VOXEL_TRIANGLE(7, 6, 5, 4);
+                    EMIT_VOXEL_TRIANGLE(7, 5, 4, 4);
+
+                    EMIT_VOXEL_TRIANGLE(2, 3, 0, 5);
+                    EMIT_VOXEL_TRIANGLE(2, 0, 1, 5);
+
+#undef EMIT_VOXEL_TRIANGLE
                 }
             }
         }
 
-        std::vector<gfx::vulkan::Index> indicies;
-        indicies.resize(duplicatedVertices.size());
+        util::logLog("Vertices {}", duplicatedVertices.size());
 
-        std::iota(indicies.begin(), indicies.end(), 0);
+        std::vector<gfx::vulkan::Index> indices;
+        indices.resize(duplicatedVertices.size());
 
-        std::shuffle(
-            indicies.begin(), indicies.end(), std::default_random_engine {});
+        std::iota(indices.begin(), indices.end(), 0);
 
-        return {duplicatedVertices, indicies};
-    }
+        return {duplicatedVertices, indices};
+    } // namespace game::world
 
     Voxel& VoxelCube::at(std::size_t x, std::size_t y, std::size_t z)
     {

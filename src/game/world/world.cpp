@@ -9,11 +9,11 @@ namespace game::world
         : renderer {std::move(renderer_)} // clang-format off
         , voxels {
             gfx::Transform {
-                .translation {-10.0f, 10.0f, 10.0f},
+                .translation {-100.0f, 100.0f, 100.0f},
                 .rotation {1.0f, 0.0f, 0.0f, 0.0f},
                 .scale {1.0f, 1.0f, 1.0f}
             },
-            16,
+            64,
             Voxel {
                 .r {0},
                 .g {255},
@@ -24,13 +24,11 @@ namespace game::world
         // clang-format on
         , object {}
     {
-        auto [vertices, indices] = this->voxels.getVerticesAndIndicies();
+        auto [vertices, indices] = this->voxels.getVerticesAndIndices();
 
         this->object = this->renderer->createObject(
             gfx::Renderer::PipelineType::FlatPipeline, vertices, indices);
     }
-
-    World::~World() {}
 
     std::vector<const gfx::Object*> World::lend() const
     {

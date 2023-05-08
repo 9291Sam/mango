@@ -21,7 +21,7 @@ namespace game::world
         World(
             std::shared_ptr<gfx::Renderer>,
             std::optional<std::size_t> seed = std::nullopt);
-        ~World();
+        ~World() = default;
 
         [[nodiscard]] std::vector<const gfx::Object*> lend() const;
 

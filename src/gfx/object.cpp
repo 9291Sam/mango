@@ -133,10 +133,10 @@ namespace gfx
     //     std::shared_ptr<vulkan::Pipeline>  pipeline_,
     //     std::shared_ptr<vulkan::Swapchain> swapchain_,
     //     std::span<const vulkan::Vertex>    vertices,
-    //     std::span<const vulkan::Index>     indicies)
+    //     std::span<const vulkan::Index>     indices)
     //     : VertexObject {std::move(allocator_), std::move(pipeline_),
-    //     std::move(swapchain_), vertices} , number_of_indicies
-    //     {indicies.size()} , index_buffer {}
+    //     std::move(swapchain_), vertices} , number_of_indices
+    //     {indices.size()} , index_buffer {}
     // {}
 
     // IndexObject::~IndexObject() {}

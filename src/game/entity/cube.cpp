@@ -59,12 +59,12 @@ namespace game::entity
             },
         };
 
-        const std::array<gfx::vulkan::Index, 36> indicies {
+        const std::array<gfx::vulkan::Index, 36> indices {
             2, 6, 7, 2, 3, 7, 0, 4, 5, 0, 1, 5, 0, 2, 6, 0, 4, 6,
             1, 3, 7, 1, 5, 7, 0, 2, 3, 0, 1, 3, 4, 6, 7, 4, 5, 7};
 
         this->object = this->renderer->createObject(
-            gfx::Renderer::PipelineType::FlatPipeline, vertices, indicies);
+            gfx::Renderer::PipelineType::FlatPipeline, vertices, indices);
 
         this->object.transform.translation.y += 12.5f;
     }

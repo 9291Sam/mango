@@ -13,7 +13,7 @@ namespace gfx::vulkan
     struct Vertex
     {
         glm::vec3 position;
-        glm::vec3 color;
+        glm::vec4 color;
         glm::vec3 normal;
         glm::vec2 uv;
 
@@ -47,7 +47,7 @@ namespace gfx::vulkan
                 {
                     .location {1},
                     .binding {0},
-                    .format {vk::Format::eR32G32B32Sfloat},
+                    .format {vk::Format::eR32G32B32A32Sfloat},
                     .offset {offsetof(Vertex, color)},
                 },
                 vk::VertexInputAttributeDescription

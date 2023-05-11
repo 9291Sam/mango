@@ -7,8 +7,8 @@ namespace game::world
         std::shared_ptr<gfx::Renderer>              renderer_,
         [[maybe_unused]] std::optional<std::size_t> seed)
         : renderer {std::move(renderer_)} // clang-format off
-        , voxels {{-0.0f, -256.0f, 0.0f},
-            256,
+        , voxels {{-0.0f, 0.0f, 32.0f},
+            32,
             Voxel {
                 .r {0},
                 .g {255},

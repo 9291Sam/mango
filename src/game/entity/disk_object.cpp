@@ -53,12 +53,13 @@ namespace game::entity
                     },
                     .color {
                         index.vertex_index >= 0 ? 
-                        glm::vec3 {
+                        glm::vec4 {
                             attribute.colors.at(3 * static_cast<std::size_t>(index.vertex_index) + 0),
                             attribute.colors.at(3 * static_cast<std::size_t>(index.vertex_index) + 1),
                             attribute.colors.at(3 * static_cast<std::size_t>(index.vertex_index) + 2),
+                            1.0f
                         } :
-                        glm::vec3 {1.0f, 1.0f, 1.0f}
+                        glm::vec4 {1.0f, 1.0f, 1.0f, 1.0f}
                     },
                     .normal {
                         index.normal_index >= 0 ?

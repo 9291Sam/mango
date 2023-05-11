@@ -32,16 +32,17 @@ namespace game::world
         std::uint8_t b;
         std::uint8_t a;
 
-        // TODO: make vec4 for transperency
-        constexpr inline glm::vec3 getFloatColors() const
+        constexpr inline glm::vec4 getFloatColors() const
         {
-            return glm::vec3 {
+            return glm::vec4 {
                 util::map<float>(
                     static_cast<float>(this->r), 0.0f, 255.0f, 0.0f, 1.0f),
                 util::map<float>(
                     static_cast<float>(this->g), 0.0f, 255.0f, 0.0f, 1.0f),
                 util::map<float>(
-                    static_cast<float>(this->b), 0.0f, 255.0f, 0.0f, 1.0f)};
+                    static_cast<float>(this->b), 0.0f, 255.0f, 0.0f, 1.0f),
+                util::map<float>(
+                    static_cast<float>(this->a), 0.0f, 255.0f, 0.0f, 1.0f)};
         }
     };
 

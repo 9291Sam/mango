@@ -130,7 +130,7 @@ constexpr inline void createVoxelTriangle(
     float                             size,
     std::array<std::size_t, 3>        trianglePositionNumbers,
     glm::vec3                         positionOffset,
-    glm::vec3                         color,
+    glm::vec4                         color,
     std::size_t                       normalNumber,
     std::vector<gfx::vulkan::Vertex>& output)
 {

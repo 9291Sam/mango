@@ -2,19 +2,15 @@
 #define SRC_GFX_VULKAN_DEVICE_HPP
 
 #include "includes.hpp"
-#include "util/threads.hpp"
 #include <compare>
 #include <memory>
+#include <util/threads.hpp>
 
 namespace gfx::vulkan
 {
     class Instance;
     class Queue;
 
-    // TODO: refactor to use thread ids to
-    // make sure each queue is only accessed by one thread at a time
-    // this alsp removes the requirement of mutexes (actually err no? idk (edge
-    // case of the os scheduler))
     class Device
     {
     public:

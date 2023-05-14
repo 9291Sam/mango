@@ -235,41 +235,32 @@ namespace game::world
         normalNumber,                                                          \
         duplicatedVertices);
 
-                    if (!this->voxelExistsAt(x + 1, y, z))
+                    if (!this->voxelExistsAt(x + 1, y, z)
+                        || !this->voxelExistsAt(x - 1, y, z)
+                        || !this->voxelExistsAt(x, y + 1, z)
+                        || !this->voxelExistsAt(x, y - 1, z)
+                        || !this->voxelExistsAt(x, y, z + 1)
+                        || !this->voxelExistsAt(x, y, z - 1))
                     {
                         EMIT_VOXEL_TRIANGLE(2, 6, 7, 0)
                         EMIT_VOXEL_TRIANGLE(2, 7, 3, 0)
-                    }
 
-                    if (!this->voxelExistsAt(x - 1, y, z))
-                    {
                         EMIT_VOXEL_TRIANGLE(0, 4, 5, 1)
                         EMIT_VOXEL_TRIANGLE(0, 5, 1, 1)
-                    }
 
-                    if (!this->voxelExistsAt(x, y + 1, z))
-                    {
                         EMIT_VOXEL_TRIANGLE(6, 2, 1, 2)
                         EMIT_VOXEL_TRIANGLE(6, 1, 5, 2)
-                    }
 
-                    if (!this->voxelExistsAt(x, y - 1, z))
-                    {
                         EMIT_VOXEL_TRIANGLE(3, 7, 4, 3)
                         EMIT_VOXEL_TRIANGLE(3, 4, 0, 3)
-                    }
 
-                    if (!this->voxelExistsAt(x, y, z + 1))
-                    {
                         EMIT_VOXEL_TRIANGLE(7, 6, 5, 4)
                         EMIT_VOXEL_TRIANGLE(7, 5, 4, 4)
-                    }
 
-                    if (!this->voxelExistsAt(x, y, z - 1))
-                    {
                         EMIT_VOXEL_TRIANGLE(2, 3, 0, 5)
                         EMIT_VOXEL_TRIANGLE(2, 0, 1, 5)
                     }
+
 #undef EMIT_VOXEL_TRIANGLE
                 }
             }

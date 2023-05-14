@@ -210,4 +210,5 @@ compile_shader(mango
   SOURCES
     src/gfx/vulkan/shaders/flat_pipeline.vert
     src/gfx/vulkan/shaders/flat_pipeline.frag
+    src/gfx/vulkan/shaders/voxel.vert
 )

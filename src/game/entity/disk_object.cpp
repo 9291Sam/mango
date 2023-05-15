@@ -16,32 +16,39 @@ namespace game::entity
     DiskObject::DiskObject(
         std::shared_ptr<gfx::Renderer> renderer_, const char* filepath)
         : Entity {std::move(renderer_)}
-        , object {}
-    {
-        tinyobj::attrib_t                attribute {};
-        std::vector<tinyobj::shape_t>    shapes;
-        std::vector<tinyobj::material_t> materials;
-        std::string                      warn;
-        std::string                      error;
+        , object {
+              [this, filepath] -> gfx::TriangulatedObject
+              {
+                  tinyobj::attrib_t                attribute {};
+                  std::vector<tinyobj::shape_t>    shapes;
+                  std::vector<tinyobj::material_t> materials;
+                  std::string                      warn;
+                  std::string                      error;
 
-        util::assertFatal(
-            tinyobj::LoadObj(
-                &attribute, &shapes, &materials, &warn, &error, filepath),
-            "Failed to load file {} | Warn: {} | Error: {}",
-            filepath,
-            warn,
-            error);
+                  util::assertFatal(
+                      tinyobj::LoadObj(
+                          &attribute,
+                          &shapes,
+                          &materials,
+                          &warn,
+                          &error,
+                          filepath),
+                      "Failed to load file {} | Warn: {} | Error: {}",
+                      filepath,
+                      warn,
+                      error);
 
-        std::vector<gfx::vulkan::Vertex> vertices;
-        std::vector<gfx::vulkan::Index>  indices;
+                  std::vector<gfx::vulkan::Vertex> vertices;
+                  std::vector<gfx::vulkan::Index>  indices;
 
-        std::unordered_map<gfx::vulkan::Vertex, std::size_t> uniqueVertices;
+                  std::unordered_map<gfx::vulkan::Vertex, std::size_t>
+                      uniqueVertices;
 
-        for (const tinyobj::shape_t& shape : shapes)
-        {
-            for (const tinyobj::index_t& index : shape.mesh.indices)
-            {
-                gfx::vulkan::Vertex vertex {
+                  for (const tinyobj::shape_t& shape : shapes)
+                  {
+                      for (const tinyobj::index_t& index : shape.mesh.indices)
+                      {
+                          gfx::vulkan::Vertex vertex {
                     .position {
                         index.vertex_index >= 0 ?
                         glm::vec3 {
@@ -80,26 +87,32 @@ namespace game::entity
                     }
                 };
 
-                // If this vertex is being encountered for the first time.
-                if (uniqueVertices.count(vertex) == 0)
-                {
-                    uniqueVertices[vertex] = vertices.size();
+                          // If this vertex is being encountered for the first
+                          // time.
+                          if (uniqueVertices.count(vertex) == 0)
+                          {
+                              uniqueVertices[vertex] = vertices.size();
 
-                    vertices.push_back(vertex);
-                }
+                              vertices.push_back(vertex);
+                          }
 
-                util::assertWarn(
-                    vertices.size() < std::numeric_limits<std::uint32_t>::max(),
-                    "Tried to load a model with too many vertices!");
+                          util::assertWarn(
+                              vertices.size()
+                                  < std::numeric_limits<std::uint32_t>::max(),
+                              "Tried to load a model with too many vertices!");
 
-                indices.push_back(
-                    static_cast<std::uint32_t>(uniqueVertices[vertex]));
-            }
-        }
+                          indices.push_back(static_cast<std::uint32_t>(
+                              uniqueVertices[vertex]));
+                      }
+                  }
 
-        this->object = this->renderer->createObject(
-            gfx::Renderer::PipelineType::FlatPipeline, vertices, indices);
-    }
+                  return gfx::TriangulatedObject {
+                      this->renderer->getAllocator(),
+                      gfx::vulkan::PipelineType::Flat,
+                      vertices,
+                      indices};
+              }()}
+    {}
 
     DiskObject::~DiskObject() {}
 

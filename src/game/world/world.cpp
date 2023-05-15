@@ -17,13 +17,18 @@ namespace game::world
             }
         }
         // clang-format on
-        , object {}
-    {
-        auto [vertices, indices] = this->voxels.getVerticesAndIndices();
+        , object {[this]
+                  {
+                      auto [vertices, indices] =
+                          this->voxels.getVerticesAndIndices();
 
-        this->object = this->renderer->createObject(
-            gfx::Renderer::PipelineType::FlatPipeline, vertices, indices);
-    }
+                      return gfx::TriangulatedObject {
+                          this->renderer->getAllocator(),
+                          gfx::vulkan::PipelineType::Flat,
+                          vertices,
+                          indices};
+                  }()}
+    {}
 
     std::vector<const gfx::Object*> World::lend() const
     {

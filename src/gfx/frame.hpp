@@ -2,6 +2,8 @@
 #define SRC_GFX_FRAME_HPP
 
 #include "vulkan/includes.hpp"
+#include "vulkan/pipeline.hpp"
+#include <map>
 #include <memory>
 #include <span>
 
@@ -42,7 +44,8 @@ namespace gfx
         [[nodiscard]] bool render(
             const Camera&,
             vk::Extent2D windowSize,
-            std::span<const vulkan::Pipeline*>,
+            const std::
+                map<vulkan::PipelineType, std::unique_ptr<vulkan::Pipeline>>&,
             std::span<const Object*>);
 
     private:

@@ -46,10 +46,11 @@ namespace gfx
     }
 
     bool Frame::render(
-        const Camera&                      camera,
-        vk::Extent2D                       size,
-        std::span<const vulkan::Pipeline*> pipelines,
-        std::span<const Object*>           unsortedObjects)
+        const Camera& camera,
+        vk::Extent2D  size,
+        const std::map<vulkan::PipelineType, std::unique_ptr<vulkan::Pipeline>>&
+                                 pipelineMap,
+        std::span<const Object*> unsortedObjects)
     {
         std::optional<bool> returnValue = std::nullopt;
 
@@ -62,7 +63,7 @@ namespace gfx
             sortedObjects,
             [](const Object* l, const Object* r)
             {
-                return l->getPipelineNumber() < r->getPipelineNumber();
+                return *l < *r;
             });
 
         this->device->accessGraphicsBuffer(
@@ -161,36 +162,36 @@ namespace gfx
                 commandBuffer.beginRenderPass(
                     renderPassBeginInfo, vk::SubpassContents::eInline);
 
-                std::size_t currentBoundPipelineIndex = ~0UZ;
+                // std::size_t currentBoundPipelineIndex = ~0UZ;
+                BindState bindState {};
 
                 for (const Object* o : sortedObjects)
                 {
-                    if (o->getPipelineNumber() != currentBoundPipelineIndex)
+                    o->bind(commandBuffer, bindState, pipelineMap);
+
+                    // lmfao please no
+                    // fix this shit and write a proper absrtacton over push
+                    // constnats
+                    if (const TriangulatedObject* obj =
+                            dynamic_cast<const TriangulatedObject*>(o))
                     {
-                        commandBuffer.bindPipeline(
-                            vk::PipelineBindPoint::eGraphics,
-                            **pipelines[o->getPipelineNumber()]);
+                        vulkan::PushConstants pushConstants {.model_view_proj {
+                            Camera::getPerspectiveMatrix(
+                                glm::radians(70.f),
+                                static_cast<float>(size.width)
+                                    / static_cast<float>(size.height),
+                                0.1f,
+                                200000.0f)
+                            * camera.getViewMatrix()
+                            * obj->transform.asModelMatrix()}};
 
-                        currentBoundPipelineIndex = o->getPipelineNumber();
+                        commandBuffer.pushConstants<vulkan::PushConstants>(
+                            pipelineMap.at(bindState.current_pipeline)
+                                ->getLayout(),
+                            vk::ShaderStageFlagBits::eAllGraphics,
+                            0,
+                            pushConstants);
                     }
-
-                    vulkan::PushConstants pushConstants {.model_view_proj {
-                        Camera::getPerspectiveMatrix(
-                            glm::radians(70.f),
-                            static_cast<float>(size.width)
-                                / static_cast<float>(size.height),
-                            0.1f,
-                            200000.0f)
-                        * camera.getViewMatrix()
-                        * o->transform.asModelMatrix()}};
-
-                    commandBuffer.pushConstants<vulkan::PushConstants>(
-                        pipelines[o->getPipelineNumber()]->getLayout(),
-                        vk::ShaderStageFlagBits::eAllGraphics,
-                        0,
-                        pushConstants);
-
-                    o->bind(commandBuffer);
 
                     o->draw(commandBuffer);
                 }

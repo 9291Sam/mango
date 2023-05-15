@@ -12,6 +12,15 @@ namespace gfx::vulkan
     class RenderPass;
     class Swapchain;
 
+    enum class PipelineType
+    {
+        None,
+        Flat,
+        Voxel
+    };
+
+    constexpr std::size_t PipelineTypeNumberOfValidEntries = 2;
+
     class Pipeline
     {
     public:

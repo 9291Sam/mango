@@ -23,7 +23,7 @@ namespace game::entity
         [[nodiscard]] std::vector<const gfx::Object*> lend() const override;
 
     private:
-        gfx::Object object;
+        gfx::TriangulatedObject object;
     };
 } // namespace game::entity
 

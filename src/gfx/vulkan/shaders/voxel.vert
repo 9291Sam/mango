@@ -1,16 +1,30 @@
 #version 460
 
-layout(set = 0, binding = 0) uniform VoxelPositions
+layout(std140, set = 0, binding = 0) readonly buffer VoxelPositions
 {
-    vec4 positions[];
+    vec3 positions[];
 }
-in_voxel_positions;
+in_positions;
 
-layout(set = 0, binding = 1) uniform VoxelMagnitudes
+layout(std140, set = 0, binding = 1) readonly buffer VoxelSizes
 {
-    float magnitudes[];
+    float sizes[];
 }
-in_voxel_magnitudes;
+in_sizes;
+
+layout(std140, set = 0, binding = 2) readonly buffer VoxelColors
+{
+    vec4 color[];
+}
+in_colors;
+
+layout(push_constant) uniform PushConstants
+{
+    mat4 model_view_proj;
+}
+in_push_constants;
+
+layout(location = 0) out vec4 out_color;
 
 const vec3 CUBE_STRIP_OFFSETS[] = {
     vec3(-0.5f, 0.5f, 0.5f),   // Front-top-left
@@ -31,14 +45,13 @@ const vec3 CUBE_STRIP_OFFSETS[] = {
 
 void main()
 {
-    const vec4 world_location =
-        in_voxel_positions.positions[gl_VertexIndex / 14];
+    const vec3  center_location = in_positions.positions[gl_VertexIndex / 14];
+    const float voxel_size      = in_sizes.sizes[gl_VertexIndex / 14];
+    const vec4  voxel_color     = in_colors.color[gl_VertexIndex / 14];
 
-    const float voxel_magnitude =
-        in_voxel_magnitudes.magnitudes[gl_VertexIndex / 14];
+    const vec3 cube_vertex    = CUBE_STRIP_OFFSETS[gl_VertexIndex % 14];
+    const vec3 world_location = center_location + voxel_size * cube_vertex;
 
-    const vec4 cube_vertex =
-        vec4(CUBE_STRIP_OFFSETS[gl_VertexIndex % 14], 0.0f);
-
-    gl_Position = world_location + voxel_magnitude * cube_vertex;
+    gl_Position = in_push_constants.model_view_proj * vec4(world_location, 1.0);
+    out_color   = voxel_color;
 }

@@ -13,6 +13,34 @@ namespace gfx::vulkan
     class DescriptorSet;
     class DescriptorSetLayout;
 
+    enum class DescriptorSetType
+    {
+        None,
+        Voxel,
+    };
+
+    struct DescriptorState
+    {
+        DescriptorState()
+            : descriptors {{
+                DescriptorSetType::None,
+                DescriptorSetType::None,
+                DescriptorSetType::None,
+                DescriptorSetType::None,
+            }}
+        {}
+
+        std::array<DescriptorSetType, 4> descriptors;
+
+        void reset()
+        {
+            for (auto& d : descriptors)
+            {
+                d = DescriptorSetType::None;
+            }
+        }
+    };
+
     // class DynamicDescriptorPool
     // {
     // public:
@@ -43,6 +71,8 @@ namespace gfx::vulkan
             std::size_t        tried_to_allocate;
             vk::DescriptorType type;
             std::size_t        number_available;
+
+            // TODO: operator std::string
         };
     public:
 

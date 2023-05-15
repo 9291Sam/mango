@@ -27,7 +27,7 @@ namespace gfx
         , swapchain {nullptr}
         , depth_buffer {nullptr}
         , render_pass {nullptr}
-        , pipelines {nullptr}
+        , pipeline_map {}
         , render_index {0}
         , frames {nullptr}
         , vertex_buffer {nullptr}
@@ -80,22 +80,27 @@ namespace gfx
         this->device->asLogicalDevice().waitIdle();
     }
 
-    Object Renderer::createObject(
-        PipelineType                    pipelineType,
-        std::span<const vulkan::Vertex> vertices,
-        std::span<const vulkan::Index>  indices) const
-    {
-        util::assertFatal(
-            vertices.size() > 0, "Span of size 0 was passed for vertices");
-        util::assertFatal(
-            indices.size() > 0, "Span of size 0 was passed for indices");
+    // Object Renderer::createObject(
+    //     PipelineType                    pipelineType,
+    //     std::span<const vulkan::Vertex> vertices,
+    //     std::span<const vulkan::Index>  indices) const
+    // {
+    //     util::assertFatal(
+    //         vertices.size() > 0, "Span of size 0 was passed for vertices");
+    //     util::assertFatal(
+    //         indices.size() > 0, "Span of size 0 was passed for indices");
 
-        return Object {
-            this->allocator,
-            static_cast<std::size_t>(pipelineType),
-            vertices,
-            indices,
-        };
+    //     return Object {
+    //         this->allocator,
+    //         static_cast<std::size_t>(pipelineType),
+    //         vertices,
+    //         indices,
+    //     };
+    // }
+
+    std::shared_ptr<vulkan::Allocator> Renderer::getAllocator() const
+    {
+        return this->allocator;
     }
 
     bool Renderer::shouldClose() const
@@ -124,17 +129,11 @@ namespace gfx
 
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
-        std::vector<const vulkan::Pipeline*> drawingPipelines {};
-        for (const std::unique_ptr<vulkan::Pipeline>& p : this->pipelines)
-        {
-            drawingPipelines.push_back(&*p);
-        }
-
         if (this->frames.at(this->render_index)
                 ->render(
                     camera,
                     this->swapchain->getExtent(),
-                    drawingPipelines,
+                    this->pipeline_map,
                     objects))
         {
             this->resize();
@@ -153,11 +152,7 @@ namespace gfx
             f.reset();
         }
 
-        for (std::unique_ptr<vulkan::Pipeline>& p : this->pipelines)
-        {
-            p.reset();
-        }
-
+        this->pipeline_map.clear();
         this->render_pass.reset();
         this->depth_buffer.reset();
         this->swapchain.reset();
@@ -184,16 +179,24 @@ namespace gfx
             this->device, this->swapchain, this->depth_buffer);
 
         // Pipeline Creation!
-        this->pipelines.at(0) = std::make_unique<vulkan::Pipeline>(
-            this->device,
-            this->render_pass,
-            this->swapchain,
-            vulkan::Pipeline::createShaderFromFile(
-                this->device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"),
-            vulkan::Pipeline::createShaderFromFile(
-                this->device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/flat_pipeline.vert.bin"));
+        this->pipeline_map[vulkan::PipelineType::Flat] =
+            std::make_unique<vulkan::Pipeline>(
+                this->device,
+                this->render_pass,
+                this->swapchain,
+                vulkan::Pipeline::createShaderFromFile(
+                    this->device->asLogicalDevice(),
+                    "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"),
+                vulkan::Pipeline::createShaderFromFile(
+                    this->device->asLogicalDevice(),
+                    "src/gfx/vulkan/shaders/flat_pipeline.vert.bin"));
+
+        // util::assertFatal(
+        //     this->pipeline_map.size()
+        //         == vulkan::PipelineTypeNumberOfValidEntries,
+        //     "Pipelines were not correctely populated! {} {}",
+        //     this->pipeline_map.size(),
+        //     vulkan::PipelineTypeNumberOfValidEntries);
 
         std::shared_ptr<std::vector<vk::UniqueFramebuffer>> framebuffers =
             std::make_shared<std::vector<vk::UniqueFramebuffer>>();

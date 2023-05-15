@@ -94,6 +94,8 @@ namespace gfx::vulkan
             EMIT_ORDERING(uv.x)
             EMIT_ORDERING(uv.y)
 
+#undef EMIT_ORDERING
+
             return std::partial_ordering::equivalent;
         }
     };

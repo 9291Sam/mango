@@ -199,6 +199,61 @@ namespace gfx::vulkan
         std::ranges::sort(this->graphics_surface_queue, orderingFn);
         std::ranges::sort(this->compute_queue, orderingFn);
         std::ranges::sort(this->transfer_queue, orderingFn);
+
+        this->should_buffers_stage = [this]
+        {
+            auto memoryProperties = this->physical_device.getMemoryProperties();
+
+            std::vector<vk::MemoryType> memoryTypes;
+            std::vector<vk::MemoryHeap> memoryHeaps;
+
+            std::optional<std::size_t> idx_of_gpu_main_memory = std::nullopt;
+
+            for (std::size_t i = 0; i < memoryProperties.memoryTypeCount; i++)
+            {
+                memoryTypes.push_back(memoryProperties.memoryTypes.at(i));
+            }
+
+            for (std::size_t i = 0; i < memoryProperties.memoryHeapCount; i++)
+            {
+                memoryHeaps.push_back(memoryProperties.memoryHeaps.at(i));
+            }
+
+            const vk::MemoryPropertyFlags desiredFlags =
+                vk::MemoryPropertyFlagBits::eDeviceLocal
+                | vk::MemoryPropertyFlagBits::eHostVisible
+                | vk::MemoryPropertyFlagBits::eHostCoherent;
+
+            for (auto t : memoryTypes)
+            {
+                if ((t.propertyFlags & desiredFlags) == desiredFlags)
+                {
+                    util::assertWarn(
+                        !idx_of_gpu_main_memory.has_value(),
+                        "There should only be one memory pool with "
+                        "`desiredFlags`!");
+
+                    idx_of_gpu_main_memory = t.heapIndex;
+                }
+            }
+
+            if (idx_of_gpu_main_memory.has_value())
+            {
+                if (memoryProperties.memoryHeaps
+                        .at(idx_of_gpu_main_memory.value())
+                        .size
+                    > 257 * 1024 * 1024)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }();
+
+        if (!this->should_buffers_stage)
+        {
+            util::logLog("Resizable BAR support detected");
+        }
     }
 
     bool Device::shouldBuffersStage() const

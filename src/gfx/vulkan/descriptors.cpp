@@ -9,8 +9,11 @@ namespace gfx::vulkan
     std::shared_ptr<DescriptorSetLayout> getDescriptorSetLayout(
         DescriptorSetType type, std::shared_ptr<Device> device)
     {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
         static std::map<DescriptorSetType, std::shared_ptr<DescriptorSetLayout>>
             cache;
+#pragma clang diagnostic pop
 
         if (cache.contains(type))
         {
@@ -23,6 +26,7 @@ namespace gfx::vulkan
             case DescriptorSetType::None:
                 util::panic(
                     "Tried to find the layout of a DescriptorSetType::None!");
+                break;
             case DescriptorSetType::Voxel:
 
                 std::array<vk::DescriptorSetLayoutBinding, 3> bindings {
@@ -59,6 +63,7 @@ namespace gfx::vulkan
                             static_cast<std::uint32_t>(bindings.size())},
                         .pBindings {bindings.data()},
                     });
+                break;
             }
 
             return cache[type];

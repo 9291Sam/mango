@@ -200,7 +200,7 @@ namespace gfx
                 vulkan::DescriptorSetType::None,
                 vulkan::DescriptorSetType::None,
                 vulkan::DescriptorSetType::None})
-        , allocator {std::move(allocator)}
+        , allocator {std::move(allocator_)}
         , number_of_voxels {voxelPositions.size()}
         , positions_buffer(
               this->allocator,
@@ -348,7 +348,8 @@ namespace gfx
 
     void VoxelObject::draw(vk::CommandBuffer commandBuffer) const
     {
-        commandBuffer.draw(this->number_of_voxels * 14, 1, 0, 0);
+        commandBuffer.draw(
+            static_cast<std::uint32_t>(this->number_of_voxels * 14), 1, 0, 0);
     }
 
     // std::size_t Object::getPipelineNumber() const

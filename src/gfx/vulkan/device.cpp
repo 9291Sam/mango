@@ -95,6 +95,7 @@ namespace gfx::vulkan
         , graphics_surface_queue {}
         , compute_queue {}
         , transfer_queue {}
+        , should_buffers_stage {true}
     {
         const auto physicalDevices =
             (**this->instance).enumeratePhysicalDevices();

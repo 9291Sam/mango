@@ -2,7 +2,7 @@
 #define SRC_GFX_RENDERER_HPP
 
 #include "object.hpp"
-#include "vulkan/pipeline.hpp"
+#include "vulkan/pipelines.hpp"
 #include "window.hpp"
 #include <map>
 #include <memory>
@@ -76,8 +76,7 @@ namespace gfx
         std::shared_ptr<vulkan::RenderPass> render_pass;
 
         // Pipelines
-        std::map<vulkan::PipelineType, std::unique_ptr<vulkan::Pipeline>>
-            pipeline_map;
+        std::map<vulkan::PipelineType, vulkan::Pipeline> pipeline_map;
 
         // Flying frames
         static constexpr std::size_t MaxFramesInFlight = 2;

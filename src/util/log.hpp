@@ -1,8 +1,13 @@
 #ifndef SRC_UTIL_LOG_HPP
 #define SRC_UTIL_LOG_HPP
 
+#pragma gcc diagnostic push
+#pragma gcc diagnostic ignored "-Wstringop-overflow="
 #include <fmt/format.h>
+#pragma gcc diagnostic pop
+
 #include <source_location>
+#include <utility>
 
 namespace util
 {
@@ -97,6 +102,7 @@ namespace util
             using enum Level;
             logFormatted(Fatal, location, PanicString);
             throw std::runtime_error {PanicString};
+            std::unreachable();
         }
     };
     template<class... J>

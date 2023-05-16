@@ -21,7 +21,7 @@ add_executable(mango
   src/gfx/vulkan/image.cpp
   src/gfx/vulkan/includes.cpp
   src/gfx/vulkan/instance.cpp
-  src/gfx/vulkan/pipeline.cpp
+  src/gfx/vulkan/pipelines.cpp
   src/gfx/vulkan/render_pass.cpp
   src/gfx/vulkan/swapchain.cpp
 

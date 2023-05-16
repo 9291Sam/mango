@@ -28,7 +28,7 @@ namespace game::world
         , voxel_object {[this]
                         {
                             std::array<glm::vec3, 1> positions {
-                                glm::vec3 {0.0f, 80.0f, 0.0f}};
+                                glm::vec3 {0.0f, 32.0f, 0.0f}};
 
                             return this->renderer->createVoxelObject(positions);
                         }()}

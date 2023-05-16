@@ -4,7 +4,7 @@
 #include "transform.hpp"
 #include "vulkan/buffer.hpp"
 #include "vulkan/device.hpp"
-#include "vulkan/pipeline.hpp"
+#include "vulkan/pipelines.hpp"
 #include "vulkan/render_pass.hpp"
 #include "vulkan/swapchain.hpp"
 
@@ -46,11 +46,10 @@ namespace gfx
     }
 
     bool Frame::render(
-        const Camera& camera,
-        vk::Extent2D  size,
-        const std::map<vulkan::PipelineType, std::unique_ptr<vulkan::Pipeline>>&
-                                 pipelineMap,
-        std::span<const Object*> unsortedObjects)
+        const Camera&                                           camera,
+        vk::Extent2D                                            size,
+        const std::map<vulkan::PipelineType, vulkan::Pipeline>& pipelineMap,
+        std::span<const Object*>                                unsortedObjects)
     {
         std::optional<bool> returnValue = std::nullopt;
 
@@ -170,7 +169,7 @@ namespace gfx
                     o->bind(commandBuffer, bindState, pipelineMap);
                     o->setPushConstants(
                         commandBuffer,
-                        *pipelineMap.at(bindState.current_pipeline),
+                        pipelineMap.at(bindState.current_pipeline),
                         camera,
                         size);
                     o->draw(commandBuffer);

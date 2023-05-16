@@ -2,7 +2,7 @@
 #include "camera.hpp"
 #include "vulkan/allocator.hpp"
 #include "vulkan/device.hpp"
-#include "vulkan/pipeline.hpp"
+#include "vulkan/pipelines.hpp"
 #include "vulkan/swapchain.hpp"
 #include <map>
 
@@ -45,17 +45,16 @@ namespace gfx
     }
 
     void Object::updateBindState(
-        vk::CommandBuffer commandBuffer,
-        BindState&        bindState,
-        const std::map<vulkan::PipelineType, std::unique_ptr<vulkan::Pipeline>>&
-                                               pipelineMap,
+        vk::CommandBuffer                                       commandBuffer,
+        BindState&                                              bindState,
+        const std::map<vulkan::PipelineType, vulkan::Pipeline>& pipelineMap,
         std::span<const vulkan::DescriptorSet> descriptorSets) const
     {
         if (bindState.current_pipeline != this->required_pipeline)
         {
             commandBuffer.bindPipeline(
                 vk::PipelineBindPoint::eGraphics,
-                **pipelineMap.at(this->required_pipeline));
+                *pipelineMap.at(this->required_pipeline));
 
             bindState.current_pipeline = this->required_pipeline;
 
@@ -79,7 +78,7 @@ namespace gfx
             else
             {
                 const vulkan::Pipeline& currentPipeline =
-                    *pipelineMap.at(bindState.current_pipeline);
+                    pipelineMap.at(bindState.current_pipeline);
 
                 util::assertFatal(
                     descriptorSets.size() > i,
@@ -147,10 +146,10 @@ namespace gfx
     TriangulatedObject::~TriangulatedObject() {}
 
     void TriangulatedObject::bind(
-        vk::CommandBuffer commandBuffer,
-        BindState&        bindState,
-        const std::map<vulkan::PipelineType, std::unique_ptr<vulkan::Pipeline>>&
-            pipelineMap) const
+        vk::CommandBuffer                                       commandBuffer,
+        BindState&                                              bindState,
+        const std::map<vulkan::PipelineType, vulkan::Pipeline>& pipelineMap)
+        const
     {
         this->updateBindState(commandBuffer, bindState, pipelineMap, {});
 
@@ -231,7 +230,7 @@ namespace gfx
 
         std::vector<float> sizes {};
         sizes.resize(voxelPositions.size());
-        std::ranges::fill(sizes, 100.0f);
+        std::ranges::fill(sizes, 1.0f);
 
         std::vector<glm::vec4> colors {};
         colors.resize(voxelPositions.size());
@@ -304,10 +303,10 @@ namespace gfx
     VoxelObject::~VoxelObject() {}
 
     void VoxelObject::bind(
-        vk::CommandBuffer commandBuffer,
-        BindState&        state,
-        const std::map<vulkan::PipelineType, std::unique_ptr<vulkan::Pipeline>>&
-            pipelineMap) const
+        vk::CommandBuffer                                       commandBuffer,
+        BindState&                                              state,
+        const std::map<vulkan::PipelineType, vulkan::Pipeline>& pipelineMap)
+        const
     {
         if (!this->have_buffers_staged)
         {

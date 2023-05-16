@@ -6,7 +6,7 @@
 #include "vulkan/descriptors.hpp"
 #include "vulkan/gpu_data.hpp"
 #include "vulkan/includes.hpp"
-#include "vulkan/pipeline.hpp"
+#include "vulkan/pipelines.hpp"
 #include <compare>
 #include <game/world/voxel.hpp>
 #include <map>
@@ -58,9 +58,7 @@ namespace gfx
         virtual void bind(
             vk::CommandBuffer,
             BindState&,
-            const std::map<
-                vulkan::PipelineType,
-                std::unique_ptr<vulkan::Pipeline>>&) const = 0;
+            const std::map<vulkan::PipelineType, vulkan::Pipeline>&) const = 0;
 
         virtual void setPushConstants(
             vk::CommandBuffer,
@@ -77,8 +75,7 @@ namespace gfx
         void updateBindState(
             vk::CommandBuffer,
             BindState&,
-            const std::
-                map<vulkan::PipelineType, std::unique_ptr<vulkan::Pipeline>>&,
+            const std::map<vulkan::PipelineType, vulkan::Pipeline>&,
             std::span<const vulkan::DescriptorSet>) const;
 
         const std::string               name;
@@ -101,9 +98,8 @@ namespace gfx
         virtual void bind(
             vk::CommandBuffer,
             BindState&,
-            const std::map<
-                vulkan::PipelineType,
-                std::unique_ptr<vulkan::Pipeline>>&) const override;
+            const std::map<vulkan::PipelineType, vulkan::Pipeline>&)
+            const override;
 
         virtual void setPushConstants(
             vk::CommandBuffer,
@@ -138,9 +134,8 @@ namespace gfx
         void bind(
             vk::CommandBuffer,
             BindState&,
-            const std::map<
-                vulkan::PipelineType,
-                std::unique_ptr<vulkan::Pipeline>>&) const override;
+            const std::map<vulkan::PipelineType, vulkan::Pipeline>&)
+            const override;
 
         void setPushConstants(
             vk::CommandBuffer,

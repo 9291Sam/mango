@@ -70,6 +70,23 @@ namespace gfx::vulkan
         }
     }
 
+    DescriptorState::DescriptorState()
+        : descriptors {{
+            DescriptorSetType::None,
+            DescriptorSetType::None,
+            DescriptorSetType::None,
+            DescriptorSetType::None,
+        }}
+    {}
+
+    void DescriptorState::reset()
+    {
+        for (auto& d : descriptors)
+        {
+            d = DescriptorSetType::None;
+        }
+    }
+
     std::shared_ptr<DescriptorPool> DescriptorPool::create(
         std::shared_ptr<Device>                               device,
         std::unordered_map<vk::DescriptorType, std::uint32_t> capacity)
@@ -150,7 +167,8 @@ namespace gfx::vulkan
             .sType {vk::StructureType::eDescriptorPoolCreateInfo},
             .pNext {nullptr},
             .flags {vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet},
-            .maxSets {4}, // why the **fuckk** is this needed
+            .maxSets {64}, // why the **fuckk** is this needed
+            // large number good enough :tm:
             .poolSizeCount {
                 static_cast<std::uint32_t>(requestedPoolMembers.size())},
             .pPoolSizes {requestedPoolMembers.data()},

@@ -27,27 +27,14 @@ namespace gfx::vulkan
 
     struct DescriptorState
     {
-        DescriptorState()
-            : descriptors {{
-                DescriptorSetType::None,
-                DescriptorSetType::None,
-                DescriptorSetType::None,
-                DescriptorSetType::None,
-            }}
-        {}
+        DescriptorState();
         DescriptorState(auto... d)
             : descriptors {d...}
         {}
 
-        std::array<DescriptorSetType, 4> descriptors;
+        void reset();
 
-        void reset()
-        {
-            for (auto& d : descriptors)
-            {
-                d = DescriptorSetType::None;
-            }
-        }
+        std::array<DescriptorSetType, 4> descriptors;
     };
 
     // class DynamicDescriptorPool

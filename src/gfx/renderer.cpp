@@ -12,7 +12,7 @@
 #include "vulkan/image.hpp"
 #include "vulkan/includes.hpp"
 #include "vulkan/instance.hpp"
-#include "vulkan/pipeline.hpp"
+#include "vulkan/pipelines.hpp"
 #include "vulkan/render_pass.hpp"
 #include "vulkan/swapchain.hpp"
 
@@ -178,76 +178,24 @@ namespace gfx
             this->device, this->swapchain, this->depth_buffer);
 
         // Pipeline Creation!
-        this->pipeline_map[vulkan::PipelineType::Flat] = std::make_unique<
-            vulkan::Pipeline>(
+        // TODO: replace with magic enum iter?
+        this->pipeline_map[vulkan::PipelineType::Flat] = vulkan::createPipeline(
+            vulkan::PipelineType::Flat,
             this->device,
             this->render_pass,
-            this->swapchain,
-            vulkan::Pipeline::createShaderFromFile(
-                this->device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"),
-            vulkan::Pipeline::createShaderFromFile(
-                this->device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/flat_pipeline.vert.bin"),
-            [&] -> vk::UniquePipelineLayout
-            {
-                const vk::PushConstantRange pushConstantsInformation {
-                    .stageFlags {vk::ShaderStageFlagBits::eVertex},
-                    .offset {0},
-                    .size {sizeof(vulkan::PushConstants)},
-                };
+            this->swapchain);
 
-                return this->device->asLogicalDevice()
-                    .createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo {
-                        .sType {vk::StructureType::ePipelineLayoutCreateInfo},
-                        .pNext {nullptr},
-                        .flags {},
-                        .setLayoutCount {0},
-                        .pSetLayouts {nullptr},
-                        .pushConstantRangeCount {1},
-                        .pPushConstantRanges {&pushConstantsInformation},
-                    });
-            }());
-
-        this->pipeline_map[vulkan::PipelineType::Voxel] = std::make_unique<
-            vulkan::Pipeline>(
-            this->device,
-            this->render_pass,
-            this->swapchain,
-            vulkan::Pipeline::createShaderFromFile(
-                this->device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/voxel.frag.bin"),
-            vulkan::Pipeline::createShaderFromFile(
-                this->device->asLogicalDevice(),
-                "src/gfx/vulkan/shaders/voxel.vert.bin"),
-            [&] -> vk::UniquePipelineLayout
-            {
-                const vk::PushConstantRange pushConstantsInformation {
-                    .stageFlags {vk::ShaderStageFlagBits::eVertex},
-                    .offset {0},
-                    .size {sizeof(vulkan::PushConstants)},
-                };
-
-                std::shared_ptr<vulkan::DescriptorSetLayout>
-                    descriptorSetLayout = vulkan::getDescriptorSetLayout(
-                        vulkan::DescriptorSetType::Voxel, this->device);
-
-                return this->device->asLogicalDevice()
-                    .createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo {
-                        .sType {vk::StructureType::ePipelineLayoutCreateInfo},
-                        .pNext {nullptr},
-                        .flags {},
-                        .setLayoutCount {1},
-                        .pSetLayouts {**descriptorSetLayout},
-                        .pushConstantRangeCount {1},
-                        .pPushConstantRanges {&pushConstantsInformation},
-                    });
-            }());
+        this->pipeline_map[vulkan::PipelineType::Voxel] =
+            vulkan::createPipeline(
+                vulkan::PipelineType::Voxel,
+                this->device,
+                this->render_pass,
+                this->swapchain);
 
         util::assertFatal(
             this->pipeline_map.size()
                 == vulkan::PipelineTypeNumberOfValidEntries,
-            "Pipelines were not correctely populated! {} {}",
+            "Pipelines were not correctly populated! {} {}",
             this->pipeline_map.size(),
             vulkan::PipelineTypeNumberOfValidEntries);
 

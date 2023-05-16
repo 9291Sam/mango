@@ -8,11 +8,18 @@ namespace gfx::vulkan
         std::shared_ptr<Instance> instance_,
         std::shared_ptr<Device>   device_,
         PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr,
-        PFN_vkGetDeviceProcAddr   dynVkGetDeviceProcAddr
-    )
+        PFN_vkGetDeviceProcAddr   dynVkGetDeviceProcAddr)
         : instance {std::move(instance_)}
         , device {std::move(device_)}
     {
+        // TODO: make dynamic auto reallocing class
+        std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
+        descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
+        descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
+
+        this->descriptor_pool = vulkan::DescriptorPool::create(
+            this->device, std::move(descriptorMap));
+
         VmaVulkanFunctions vulkanFunctions {};
         vulkanFunctions.vkGetInstanceProcAddr = dynVkGetInstanceProcAddr;
         vulkanFunctions.vkGetDeviceProcAddr   = dynVkGetDeviceProcAddr;
@@ -37,8 +44,7 @@ namespace gfx::vulkan
         util::assertFatal(
             result == VK_SUCCESS,
             "Failed to create allocator | Result: {}",
-            vk::to_string(vk::Result {result})
-        );
+            vk::to_string(vk::Result {result}));
     }
 
     Allocator::~Allocator()
@@ -46,8 +52,19 @@ namespace gfx::vulkan
         vmaDestroyAllocator(this->allocator);
     }
 
+    bool Allocator::shouldBufferStage() const
+    {
+        return this->device->shouldBuffersStage();
+    }
+
     VmaAllocator Allocator::operator* () const
     {
         return this->allocator;
+    }
+
+    DescriptorSet Allocator::allocateDescriptorSet(
+        std::shared_ptr<DescriptorSetLayout> layout)
+    {
+        return this->descriptor_pool->allocate(std::move(layout));
     }
 } // namespace gfx::vulkan

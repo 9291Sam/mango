@@ -168,31 +168,11 @@ namespace gfx
                 for (const Object* o : sortedObjects)
                 {
                     o->bind(commandBuffer, bindState, pipelineMap);
-
-                    // lmfao please no
-                    // fix this shit and write a proper absrtacton over push
-                    // constnats
-                    if (const TriangulatedObject* obj =
-                            dynamic_cast<const TriangulatedObject*>(o))
-                    {
-                        vulkan::PushConstants pushConstants {.model_view_proj {
-                            Camera::getPerspectiveMatrix(
-                                glm::radians(70.f),
-                                static_cast<float>(size.width)
-                                    / static_cast<float>(size.height),
-                                0.1f,
-                                200000.0f)
-                            * camera.getViewMatrix()
-                            * obj->transform.asModelMatrix()}};
-
-                        commandBuffer.pushConstants<vulkan::PushConstants>(
-                            pipelineMap.at(bindState.current_pipeline)
-                                ->getLayout(),
-                            vk::ShaderStageFlagBits::eAllGraphics,
-                            0,
-                            pushConstants);
-                    }
-
+                    o->setPushConstants(
+                        commandBuffer,
+                        *pipelineMap.at(bindState.current_pipeline),
+                        camera,
+                        size);
                     o->draw(commandBuffer);
                 }
 

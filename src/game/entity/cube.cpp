@@ -65,11 +65,8 @@ namespace game::entity
                           6, 2, 7, 2, 3, 7, 0, 4, 5, 1, 0, 5, 0, 2, 6, 4, 0, 6,
                           3, 1, 7, 1, 5, 7, 2, 0, 3, 0, 1, 3, 4, 6, 7, 5, 4, 7};
 
-                      return gfx::TriangulatedObject {
-                          this->renderer->getAllocator(),
-                          gfx::vulkan::PipelineType::Flat,
-                          vertices,
-                          indices};
+                      return this->renderer->createTriangulatedObject(
+                          gfx::vulkan::PipelineType::Flat, vertices, indices);
                   }()}
     {
         this->object.transform = transform;

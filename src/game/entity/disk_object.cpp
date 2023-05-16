@@ -106,11 +106,8 @@ namespace game::entity
                       }
                   }
 
-                  return gfx::TriangulatedObject {
-                      this->renderer->getAllocator(),
-                      gfx::vulkan::PipelineType::Flat,
-                      vertices,
-                      indices};
+                  return this->renderer->createTriangulatedObject(
+                      gfx::vulkan::PipelineType::Flat, vertices, indices);
               }()}
     {}
 

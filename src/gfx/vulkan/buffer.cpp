@@ -180,13 +180,15 @@ namespace gfx::vulkan
     }
 
     StagedBuffer::StagedBuffer(
-        const Device&              device,
-        std::shared_ptr<Allocator> allocator,
+        std::shared_ptr<Allocator> allocator_,
         std::size_t                sizeBytes,
         vk::BufferUsageFlags       usage)
-        : staging_buffer // clang-format off
-        {
-            device.shouldBuffersStage()
+        : allocator {std::move(allocator_)}
+        , staging_buffer 
+        { 
+            // clang-format off
+            // TODO: wtf?!
+            this->allocator->shouldBufferStage()
             ?
             std::make_optional<Buffer>(
                 allocator,
@@ -197,13 +199,24 @@ namespace gfx::vulkan
             )
             :
             std::nullopt
-        } // clang-format on
+            // clang-format on
+        }
         , gpu_local_buffer {
               std::move(allocator),
               sizeBytes,
               vk::BufferUsageFlagBits::eTransferDst | usage,
               vk::MemoryPropertyFlagBits::eDeviceLocal}
     {}
+
+    vk::Buffer StagedBuffer::operator* () const
+    {
+        return *this->gpu_local_buffer;
+    }
+
+    std::size_t StagedBuffer::sizeBytes() const
+    {
+        return this->gpu_local_buffer.sizeBytes();
+    }
 
     void StagedBuffer::write(std::span<const std::byte> data) const
     {

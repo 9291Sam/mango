@@ -1,9 +1,70 @@
 #include "descriptors.hpp"
 #include "device.hpp"
 #include "util/log.hpp"
+#include <map>
 
 namespace gfx::vulkan
 {
+
+    std::shared_ptr<DescriptorSetLayout> getDescriptorSetLayout(
+        DescriptorSetType type, std::shared_ptr<Device> device)
+    {
+        static std::map<DescriptorSetType, std::shared_ptr<DescriptorSetLayout>>
+            cache;
+
+        if (cache.contains(type))
+        {
+            return cache[type];
+        }
+        else
+        {
+            switch (type)
+            {
+            case DescriptorSetType::None:
+                util::panic(
+                    "Tried to find the layout of a DescriptorSetType::None!");
+            case DescriptorSetType::Voxel:
+
+                std::array<vk::DescriptorSetLayoutBinding, 3> bindings {
+                    vk::DescriptorSetLayoutBinding {
+                        .binding {0},
+                        .descriptorType {vk::DescriptorType::eStorageBuffer},
+                        .descriptorCount {1},
+                        .stageFlags {vk::ShaderStageFlagBits::eVertex},
+                        .pImmutableSamplers {nullptr},
+                    },
+                    vk::DescriptorSetLayoutBinding {
+                        .binding {1},
+                        .descriptorType {vk::DescriptorType::eStorageBuffer},
+                        .descriptorCount {1},
+                        .stageFlags {vk::ShaderStageFlagBits::eVertex},
+                        .pImmutableSamplers {nullptr},
+                    },
+                    vk::DescriptorSetLayoutBinding {
+                        .binding {2},
+                        .descriptorType {vk::DescriptorType::eStorageBuffer},
+                        .descriptorCount {1},
+                        .stageFlags {vk::ShaderStageFlagBits::eVertex},
+                        .pImmutableSamplers {nullptr},
+                    }};
+
+                cache[type] = std::make_shared<DescriptorSetLayout>(
+                    std::move(device),
+                    vk::DescriptorSetLayoutCreateInfo {
+                        .sType {
+                            vk::StructureType::eDescriptorSetLayoutCreateInfo},
+                        .pNext {nullptr},
+                        .flags {},
+                        .bindingCount {
+                            static_cast<std::uint32_t>(bindings.size())},
+                        .pBindings {bindings.data()},
+                    });
+            }
+
+            return cache[type];
+        }
+    }
+
     std::shared_ptr<DescriptorPool> DescriptorPool::create(
         std::shared_ptr<Device>                               device,
         std::unordered_map<vk::DescriptorType, std::uint32_t> capacity)
@@ -140,6 +201,12 @@ namespace gfx::vulkan
         return this->descriptors;
     }
 
+    DescriptorSet::DescriptorSet()
+        : set {nullptr}
+        , layout {nullptr}
+        , pool {}
+    {}
+
     DescriptorSet::~DescriptorSet()
     {
         if (static_cast<bool>(this->set))
@@ -153,8 +220,9 @@ namespace gfx::vulkan
         , layout {std::move(other.layout)}
         , pool {std::move(other.pool)}
     {
-        other.pool = nullptr;
-        other.set  = nullptr;
+        other.pool   = nullptr;
+        other.set    = nullptr;
+        other.layout = nullptr;
     }
 
     DescriptorSet& DescriptorSet::operator= (DescriptorSet&& other)
@@ -168,8 +236,9 @@ namespace gfx::vulkan
         this->layout = std::move(other.layout);
         this->set    = std::move(other.set);
 
-        other.pool = nullptr;
-        other.set  = nullptr;
+        other.pool   = nullptr;
+        other.set    = nullptr;
+        other.layout = nullptr;
 
         return *this;
     }

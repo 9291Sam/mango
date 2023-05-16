@@ -29,6 +29,7 @@ namespace game::world
         std::shared_ptr<gfx::Renderer> renderer;
         VoxelCube                      voxels;
         gfx::TriangulatedObject        object;
+        gfx::VoxelObject               voxel_object;
     };
 } // namespace game::world
 

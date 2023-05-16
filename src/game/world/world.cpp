@@ -22,16 +22,20 @@ namespace game::world
                       auto [vertices, indices] =
                           this->voxels.getVerticesAndIndices();
 
-                      return gfx::TriangulatedObject {
-                          this->renderer->getAllocator(),
-                          gfx::vulkan::PipelineType::Flat,
-                          vertices,
-                          indices};
+                      return this->renderer->createTriangulatedObject(
+                          gfx::vulkan::PipelineType::Flat, vertices, indices);
                   }()}
+        , voxel_object {[this]
+                        {
+                            std::array<glm::vec3, 1> positions {
+                                glm::vec3 {33.0f, 80.0f, 33.0f}};
+
+                            return this->renderer->createVoxelObject(positions);
+                        }()}
     {}
 
     std::vector<const gfx::Object*> World::lend() const
     {
-        return {&this->object};
+        return {&this->object, &this->voxel_object};
     }
 } // namespace game::world

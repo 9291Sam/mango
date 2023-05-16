@@ -96,7 +96,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(mango PUBLIC -std=c++2b)
-  target_compile_options(mango PUBLIC -Og)
+  # target_compile_options(mango PUBLIC -Og)
   target_compile_options(mango PUBLIC -g)
   
   target_compile_options(mango PUBLIC -march=native)
@@ -211,4 +211,5 @@ compile_shader(mango
     src/gfx/vulkan/shaders/flat_pipeline.vert
     src/gfx/vulkan/shaders/flat_pipeline.frag
     src/gfx/vulkan/shaders/voxel.vert
+    src/gfx/vulkan/shaders/voxel.frag
 )

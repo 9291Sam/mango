@@ -79,32 +79,12 @@ namespace gfx::vulkan
         std::shared_ptr<RenderPass>           renderPass,
         std::shared_ptr<Swapchain>            swapchain_,
         std::optional<vk::UniqueShaderModule> fragmentShader,
-        std::optional<vk::UniqueShaderModule> vertexShader)
+        std::optional<vk::UniqueShaderModule> vertexShader,
+        vk::UniquePipelineLayout              layout_)
         : device {std::move(device_)}
         , render_pass {std::move(renderPass)}
         , swapchain {std::move(swapchain_)}
-        , layout {[&] -> vk::UniquePipelineLayout
-                    {
-                        const vk::PushConstantRange pushConstantsInformation {
-                            .stageFlags {vk::ShaderStageFlagBits::eAllGraphics},
-                            .offset {0},
-                            .size {sizeof(vulkan::PushConstants)},
-                        };
-
-                        return device->asLogicalDevice()
-                            .createPipelineLayoutUnique(
-                                vk::PipelineLayoutCreateInfo {
-                                    .sType {vk::StructureType::
-                                                ePipelineLayoutCreateInfo},
-                                    .pNext {nullptr},
-                                    .flags {},
-                                    .setLayoutCount {0},
-                                    .pSetLayouts {nullptr},
-                                    .pushConstantRangeCount {1},
-                                    .pPushConstantRanges {
-                                        &pushConstantsInformation},
-                                });
-                    }()}
+        , layout {std::move(layout_)}
         , pipeline {nullptr}
     {
         std::vector<vk::PipelineShaderStageCreateInfo> shaderStages {};

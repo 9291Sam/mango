@@ -8,6 +8,7 @@
 #include "vulkan/includes.hpp"
 #include "vulkan/pipeline.hpp"
 #include <compare>
+#include <game/world/voxel.hpp>
 #include <map>
 #include <memory>
 #include <ranges>
@@ -24,6 +25,7 @@ namespace gfx
         class Pipeline;
         class DescriptorSet;
         class Swapchain;
+        class Device;
     } // namespace vulkan
 
     struct BindState
@@ -41,7 +43,11 @@ namespace gfx
     {
     public:
 
-        Object(std::string name, vulkan::PipelineType, vulkan::DescriptorState);
+        Object(
+            std::shared_ptr<vulkan::Device>,
+            std::string name,
+            vulkan::PipelineType,
+            vulkan::DescriptorState);
         virtual ~Object();
 
         Object(const Object&)             = delete;
@@ -55,7 +61,14 @@ namespace gfx
             const std::map<
                 vulkan::PipelineType,
                 std::unique_ptr<vulkan::Pipeline>>&) const = 0;
-        virtual void draw(vk::CommandBuffer) const         = 0;
+
+        virtual void setPushConstants(
+            vk::CommandBuffer,
+            const vulkan::Pipeline&,
+            const Camera&,
+            vk::Extent2D renderExtent) const = 0;
+
+        virtual void draw(vk::CommandBuffer) const = 0;
 
         std::strong_ordering operator<=> (const Object&) const;
         operator std::string () const;
@@ -66,27 +79,24 @@ namespace gfx
             BindState&,
             const std::
                 map<vulkan::PipelineType, std::unique_ptr<vulkan::Pipeline>>&,
-            std::span<vulkan::DescriptorSet>) const;
+            std::span<const vulkan::DescriptorSet>) const;
 
-        const std::string             name;
-        const vulkan::PipelineType    required_pipeline;
-        const vulkan::DescriptorState required_descriptor_sets;
+        const std::string               name;
+        const vulkan::PipelineType      required_pipeline;
+        const vulkan::DescriptorState   required_descriptor_sets;
+        std::shared_ptr<vulkan::Device> device;
     };
 
     class TriangulatedObject : public Object
     {
     public:
         TriangulatedObject(
+            std::shared_ptr<vulkan::Device>,
             std::shared_ptr<vulkan::Allocator>,
             vulkan::PipelineType,
             std::span<const vulkan::Vertex>,
             std::span<const vulkan::Index>);
-        ~TriangulatedObject() = default;
-
-        TriangulatedObject(const TriangulatedObject&)             = delete;
-        TriangulatedObject(TriangulatedObject&&)                  = delete;
-        TriangulatedObject& operator= (const TriangulatedObject&) = delete;
-        TriangulatedObject& operator= (TriangulatedObject&&)      = delete;
+        ~TriangulatedObject() override;
 
         virtual void bind(
             vk::CommandBuffer,
@@ -94,6 +104,13 @@ namespace gfx
             const std::map<
                 vulkan::PipelineType,
                 std::unique_ptr<vulkan::Pipeline>>&) const override;
+
+        virtual void setPushConstants(
+            vk::CommandBuffer,
+            const vulkan::Pipeline&,
+            const Camera&,
+            vk::Extent2D renderExtent) const override;
+
         virtual void draw(vk::CommandBuffer) const override;
 
         Transform transform;
@@ -108,12 +125,43 @@ namespace gfx
         vulkan::Buffer index_buffer;
     };
 
-    // class VoxelObject : public Object
-    // {
-    // public:
+    class VoxelObject : public Object
+    {
+    public:
 
-    //     // owns its own descriptors!
-    // }
+        VoxelObject(
+            std::shared_ptr<vulkan::Device>,
+            std::shared_ptr<vulkan::Allocator>,
+            std::span<glm::vec3> voxelPositions);
+        ~VoxelObject() override;
+
+        void bind(
+            vk::CommandBuffer,
+            BindState&,
+            const std::map<
+                vulkan::PipelineType,
+                std::unique_ptr<vulkan::Pipeline>>&) const override;
+
+        void setPushConstants(
+            vk::CommandBuffer,
+            const vulkan::Pipeline&,
+            const Camera&,
+            vk::Extent2D renderExtent) const override;
+
+        void draw(vk::CommandBuffer) const override;
+
+        Transform transform;
+    private:
+        std::shared_ptr<vulkan::Allocator> allocator;
+
+        std::size_t           number_of_voxels;
+        vulkan::StagedBuffer  positions_buffer;
+        vulkan::StagedBuffer  sizes_buffer;
+        vulkan::StagedBuffer  colors_buffer;
+        vulkan::DescriptorSet voxel_set;
+
+        mutable bool have_buffers_staged;
+    };
 
 } // namespace gfx
 

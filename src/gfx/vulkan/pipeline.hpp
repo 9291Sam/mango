@@ -32,7 +32,8 @@ namespace gfx::vulkan
             std::shared_ptr<RenderPass>,
             std::shared_ptr<Swapchain>,
             std::optional<vk::UniqueShaderModule> fragmentShader,
-            std::optional<vk::UniqueShaderModule> vertexShader);
+            std::optional<vk::UniqueShaderModule> vertexShader,
+            vk::UniquePipelineLayout);
         ~Pipeline() = default;
 
         Pipeline(const Pipeline&)             = delete;

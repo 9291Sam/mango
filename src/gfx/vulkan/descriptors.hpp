@@ -13,11 +13,17 @@ namespace gfx::vulkan
     class DescriptorSet;
     class DescriptorSetLayout;
 
+    // TODO: have constexpr layouts that can easily be grabbed for pipeline
+    // creation
+
     enum class DescriptorSetType
     {
         None,
         Voxel,
     };
+
+    std::shared_ptr<DescriptorSetLayout>
+        getDescriptorSetLayout(DescriptorSetType, std::shared_ptr<Device>);
 
     struct DescriptorState
     {
@@ -28,6 +34,9 @@ namespace gfx::vulkan
                 DescriptorSetType::None,
                 DescriptorSetType::None,
             }}
+        {}
+        DescriptorState(auto... d)
+            : descriptors {d...}
         {}
 
         std::array<DescriptorSetType, 4> descriptors;
@@ -138,6 +147,7 @@ namespace gfx::vulkan
     {
     public:
 
+        DescriptorSet();
         ~DescriptorSet();
 
         DescriptorSet(const DescriptorSet&) = delete;

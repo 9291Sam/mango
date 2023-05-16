@@ -1,6 +1,7 @@
 #ifndef SRC_GFX_VULKAN_ALLOCATOR_HPP
 #define SRC_GFX_VULKAN_ALLOCATOR_HPP
 
+#include "descriptors.hpp"
 #include "includes.hpp"
 #include <memory>
 
@@ -17,8 +18,7 @@ namespace gfx::vulkan
             std::shared_ptr<Instance>,
             std::shared_ptr<Device>,
             PFN_vkGetInstanceProcAddr,
-            PFN_vkGetDeviceProcAddr
-        );
+            PFN_vkGetDeviceProcAddr);
         ~Allocator();
 
         Allocator(const Allocator&)             = delete;
@@ -26,12 +26,17 @@ namespace gfx::vulkan
         Allocator& operator= (const Allocator&) = delete;
         Allocator& operator= (Allocator&&)      = delete;
 
-        [[nodiscard]] VmaAllocator operator* () const;
+        bool         shouldBufferStage() const;
+        VmaAllocator operator* () const;
+        DescriptorSet
+            allocateDescriptorSet(std::shared_ptr<DescriptorSetLayout>);
+
 
     private:
-        std::shared_ptr<Instance> instance;
-        std::shared_ptr<Device>   device;
-        VmaAllocator              allocator;
+        std::shared_ptr<Instance>       instance;
+        std::shared_ptr<Device>         device;
+        VmaAllocator                    allocator;
+        std::shared_ptr<DescriptorPool> descriptor_pool;
     };
 } // namespace gfx::vulkan
 

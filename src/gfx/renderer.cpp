@@ -23,14 +23,12 @@ namespace gfx
         , instance {nullptr}
         , device {nullptr}
         , allocator {nullptr}
-        , descriptor_pool {nullptr}
         , swapchain {nullptr}
         , depth_buffer {nullptr}
         , render_pass {nullptr}
         , pipeline_map {}
         , render_index {0}
         , frames {nullptr}
-        , vertex_buffer {nullptr}
     {
         const vk::DynamicLoader         dl;
         const PFN_vkGetInstanceProcAddr dynVkGetInstanceProcAddr =
@@ -62,14 +60,6 @@ namespace gfx
             dynVkGetInstanceProcAddr,
             dl.getProcAddress<PFN_vkGetDeviceProcAddr>("vkGetDeviceProcAddr"));
 
-        // TODO: make dynamic auto reallocing class
-        std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
-        descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
-        descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
-
-        this->descriptor_pool = vulkan::DescriptorPool::create(
-            this->device, std::move(descriptorMap));
-
         this->initializeRenderer();
 
         util::logLog("Renderer initialization complete");
@@ -78,6 +68,21 @@ namespace gfx
     Renderer::~Renderer()
     {
         this->device->asLogicalDevice().waitIdle();
+    }
+
+    TriangulatedObject Renderer::createTriangulatedObject(
+        vulkan::PipelineType            pipelineType,
+        std::span<const vulkan::Vertex> vertices,
+        std::span<const vulkan::Index>  indices) const
+    {
+        return TriangulatedObject {
+            this->device, this->allocator, pipelineType, vertices, indices};
+    }
+
+    VoxelObject
+    Renderer::createVoxelObject(std::span<glm::vec3> voxelPositions) const
+    {
+        return VoxelObject {this->device, this->allocator, voxelPositions};
     }
 
     // Object Renderer::createObject(
@@ -97,12 +102,6 @@ namespace gfx
     //         indices,
     //     };
     // }
-
-    std::shared_ptr<vulkan::Allocator> Renderer::getAllocator() const
-    {
-        return this->allocator;
-    }
-
     bool Renderer::shouldClose() const
     {
         return this->window.shouldClose();
@@ -179,24 +178,78 @@ namespace gfx
             this->device, this->swapchain, this->depth_buffer);
 
         // Pipeline Creation!
-        this->pipeline_map[vulkan::PipelineType::Flat] =
-            std::make_unique<vulkan::Pipeline>(
-                this->device,
-                this->render_pass,
-                this->swapchain,
-                vulkan::Pipeline::createShaderFromFile(
-                    this->device->asLogicalDevice(),
-                    "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"),
-                vulkan::Pipeline::createShaderFromFile(
-                    this->device->asLogicalDevice(),
-                    "src/gfx/vulkan/shaders/flat_pipeline.vert.bin"));
+        this->pipeline_map[vulkan::PipelineType::Flat] = std::make_unique<
+            vulkan::Pipeline>(
+            this->device,
+            this->render_pass,
+            this->swapchain,
+            vulkan::Pipeline::createShaderFromFile(
+                this->device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/flat_pipeline.frag.bin"),
+            vulkan::Pipeline::createShaderFromFile(
+                this->device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/flat_pipeline.vert.bin"),
+            [&] -> vk::UniquePipelineLayout
+            {
+                const vk::PushConstantRange pushConstantsInformation {
+                    .stageFlags {vk::ShaderStageFlagBits::eVertex},
+                    .offset {0},
+                    .size {sizeof(vulkan::PushConstants)},
+                };
 
-        // util::assertFatal(
-        //     this->pipeline_map.size()
-        //         == vulkan::PipelineTypeNumberOfValidEntries,
-        //     "Pipelines were not correctely populated! {} {}",
-        //     this->pipeline_map.size(),
-        //     vulkan::PipelineTypeNumberOfValidEntries);
+                return this->device->asLogicalDevice()
+                    .createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo {
+                        .sType {vk::StructureType::ePipelineLayoutCreateInfo},
+                        .pNext {nullptr},
+                        .flags {},
+                        .setLayoutCount {0},
+                        .pSetLayouts {nullptr},
+                        .pushConstantRangeCount {1},
+                        .pPushConstantRanges {&pushConstantsInformation},
+                    });
+            }());
+
+        this->pipeline_map[vulkan::PipelineType::Voxel] = std::make_unique<
+            vulkan::Pipeline>(
+            this->device,
+            this->render_pass,
+            this->swapchain,
+            vulkan::Pipeline::createShaderFromFile(
+                this->device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/voxel.frag.bin"),
+            vulkan::Pipeline::createShaderFromFile(
+                this->device->asLogicalDevice(),
+                "src/gfx/vulkan/shaders/voxel.vert.bin"),
+            [&] -> vk::UniquePipelineLayout
+            {
+                const vk::PushConstantRange pushConstantsInformation {
+                    .stageFlags {vk::ShaderStageFlagBits::eVertex},
+                    .offset {0},
+                    .size {sizeof(vulkan::PushConstants)},
+                };
+
+                std::shared_ptr<vulkan::DescriptorSetLayout>
+                    descriptorSetLayout = vulkan::getDescriptorSetLayout(
+                        vulkan::DescriptorSetType::Voxel, this->device);
+
+                return this->device->asLogicalDevice()
+                    .createPipelineLayoutUnique(vk::PipelineLayoutCreateInfo {
+                        .sType {vk::StructureType::ePipelineLayoutCreateInfo},
+                        .pNext {nullptr},
+                        .flags {},
+                        .setLayoutCount {1},
+                        .pSetLayouts {**descriptorSetLayout},
+                        .pushConstantRangeCount {1},
+                        .pPushConstantRanges {&pushConstantsInformation},
+                    });
+            }());
+
+        util::assertFatal(
+            this->pipeline_map.size()
+                == vulkan::PipelineTypeNumberOfValidEntries,
+            "Pipelines were not correctely populated! {} {}",
+            this->pipeline_map.size(),
+            vulkan::PipelineTypeNumberOfValidEntries);
 
         std::shared_ptr<std::vector<vk::UniqueFramebuffer>> framebuffers =
             std::make_shared<std::vector<vk::UniqueFramebuffer>>();

@@ -51,7 +51,6 @@ namespace gfx::vulkan
     public:
 
         StagedBuffer(
-            const Device&,
             std::shared_ptr<Allocator>,
             std::size_t sizeBytes,
             vk::BufferUsageFlags);
@@ -63,15 +62,15 @@ namespace gfx::vulkan
         StagedBuffer& operator= (const StagedBuffer&) = delete;
         StagedBuffer& operator= (StagedBuffer&&)      = default;
 
-        [[nodiscard]] vk::Buffer operator* () const
-        {
-            return *this->gpu_local_buffer;
-        }
+        [[nodiscard]] vk::Buffer  operator* () const;
+        [[nodiscard]] std::size_t sizeBytes() const;
 
         void write(std::span<const std::byte>) const;
         void stage(vk::CommandBuffer) const;
 
     private:
+        std::shared_ptr<Allocator> allocator;
+
         std::optional<Buffer> staging_buffer;
         Buffer                gpu_local_buffer;
     };

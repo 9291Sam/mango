@@ -131,7 +131,7 @@ namespace gfx::vulkan
             .sType {vk::StructureType::ePipelineInputAssemblyStateCreateInfo},
             .pNext {},
             .flags {},
-            .topology {vk::PrimitiveTopology::eTriangleList},
+            .topology {vk::PrimitiveTopology::z},
             .primitiveRestartEnable {false},
         };
 

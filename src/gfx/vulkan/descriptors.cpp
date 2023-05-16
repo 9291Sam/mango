@@ -260,8 +260,5 @@ namespace gfx::vulkan
         : set {set_}
         , layout {std::move(layout_)}
         , pool {std::move(pool_)}
-    {
-        util::logTrace(
-            "Allocated descriptor set at {}", static_cast<void*>(this->set));
-    }
+    {}
 } // namespace gfx::vulkan

@@ -200,19 +200,20 @@ namespace gfx
                 vulkan::DescriptorSetType::None,
                 vulkan::DescriptorSetType::None,
                 vulkan::DescriptorSetType::None})
+        , transform {.translation {0.0f, 0.0f, 0.0f}, .rotation {1.0f, 0.0f, 0.0f, 0.0f}, .scale {1.0f, 1.0f, 1.0f}}
         , allocator {std::move(allocator_)}
         , number_of_voxels {voxelPositions.size()}
         , positions_buffer(
               this->allocator,
-              voxelPositions.size_bytes(),
+              voxelPositions.size() * sizeof(glm::vec4),
               vk::BufferUsageFlagBits::eStorageBuffer)
         , sizes_buffer(
               this->allocator,
-              voxelPositions.size_bytes(),
+              voxelPositions.size() * sizeof(float),
               vk::BufferUsageFlagBits::eStorageBuffer)
         , colors_buffer(
               this->allocator,
-              voxelPositions.size_bytes(),
+              voxelPositions.size() * sizeof(glm::vec4),
               vk::BufferUsageFlagBits::eStorageBuffer)
         , voxel_set {this->allocator->allocateDescriptorSet(
               vulkan::getDescriptorSetLayout(
@@ -229,14 +230,14 @@ namespace gfx
         }
 
         std::vector<float> sizes {};
-        sizes.reserve(voxelPositions.size());
-        std::ranges::fill(sizes, 1.0f);
+        sizes.resize(voxelPositions.size());
+        std::ranges::fill(sizes, 100.0f);
 
         std::vector<glm::vec4> colors {};
-        colors.reserve(voxelPositions.size());
+        colors.resize(voxelPositions.size());
         std::ranges::fill(colors, glm::vec4 {1.0f, 1.0f, 1.0f, 1.0f});
 
-        this->positions_buffer.write(std::as_bytes(std::span {voxelPositions}));
+        this->positions_buffer.write(std::as_bytes(std::span {positionsCopy}));
         this->sizes_buffer.write(std::as_bytes(std::span {sizes}));
         this->colors_buffer.write(std::as_bytes(std::span {colors}));
 

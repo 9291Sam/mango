@@ -14,8 +14,7 @@ namespace gfx::vulkan
     {
         // TODO: make dynamic auto reallocing class
         std::unordered_map<vk::DescriptorType, std::uint32_t> descriptorMap {};
-        descriptorMap[vk::DescriptorType::eUniformBuffer]        = 12;
-        descriptorMap[vk::DescriptorType::eCombinedImageSampler] = 12;
+        descriptorMap[vk::DescriptorType::eStorageBuffer] = 3;
 
         this->descriptor_pool = vulkan::DescriptorPool::create(
             this->device, std::move(descriptorMap));

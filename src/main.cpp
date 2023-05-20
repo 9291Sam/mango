@@ -1,6 +1,8 @@
 #include "game/game.hpp"
 #include "gfx/renderer.hpp"
-#include "util/log.hpp"
+#include <util/log.hpp>
+#include <util/threads.hpp>
+#include <util/uuid.hpp>
 
 int main()
 {

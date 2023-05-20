@@ -163,6 +163,7 @@ namespace gfx::vulkan
 
         util::panic(
             "Unimplemented pipeline creation! {}", static_cast<int>(pipeline));
+        std::unreachable();
     }
 
     vk::UniqueShaderModule
@@ -403,10 +404,6 @@ namespace gfx::vulkan
     {
 #define GET_VALUE_OR_NULLPTR(optional)                                         \
     (optional.has_value() ? &*optional : nullptr)
-
-        util::logFatal(
-            "Creating pipeline with vertex state of {}",
-            (void*)&vertexInputState);
 
         const vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo {
             .sType {vk::StructureType::eGraphicsPipelineCreateInfo},

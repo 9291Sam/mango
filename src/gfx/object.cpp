@@ -230,7 +230,7 @@ namespace gfx
 
         std::vector<float> sizes {};
         sizes.resize(voxelPositions.size());
-        std::ranges::fill(sizes, 1.0f);
+        std::ranges::fill(sizes, 10.0f);
 
         std::vector<glm::vec4> colors {};
         colors.resize(voxelPositions.size());

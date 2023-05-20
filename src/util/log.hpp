@@ -1,10 +1,15 @@
 #ifndef SRC_UTIL_LOG_HPP
 #define SRC_UTIL_LOG_HPP
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+
 #pragma gcc diagnostic push
 #pragma gcc diagnostic ignored "-Wstringop-overflow="
 #include <fmt/format.h>
 #pragma gcc diagnostic pop
+
+#pragma clang diagnostic pop
 
 #include <source_location>
 #include <utility>
@@ -21,6 +26,17 @@ namespace util
     };
 
     void logFormatted(Level, const std::source_location&, std::string);
+
+    // template<class T..., Level l>
+    // void adf();
+
+    // template<class... T>
+    // using logFatal<T, Fatal> = asd;
+
+    // // global lambdas !
+
+    // template<class... T>
+    // auto logFatal = [] <
 
 /// Because C++ doesn't have partial template specification, this is the best we
 /// can do
@@ -46,9 +62,7 @@ namespace util
 
     MAKE_LOGGER(Trace)
     MAKE_LOGGER(Debug)
-    MAKE_LOGGER(Log)
-    MAKE_LOGGER(Warn)
-    MAKE_LOGGER(Fatal)
+    MAKE_LOGGER(Log) MAKE_LOGGER(Warn) MAKE_LOGGER(Fatal)
 
 #define MAKE_ASSERT(LEVEL, THROW_ON_FAIL)                                      \
     template<class... T>                                                       \
@@ -80,11 +94,9 @@ namespace util
     assert##LEVEL(bool, fmt::format_string<J...>, J&&...)                      \
         ->assert##LEVEL<J...>;
 
-    MAKE_ASSERT(Trace, false)
-    MAKE_ASSERT(Debug, false)
-    MAKE_ASSERT(Log, false)
-    MAKE_ASSERT(Warn, false)
-    MAKE_ASSERT(Fatal, true)
+        MAKE_ASSERT(Trace, false) MAKE_ASSERT(Debug, false);
+    MAKE_ASSERT(Log, false) MAKE_ASSERT(Warn, false);
+    MAKE_ASSERT(Fatal, true);
 
     template<class... T>
     struct panic

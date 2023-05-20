@@ -19,11 +19,9 @@ namespace gfx::vulkan
         None,
         Flat,
         Voxel,
-        MAX_PIPELINE
     };
 
-    constexpr std::size_t PipelineTypeNumberOfValidEntries =
-        static_cast<std::size_t>(PipelineType::MAX_PIPELINE) - 1;
+    constexpr std::size_t PipelineTypeNumberOfValidEntries = 2UZ;
 
     enum class PipelineVertexType
     {

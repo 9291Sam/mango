@@ -78,13 +78,18 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-c++20-compat)
     target_compile_options(mango PUBLIC -Wno-padded)
 
+    target_compile_options(mango PUBLIC -Wno-exit-time-destructors)
   
     target_compile_options(mango PUBLIC -fsanitize=address)
-    target_compile_options(mango PUBLIC -fsanitize=leak)
+    if (NOT WIN32)
+      target_compile_options(mango PUBLIC -fsanitize=leak)
+    endif()
     target_compile_options(mango PUBLIC -fsanitize=undefined)
     
     target_link_options(mango PUBLIC -fsanitize=address)
-    target_link_options(mango PUBLIC -fsanitize=leak)
+    if (NOT WIN32)
+      target_link_options(mango PUBLIC -fsanitize=leak)
+    endif()
     target_link_options(mango PUBLIC -fsanitize=undefined)
 
     if (WIN32)    

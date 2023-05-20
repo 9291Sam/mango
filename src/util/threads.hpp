@@ -3,7 +3,7 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
-#include "concurrentqueue.h"
+#include "blockingconcurrentqueue.h"
 #pragma clang diagnostic pop
 
 #include "util/log.hpp"
@@ -13,6 +13,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <thread>
 #include <type_traits>
 #include <utility>
 
@@ -28,7 +29,7 @@ namespace util
 
         template<class T>
         std::pair<Sender<T>, Receiver<T>> create()
-            requires std::is_nothrow_move_assignable_v<T>;
+            requires std::is_move_assignable_v<T>;
 
         template<class T>
         class Sender
@@ -57,7 +58,7 @@ namespace util
 
             template<class Y>
             friend std::pair<Sender<Y>, Receiver<Y>> create()
-                requires std::is_nothrow_move_assignable_v<Y>;
+                requires std::is_move_assignable_v<Y>;
 
             std::shared_ptr<moodycamel::ConcurrentQueue<T>> queue;
         }; // class Sender
@@ -92,14 +93,14 @@ namespace util
 
             template<class Y>
             friend std::pair<Sender<Y>, Receiver<Y>> create()
-                requires std::is_nothrow_move_assignable_v<Y>;
+                requires std::is_move_assignable_v<Y>;
 
             std::shared_ptr<moodycamel::ConcurrentQueue<T>> queue;
         }; // class Sender
 
         template<class T>
         std::pair<Sender<T>, Receiver<T>> create()
-            requires std::is_nothrow_move_assignable_v<T>
+            requires std::is_move_assignable_v<T>
         {
             auto queue = std::make_shared<moodycamel::ConcurrentQueue<T>>();
 
@@ -173,55 +174,201 @@ namespace util
         std::tuple<T...>   tuple;
     }; // class Mutex
 
-    // TODO: figure out some lifetime management mechanism with a semaphore?
-    // template<class... T>
-    // class AccessHandle
-    // {
-    // public:
-    // class BadAccessHandleAccess : public std::exception
-    // {};
-    // public:
+    template<class T>
+        requires (
+            std::is_move_constructible_v<T> && std::is_move_assignable_v<T>
+            || std::same_as<T, void>)
+    class Future
+    {
+    public:
 
-    // AccessHandle(T&... ts_) noexcept
-    // : accessed {}
-    // , ts {std::make_tuple {ts_...}}
-    // {}
-    // ~AccessHandle() = default;
+        Future()
+            : completed {std::make_unique<std::binary_semaphore>(1)}
+        {}
+        ~Future() = default;
 
-    // AccessHandle(const AccessHandle&) = delete;
-    // AccessHandle(AccessHandle&& other) noexcept
-    // : accessed {other.accessed}
-    // , ts {std::move(other.ts)}
-    // {
-    // util::assertFatal(
-    // other.accessed == false,
-    // "Tried to move already used access handle!");
+        Future(const Future&)             = delete;
+        Future(Future&&)                  = default;
+        Future& operator= (const Future&) = delete;
+        Future& operator= (Future&&)      = default;
 
-    // other.ts = std::nullopt;
-    // }
-    // AccessHandle& operator= (const AccessHandle&) = delete;
-    // AccessHandle& operator= (AccessHandle&& other) noexcept
-    // {
-    // util::assertFatal(
-    // other.accessed == false,
-    // "Tried to move already used access handle!");
+        T await()
+        {
+            this->completed->acquire();
 
-    // this->accessed = other.accessed;
-    // this->ts       = std::move(other.ts);
+            return std::move(*this->try_await());
+        }
 
-    // other.ts = std::nullopt;
-    // }
+        std::optional<T> try_await()
+            requires (!std::same_as<T, void>)
+        {
+            if (this->completed->try_acquire())
+            {
+                return std::move(value);
+            }
 
-    // throws bad optional access
-    // std::tuple<T&...> access()
-    // {
-    // util::todo();
-    // }
+            return std::nullopt;
+        }
 
-    // private:
-    // std::atomic<bool>                                       accessed;
-    // std::optional<std::reference_wrapper<std::tuple<T...>>> ts;
-    // };
+        bool try_await()
+            requires std::same_as<T, void>
+        {
+            if (this->completed->try_acquire())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+    private:
+        template<class R, class F>
+        friend Future<R> runAsynchronously(F fn)
+            requires std::is_invocable_r_v<R, F>;
+
+        void fulfillFuture(T&& t)
+        {
+            this->value = std::make_optional<T>(std::move(t));
+
+            util::logTrace("Fufilling!");
+
+            // this->completed.release();
+        }
+
+        std::unique_ptr<std::binary_semaphore> completed;
+        std::optional<T>                       value;
+    };
+
+    template<>
+    class Future<void>
+    {
+    public:
+        Future()
+            : completed {std::make_unique<std::binary_semaphore>(1)}
+        {}
+        ~Future() = default;
+
+        Future(const Future&)             = delete;
+        Future(Future&&)                  = default;
+        Future& operator= (const Future&) = delete;
+        Future& operator= (Future&&)      = default;
+
+        void await()
+        {
+            this->completed->acquire();
+        }
+
+        bool try_await()
+        {
+            return this->completed->try_acquire();
+        }
+
+    private:
+        template<class R, class F>
+        friend Future<R> runAsynchronously(F fn)
+            requires std::is_invocable_r_v<R, F>;
+
+        void fulfillFuture()
+        {
+            this->completed.release();
+        }
+
+        std::unique_ptr<std::binary_semaphore> completed;
+    };
+
+    class AsynchronousThreadPool
+    {
+    public:
+
+        AsynchronousThreadPool()
+        {
+            this->workers.resize(std::thread::hardware_concurrency());
+
+            for (std::jthread& w : this->workers)
+            {
+                w = std::jthread {
+                    [this](std::stop_token token)
+                    {
+                        while (true)
+                        {
+                            if (token.stop_requested())
+                            {
+                                break;
+                            }
+
+                            std::optional<std::function<void()>> maybeFunc {};
+
+                            this->queue.wait_dequeue(maybeFunc);
+
+                            maybeFunc->operator() ();
+                        }
+                    }};
+            }
+        }
+        ~AsynchronousThreadPool()
+        {
+            for (std::jthread& w : this->workers)
+            {
+                w.request_stop();
+            }
+
+            std::optional<std::function<void()>> maybeFunc {};
+
+            while (queue.try_dequeue(maybeFunc))
+            {
+                maybeFunc->operator() ();
+            }
+        }
+
+        AsynchronousThreadPool(const AsynchronousThreadPool&) = delete;
+        AsynchronousThreadPool(AsynchronousThreadPool&&)      = default;
+        AsynchronousThreadPool&
+        operator= (const AsynchronousThreadPool&)                    = delete;
+        AsynchronousThreadPool& operator= (AsynchronousThreadPool&&) = default;
+
+        void addJob(std::function<void()>&& func)
+        {
+            if (!this->queue.enqueue(std::move(func)))
+            {
+                throw std::bad_alloc {};
+            }
+        }
+
+    private:
+        moodycamel::BlockingConcurrentQueue<std::function<void()>> queue;
+        std::vector<std::jthread>                                  workers;
+    };
+
+    static AsynchronousThreadPool threadPool {};
+
+    template<class R, class F>
+    Future<R> runAsynchronously(F fn)
+        requires std::is_invocable_r_v<R, F>
+    {
+        Future<R> future;
+
+        if constexpr (std::same_as<R, void>)
+        {
+            threadPool.addJob(
+                [&]
+                {
+                    fn();
+                    future.fulfillFuture();
+                });
+        }
+        else
+        {
+            threadPool.addJob(
+                [&]
+                {
+                    future.fulfillFuture(fn());
+                });
+        }
+
+        return future;
+    }
 
 } // namespace util
 

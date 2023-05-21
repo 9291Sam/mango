@@ -3,7 +3,6 @@
 #include "frame.hpp"
 #include "object.hpp"
 #include "transform.hpp"
-#include "util/log.hpp"
 #include "vulkan/allocator.hpp"
 #include "vulkan/buffer.hpp"
 #include "vulkan/descriptors.hpp"
@@ -15,6 +14,8 @@
 #include "vulkan/pipelines.hpp"
 #include "vulkan/render_pass.hpp"
 #include "vulkan/swapchain.hpp"
+#include <util/log.hpp>
+#include <util/threads.hpp>
 
 namespace gfx
 {
@@ -179,18 +180,34 @@ namespace gfx
 
         // Pipeline Creation!
         // TODO: replace with magic enum iter?
+
+        // std::vector<util::Future<void>> futures {};
+
+        // futures.push_back(util::runAsynchronously<void>(
+        //     [&]
+        //     {
         this->pipeline_map[vulkan::PipelineType::Flat] = vulkan::createPipeline(
             vulkan::PipelineType::Flat,
             this->device,
             this->render_pass,
             this->swapchain);
+        //     }));
 
+        // futures.push_back(util::runAsynchronously<void>(
+        //     [&]
+        //     {
         this->pipeline_map[vulkan::PipelineType::Voxel] =
             vulkan::createPipeline(
                 vulkan::PipelineType::Voxel,
                 this->device,
                 this->render_pass,
                 this->swapchain);
+        //     }));
+
+        // for (util::Future<void>& f : futures)
+        // {
+        //     f.await();
+        // }
 
         util::assertFatal(
             this->pipeline_map.size()

@@ -2,6 +2,7 @@
 #define SRC_GAME_WORLD_WORLD_HPP
 
 #include "voxel.hpp"
+#include <game/entity/disk_object.hpp>
 #include <gfx/object.hpp>
 #include <optional>
 #include <vector>
@@ -30,6 +31,7 @@ namespace game::world
         VoxelCube                      voxels;
         gfx::TriangulatedObject        object;
         gfx::VoxelObject               voxel_object;
+        game::entity::DiskObject       disk_triangle;
     };
 } // namespace game::world
 

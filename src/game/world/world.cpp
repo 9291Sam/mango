@@ -32,10 +32,19 @@ namespace game::world
 
                             return this->renderer->createVoxelObject(positions);
                         }()}
-    {}
+        , disk_triangle {this->renderer, "../models/floor.obj"}
+    {
+        this->disk_triangle.object.transform.translation.y += 145.0f;
+
+        this->disk_triangle.object.transform.rotation =
+            glm::quat {1.0f, 0.0f, 0.0f, 0.0f};
+
+        this->disk_triangle.object.transform.scale *= 50;
+    }
 
     std::vector<const gfx::Object*> World::lend() const
     {
-        return {&this->object, &this->voxel_object};
+        return {
+            &this->object, &this->voxel_object, &this->disk_triangle.object};
     }
 } // namespace game::world

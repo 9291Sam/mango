@@ -13,7 +13,7 @@ namespace gfx::vulkan
         , extent {extent_}
         , format {vk::SurfaceFormatKHR {
               .format {vk::Format::eB8G8R8A8Srgb},
-              .colorSpace {vk::ColorSpaceKHR::eSrgbNonlinear}}}
+              .colorSpace {vk::ColorSpaceKHR::eVkColorspaceSrgbNonlinear}}}
         , swapchain {nullptr}
         , images {}
         , image_views {}

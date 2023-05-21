@@ -22,7 +22,7 @@ namespace game::entity
 
         [[nodiscard]] std::vector<const gfx::Object*> lend() const override;
 
-    private:
+    public:
         gfx::TriangulatedObject object;
     }; // class DiskObject
 

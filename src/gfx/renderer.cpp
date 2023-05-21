@@ -181,33 +181,46 @@ namespace gfx
         // Pipeline Creation!
         // TODO: replace with magic enum iter?
 
-        // std::vector<util::Future<void>> futures {};
+        std::vector<std::shared_ptr<util::Future<void>>> futures {};
 
-        // futures.push_back(util::runAsynchronously<void>(
-        //     [&]
-        //     {
-        this->pipeline_map[vulkan::PipelineType::Flat] = vulkan::createPipeline(
-            vulkan::PipelineType::Flat,
-            this->device,
-            this->render_pass,
-            this->swapchain);
-        //     }));
+        auto [sender, receiver] = util::mpmc::create<
+            std::pair<vulkan::PipelineType, vulkan::Pipeline>>();
 
-        // futures.push_back(util::runAsynchronously<void>(
-        //     [&]
-        //     {
-        this->pipeline_map[vulkan::PipelineType::Voxel] =
-            vulkan::createPipeline(
-                vulkan::PipelineType::Voxel,
-                this->device,
-                this->render_pass,
-                this->swapchain);
-        //     }));
+        futures.push_back(util::runAsynchronously<void>(
+            [&]
+            {
+                sender.send(std::make_pair(
+                    vulkan::PipelineType::Flat,
+                    vulkan::createPipeline(
+                        vulkan::PipelineType::Flat,
+                        this->device,
+                        this->render_pass,
+                        this->swapchain)));
+            }));
 
-        // for (util::Future<void>& f : futures)
-        // {
-        //     f.await();
-        // }
+        futures.push_back(util::runAsynchronously<void>(
+            [&]
+            {
+                sender.send(std::make_pair(
+                    vulkan::PipelineType::Voxel,
+                    vulkan::createPipeline(
+                        vulkan::PipelineType::Voxel,
+                        this->device,
+                        this->render_pass,
+                        this->swapchain)));
+            }));
+
+        for (std::shared_ptr<util::Future<void>>& f : futures)
+        {
+            f->await();
+        }
+
+        while (std::optional<std::pair<vulkan::PipelineType, vulkan::Pipeline>>
+                   receivedPipeline = receiver.receive())
+        {
+            this->pipeline_map[receivedPipeline->first] =
+                std::move(receivedPipeline->second);
+        }
 
         util::assertFatal(
             this->pipeline_map.size()

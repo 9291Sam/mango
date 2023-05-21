@@ -52,9 +52,12 @@ namespace gfx
     {
         if (bindState.current_pipeline != this->required_pipeline)
         {
+            // util::logTrace("looking up pipeline to bind");
             commandBuffer.bindPipeline(
                 vk::PipelineBindPoint::eGraphics,
                 *pipelineMap.at(this->required_pipeline));
+
+            // util::logTrace("past looking up pipeline to bind");
 
             bindState.current_pipeline = this->required_pipeline;
 

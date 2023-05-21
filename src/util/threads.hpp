@@ -10,6 +10,7 @@
 #include <concepts>
 #include <condition_variable>
 #include <functional>
+#include <latch>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -183,7 +184,7 @@ namespace util
     public:
 
         Future()
-            : completed {std::make_unique<std::binary_semaphore>(1)}
+            : completed {new std::latch {1}}
         {}
         ~Future() = default;
 
@@ -194,15 +195,14 @@ namespace util
 
         T await()
         {
-            this->completed->acquire();
+            this->completed->wait();
 
             return std::move(*this->try_await());
         }
 
         std::optional<T> try_await()
-            requires (!std::same_as<T, void>)
         {
-            if (this->completed->try_acquire())
+            if (this->completed->try_wait())
             {
                 return std::move(value);
             }
@@ -210,35 +210,20 @@ namespace util
             return std::nullopt;
         }
 
-        bool try_await()
-            requires std::same_as<T, void>
-        {
-            if (this->completed->try_acquire())
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
     private:
         template<class R, class F>
-        friend Future<R> runAsynchronously(F fn)
+        friend std::shared_ptr<Future<R>> runAsynchronously(F fn)
             requires std::is_invocable_r_v<R, F>;
 
         void fulfillFuture(T&& t)
         {
             this->value = std::make_optional<T>(std::move(t));
 
-            util::logTrace("Fufilling!");
-
-            // this->completed.release();
+            this->completed->count_down();
         }
 
-        std::unique_ptr<std::binary_semaphore> completed;
-        std::optional<T>                       value;
+        std::unique_ptr<std::latch> completed;
+        std::optional<T>            value;
     };
 
     template<>
@@ -246,36 +231,36 @@ namespace util
     {
     public:
         Future()
-            : completed {std::make_unique<std::binary_semaphore>(1)}
+            : completed {new std::latch {1}}
         {}
         ~Future() = default;
 
         Future(const Future&)             = delete;
-        Future(Future&&)                  = default;
+        Future(Future&&)                  = delete;
         Future& operator= (const Future&) = delete;
-        Future& operator= (Future&&)      = default;
+        Future& operator= (Future&&)      = delete;
 
         void await()
         {
-            this->completed->acquire();
+            this->completed->wait();
         }
 
         bool try_await()
         {
-            return this->completed->try_acquire();
+            return this->completed->try_wait();
         }
 
     private:
         template<class R, class F>
-        friend Future<R> runAsynchronously(F fn)
+        friend std::shared_ptr<Future<R>> runAsynchronously(F fn)
             requires std::is_invocable_r_v<R, F>;
 
         void fulfillFuture()
         {
-            this->completed.release();
+            this->completed->count_down();
         }
 
-        std::unique_ptr<std::binary_semaphore> completed;
+        std::unique_ptr<std::latch> completed;
     };
 
     class AsynchronousThreadPool
@@ -286,39 +271,51 @@ namespace util
         {
             this->workers.resize(std::thread::hardware_concurrency());
 
-            for (std::jthread& w : this->workers)
+            for (auto& [thread, shouldStop] : this->workers)
             {
-                w = std::jthread {
-                    [this](std::stop_token token)
-                    {
-                        while (true)
-                        {
-                            if (token.stop_requested())
-                            {
-                                break;
-                            }
+                shouldStop = std::make_unique<std::atomic<bool>>();
+                shouldStop->store(false);
 
+                thread = std::thread {
+                    [&]
+                    {
+                        while (!shouldStop->load())
+                        {
                             std::optional<std::function<void()>> maybeFunc {};
 
-                            this->queue.wait_dequeue(maybeFunc);
-
-                            maybeFunc->operator() ();
+                            if (this->queue.try_dequeue(maybeFunc))
+                            {
+                                maybeFunc->operator() ();
+                                maybeFunc = std::nullopt;
+                            }
+                            else
+                            {
+                                std::this_thread::yield();
+                            }
                         }
                     }};
             }
         }
         ~AsynchronousThreadPool()
         {
-            for (std::jthread& w : this->workers)
+            for (auto& [thread, shouldStop] : this->workers)
             {
-                w.request_stop();
+                shouldStop->store(true);
             }
 
             std::optional<std::function<void()>> maybeFunc {};
 
-            while (queue.try_dequeue(maybeFunc))
+            for (std::size_t i = 0; i < 100; ++i) // good enough
             {
-                maybeFunc->operator() ();
+                while (queue.try_dequeue(maybeFunc))
+                {
+                    maybeFunc->operator() ();
+                }
+            }
+
+            for (auto& [thread, shouldStop] : this->workers)
+            {
+                thread.join();
             }
         }
 
@@ -338,37 +335,47 @@ namespace util
 
     private:
         moodycamel::BlockingConcurrentQueue<std::function<void()>> queue;
-        std::vector<std::jthread>                                  workers;
+        std::vector<std::pair<std::thread, std::unique_ptr<std::atomic<bool>>>>
+            workers;
     };
 
-    static AsynchronousThreadPool threadPool {};
+    namespace
+    {
+        AsynchronousThreadPool& getThreadPool()
+        {
+            static AsynchronousThreadPool threadPool {};
+            return threadPool;
+        }
+    } // namespace
 
     template<class R, class F>
-    Future<R> runAsynchronously(F fn)
+    std::shared_ptr<Future<R>> runAsynchronously(F fn)
         requires std::is_invocable_r_v<R, F>
     {
-        Future<R> future;
+        std::shared_ptr<Future<R>> future = std::make_shared<Future<R>>();
 
         if constexpr (std::same_as<R, void>)
         {
-            threadPool.addJob(
-                [&]
+            getThreadPool().addJob(
+                [=]
                 {
                     fn();
-                    future.fulfillFuture();
+                    future->fulfillFuture();
                 });
         }
         else
         {
-            threadPool.addJob(
-                [&]
+            getThreadPool().addJob(
+                [=]
                 {
-                    future.fulfillFuture(fn());
+                    future->fulfillFuture(fn());
                 });
         }
 
         return future;
     }
+
+    // TODO: run vector of functions
 
 } // namespace util
 

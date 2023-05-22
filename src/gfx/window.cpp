@@ -39,8 +39,9 @@ namespace gfx
         this->key_map[GLFW_KEY_LEFT_CONTROL] = Action::PlayerMoveDown;
         this->key_map[GLFW_KEY_SPACE]        = Action::PlayerMoveUp;
         this->key_map[GLFW_KEY_LEFT_SHIFT]   = Action::PlayerSprint;
-        // this->key_map[GLFW_KEY_I]            = Action::CursorAttach;
+        this->key_map[GLFW_KEY_I]            = Action::CursorAttach;
         this->key_map[GLFW_KEY_ESCAPE]       = Action::CursorDetach;
+        this->key_map[GLFW_KEY_K]            = Action::PrintLocation;
 
         // Putting a reference to `this` inside of GLFW so that it can be passed
         // to the callback function

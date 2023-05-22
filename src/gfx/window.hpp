@@ -71,7 +71,8 @@ namespace gfx
             PlayerSprint       = 7,
             CursorAttach       = 8,
             CursorDetach       = 9,
-            MaxEnumValue       = 10,
+            PrintLocation      = 10,
+            MaxEnumValue       = 11,
         };
 
         static constexpr std::size_t ActionMaxValue =

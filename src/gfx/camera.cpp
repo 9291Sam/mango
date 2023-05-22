@@ -103,7 +103,7 @@ namespace gfx
 
         q *= glm::angleAxis(this->pitch, -Transform::RightVector);
 
-        q = glm::angleAxis(this->yaw, Transform::UpVector) * q;
+        q = glm::angleAxis(this->yaw, -Transform::UpVector) * q;
 
         this->transform.rotation = q;
     }

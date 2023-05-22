@@ -14,8 +14,13 @@ namespace game
         const float MoveScale =
             renderer.getActionAmount(gfx::Window::Action::PlayerSprint) ? 100.0f
                                                                         : 50.0f;
-
         const float rotateSpeedScale = 150.255f;
+
+        if (this->renderer.getActionAmount(gfx::Window::Action::PrintLocation))
+        {
+            util::logLog(
+                "Player Location: {}", static_cast<std::string>(this->camera));
+        }
 
         this->camera.addPosition(
             this->camera.getForwardVector()
@@ -37,14 +42,13 @@ namespace game
             * renderer.getActionAmount(gfx::Window::Action::PlayerMoveRight)
             * MoveScale);
 
-        // TODO: what why are these flipped
         this->camera.addPosition(
-            -gfx::Transform::UpVector
+            gfx::Transform::UpVector
             * renderer.getActionAmount(gfx::Window::Action::PlayerMoveUp)
             * MoveScale);
 
         this->camera.addPosition(
-            gfx::Transform::UpVector
+            -gfx::Transform::UpVector
             * renderer.getActionAmount(gfx::Window::Action::PlayerMoveDown)
             * MoveScale);
 

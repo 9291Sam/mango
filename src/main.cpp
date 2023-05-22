@@ -1,8 +1,8 @@
 #include "game/game.hpp"
 #include "gfx/renderer.hpp"
-#include <util/log.hpp>
-#include <util/threads.hpp>
-#include <util/uuid.hpp>
+#include "util/log.hpp"
+#include "util/threads.hpp"
+#include "util/uuid.hpp"
 
 int main()
 {
@@ -10,12 +10,11 @@ int main()
 
     try
     {
-        std::shared_ptr<gfx::Renderer> renderer =
-            std::make_shared<gfx::Renderer>();
+        gfx::Renderer renderer {};
 
         game::Game game {renderer};
 
-        while (!renderer->shouldClose())
+        while (!renderer.shouldClose())
         {
             game.tick();
         }

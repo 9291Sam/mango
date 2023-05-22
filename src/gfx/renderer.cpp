@@ -71,20 +71,20 @@ namespace gfx
         this->device->asLogicalDevice().waitIdle();
     }
 
-    TriangulatedObject Renderer::createTriangulatedObject(
+    std::unique_ptr<TriangulatedObject> Renderer::createTriangulatedObject(
         vulkan::PipelineType            pipelineType,
         std::span<const vulkan::Vertex> vertices,
         std::span<const vulkan::Index>  indices) const
     {
-        return TriangulatedObject {
-            this->device, this->allocator, pipelineType, vertices, indices};
+        return std::make_unique<TriangulatedObject>(
+            this->device, this->allocator, pipelineType, vertices, indices);
     }
 
-    VoxelObject
-    Renderer::createVoxelObject(std::span<glm::vec3> voxelPositions) const
-    {
-        return VoxelObject {this->device, this->allocator, voxelPositions};
-    }
+    // VoxelObject
+    // Renderer::createVoxelObject(std::span<glm::vec3> voxelPositions) const
+    // {
+    //     return VoxelObject {this->device, this->allocator, voxelPositions};
+    // }
 
     // Object Renderer::createObject(
     //     PipelineType                    pipelineType,
@@ -113,20 +113,25 @@ namespace gfx
         return this->window.getDeltaTimeSeconds();
     }
 
-    void Renderer::updateCamera(Camera& camera)
+    float Renderer::getActionAmount(Window::Action action) const
     {
-        camera.updateState(this->window);
+        return (this->window.isActionActive(action) ? 1.0f : 0.0f)
+             * this->window.getDeltaTimeSeconds();
+    }
+
+    Window::Delta Renderer::getMouseDelta() const
+    {
+        Window::Delta d {this->window.getMouseDelta()};
+
+        d.x *= this->window.getDeltaTimeSeconds();
+        d.y *= this->window.getDeltaTimeSeconds();
+
+        return d;
     }
 
     void Renderer::drawObjects(
         const Camera& camera, std::span<const Object*> objects)
     {
-        // util::logTrace("Frame time {}", this->window.getDeltaTimeSeconds());
-        // util::logTrace(
-        //     "Mouse delta {} | {}",
-        //     this->window.getMouseDelta().x,
-        //     this->window.getMouseDelta().y);
-
         this->render_index = (this->render_index + 1) % this->MaxFramesInFlight;
 
         if (this->frames.at(this->render_index)

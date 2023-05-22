@@ -1,8 +1,7 @@
 #ifndef SRC_GAME_GAME_HPP
 #define SRC_GAME_GAME_HPP
 
-#include "world/world.hpp"
-#include <gfx/camera.hpp>
+#include "game/player.hpp"
 #include <memory>
 
 namespace gfx
@@ -12,16 +11,13 @@ namespace gfx
 
 namespace game
 {
-    namespace entity
-    {
-        class Entity;
-    }
+    class Entity;
 
     class Game
     {
     public:
 
-        Game(std::shared_ptr<gfx::Renderer>);
+        Game(gfx::Renderer&);
         ~Game();
 
         Game(const Game&)             = delete;
@@ -32,12 +28,10 @@ namespace game
         void tick();
 
     private:
-        std::shared_ptr<gfx::Renderer>               renderer;
-        std::vector<std::unique_ptr<entity::Entity>> entities;
-        gfx::Camera                                  camera;
-        world::World                                 world;
-    }; // class Game
-
+        gfx::Renderer&                       renderer;
+        Player                               player;
+        std::vector<std::unique_ptr<Entity>> entities;
+    };
 } // namespace game
 
 #endif // SRC_GAME_GAME_HPP

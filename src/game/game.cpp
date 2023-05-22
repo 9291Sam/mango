@@ -1,57 +1,49 @@
 #include "game.hpp"
-#include "entity/cube.hpp"
-#include "entity/disk_object.hpp"
-#include "world/voxel.hpp"
+#include "cube.hpp"
+#include "disk_entity.hpp"
 #include <gfx/renderer.hpp>
 #include <util/log.hpp>
 
 namespace game
 {
-    Game::Game(std::shared_ptr<gfx::Renderer> renderer_)
-        : renderer {std::move(renderer_)}
+    Game::Game(gfx::Renderer& renderer_)
+        : renderer {renderer_}
+        , player {this->renderer, {-30.0f, 20.0f, -20.0f}}
         , entities {}
-        , camera {{-30.0f, 20.0f, -20.0f}}
-        , world {this->renderer, 78234789234}
     {
-        this->entities.push_back(std::make_unique<entity::Cube>(
-            this->renderer,
-            gfx::Transform {
-                .translation {0.0f, 12.5f, 0.0f},
-                .rotation {1.0f, 0.0f, 0.0f, 0.0f},
-                .scale {1.0f, 1.0f, 1.0f}}));
+        this->entities.push_back(std::make_unique<Cube>(
+            this->renderer, glm::vec3 {0.0f, 12.5f, 0.0f}));
 
-        this->entities.push_back(std::make_unique<entity::DiskObject>(
+        this->entities.push_back(std::make_unique<DiskEntity>(
             this->renderer, "../models/gizmo.obj"));
 
-        this->camera.addPitch(0.192699082f);
-        this->camera.addYaw(2.04719755f);
+        this->player.getCamera().addPitch(0.192699082f);
+        this->player.getCamera().addYaw(2.04719755f);
     }
 
     Game::~Game() {}
 
     void Game::tick()
     {
-        const float deltaTime = this->renderer->getDeltaTimeSeconds();
-        std::vector<const gfx::Object*> drawObjects {};
+        this->player.tick();
 
-        for (const std::unique_ptr<entity::Entity>& s : this->entities)
+        std::vector<const gfx::Object*> objects {};
+
+        for (const std::unique_ptr<Entity>& e : this->entities)
         {
-            s->tick(deltaTime);
+            e->tick();
 
-            for (const gfx::Object* obj : s->lend())
+            for (const gfx::Object* obj : e->draw())
             {
-                drawObjects.push_back(obj);
+                objects.push_back(obj);
             }
         }
 
-        for (const gfx::Object* o : this->world.lend())
-        {
-            drawObjects.push_back(o);
-        }
+        this->player.tick();
 
-        this->renderer->updateCamera(this->camera);
+        // TODO: world!
 
-        this->renderer->drawObjects(camera, drawObjects);
+        this->renderer.drawObjects(this->player.getCamera(), objects);
     }
 
 } // namespace game

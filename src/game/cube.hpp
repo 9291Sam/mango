@@ -9,22 +9,21 @@ namespace gfx
     class Renderer;
 }
 
-namespace game::entity
+namespace game
 {
     class Cube final : public Entity
     {
     public:
 
-        Cube(std::shared_ptr<gfx::Renderer>, gfx::Transform);
+        Cube(gfx::Renderer&, glm::vec3 position);
         ~Cube() override = default;
 
-        void tick(float) override;
-
-        [[nodiscard]] std::vector<const gfx::Object*> lend() const override;
+        void                            tick() override;
+        std::vector<const gfx::Object*> draw() const override;
 
     private:
-        gfx::TriangulatedObject object;
+        std::unique_ptr<gfx::TriangulatedObject> object;
     };
-} // namespace game::entity
+} // namespace game
 
 #endif // SRC_GAME_ENTITY_CUBE_HPP

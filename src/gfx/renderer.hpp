@@ -44,19 +44,24 @@ namespace gfx
         Renderer& operator= (const Renderer&) = delete;
         Renderer& operator= (Renderer&&)      = delete;
 
-        TriangulatedObject createTriangulatedObject(
+        // TODO: make all of these methods thread safe
+
+        // TODO: replace this with a pipeline like thing with an enum an an
+        // abstract class
+        std::unique_ptr<TriangulatedObject> createTriangulatedObject(
             vulkan::PipelineType,
             std::span<const vulkan::Vertex>,
             std::span<const vulkan::Index>) const;
 
-        VoxelObject
-        createVoxelObject(std::span<glm::vec3> voxelPositions) const;
+        // VoxelObject
+        // createVoxelObject(std::span<glm::vec3> voxelPositions) const;
 
-        [[nodiscard]] bool  shouldClose() const;
-        [[nodiscard]] float getDeltaTimeSeconds() const;
+        bool shouldClose() const;
 
-        void updateCamera(Camera&);
-        void drawObjects(const Camera&, std::span<const Object*>);
+        float         getDeltaTimeSeconds() const;
+        float         getActionAmount(Window::Action) const;
+        Window::Delta getMouseDelta() const;
+        void          drawObjects(const Camera&, std::span<const Object*>);
 
     private:
         void resize();

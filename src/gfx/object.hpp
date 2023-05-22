@@ -8,7 +8,6 @@
 #include "vulkan/includes.hpp"
 #include "vulkan/pipelines.hpp"
 #include <compare>
-#include <game/world/voxel.hpp>
 #include <map>
 #include <memory>
 #include <ranges>
@@ -121,42 +120,42 @@ namespace gfx
         vulkan::Buffer index_buffer;
     };
 
-    class VoxelObject : public Object
-    {
-    public:
+    // class VoxelObject : public Object
+    // {
+    // public:
 
-        VoxelObject(
-            std::shared_ptr<vulkan::Device>,
-            std::shared_ptr<vulkan::Allocator>,
-            std::span<glm::vec3> voxelPositions);
-        ~VoxelObject() override;
+    //     VoxelObject(
+    //         std::shared_ptr<vulkan::Device>,
+    //         std::shared_ptr<vulkan::Allocator>,
+    //         std::span<glm::vec3> voxelPositions);
+    //     ~VoxelObject() override;
 
-        void bind(
-            vk::CommandBuffer,
-            BindState&,
-            const std::map<vulkan::PipelineType, vulkan::Pipeline>&)
-            const override;
+    //     void bind(
+    //         vk::CommandBuffer,
+    //         BindState&,
+    //         const std::map<vulkan::PipelineType, vulkan::Pipeline>&)
+    //         const override;
 
-        void setPushConstants(
-            vk::CommandBuffer,
-            const vulkan::Pipeline&,
-            const Camera&,
-            vk::Extent2D renderExtent) const override;
+    //     void setPushConstants(
+    //         vk::CommandBuffer,
+    //         const vulkan::Pipeline&,
+    //         const Camera&,
+    //         vk::Extent2D renderExtent) const override;
 
-        void draw(vk::CommandBuffer) const override;
+    //     void draw(vk::CommandBuffer) const override;
 
-        Transform transform;
-    private:
-        std::shared_ptr<vulkan::Allocator> allocator;
+    //     Transform transform;
+    // private:
+    //     std::shared_ptr<vulkan::Allocator> allocator;
 
-        std::size_t           number_of_voxels;
-        vulkan::StagedBuffer  positions_buffer;
-        vulkan::StagedBuffer  sizes_buffer;
-        vulkan::StagedBuffer  colors_buffer;
-        vulkan::DescriptorSet voxel_set;
+    //     std::size_t           number_of_voxels;
+    //     vulkan::StagedBuffer  positions_buffer;
+    //     vulkan::StagedBuffer  sizes_buffer;
+    //     vulkan::StagedBuffer  colors_buffer;
+    //     vulkan::DescriptorSet voxel_set;
 
-        mutable bool have_buffers_staged;
-    };
+    //     mutable bool have_buffers_staged;
+    // };
 
 } // namespace gfx
 

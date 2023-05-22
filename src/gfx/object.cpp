@@ -189,171 +189,172 @@ namespace gfx
             static_cast<std::uint32_t>(this->number_of_indices), 1, 0, 0, 0);
     }
 
-    VoxelObject::VoxelObject(
-        std::shared_ptr<vulkan::Device>    device_,
-        std::shared_ptr<vulkan::Allocator> allocator_,
-        std::span<glm::vec3>               voxelPositions)
-        : Object(
-            std::move(device_),
-            "Voxel object",
-            vulkan::PipelineType::Voxel,
-            gfx::vulkan::DescriptorState {
-                vulkan::DescriptorSetType::Voxel,
-                vulkan::DescriptorSetType::None,
-                vulkan::DescriptorSetType::None,
-                vulkan::DescriptorSetType::None})
-        , transform {.translation {0.0f, 0.0f, 0.0f}, .rotation {1.0f, 0.0f, 0.0f, 0.0f}, .scale {1.0f, 1.0f, 1.0f}}
-        , allocator {std::move(allocator_)}
-        , number_of_voxels {voxelPositions.size()}
-        , positions_buffer(
-              this->allocator,
-              voxelPositions.size() * sizeof(glm::vec4),
-              vk::BufferUsageFlagBits::eStorageBuffer)
-        , sizes_buffer(
-              this->allocator,
-              voxelPositions.size() * sizeof(float),
-              vk::BufferUsageFlagBits::eStorageBuffer)
-        , colors_buffer(
-              this->allocator,
-              voxelPositions.size() * sizeof(glm::vec4),
-              vk::BufferUsageFlagBits::eStorageBuffer)
-        , voxel_set {this->allocator->allocateDescriptorSet(
-              vulkan::getDescriptorSetLayout(
-                  vulkan::DescriptorSetType::Voxel, this->device))}
-        , have_buffers_staged {false}
+    // VoxelObject::VoxelObject(
+    //     std::shared_ptr<vulkan::Device>    device_,
+    //     std::shared_ptr<vulkan::Allocator> allocator_,
+    //     std::span<glm::vec3>               voxelPositions)
+    //     : Object(
+    //         std::move(device_),
+    //         "Voxel object",
+    //         vulkan::PipelineType::Voxel,
+    //         gfx::vulkan::DescriptorState {
+    //             vulkan::DescriptorSetType::Voxel,
+    //             vulkan::DescriptorSetType::None,
+    //             vulkan::DescriptorSetType::None,
+    //             vulkan::DescriptorSetType::None})
+    //     , transform {.translation {0.0f, 0.0f, 0.0f}, .rotation {1.0f, 0.0f,
+    //     0.0f, 0.0f}, .scale {1.0f, 1.0f, 1.0f}} , allocator
+    //     {std::move(allocator_)} , number_of_voxels {voxelPositions.size()} ,
+    //     positions_buffer(
+    //           this->allocator,
+    //           voxelPositions.size() * sizeof(glm::vec4),
+    //           vk::BufferUsageFlagBits::eStorageBuffer)
+    //     , sizes_buffer(
+    //           this->allocator,
+    //           voxelPositions.size() * sizeof(float),
+    //           vk::BufferUsageFlagBits::eStorageBuffer)
+    //     , colors_buffer(
+    //           this->allocator,
+    //           voxelPositions.size() * sizeof(glm::vec4),
+    //           vk::BufferUsageFlagBits::eStorageBuffer)
+    //     , voxel_set {this->allocator->allocateDescriptorSet(
+    //           vulkan::getDescriptorSetLayout(
+    //               vulkan::DescriptorSetType::Voxel, this->device))}
+    //     , have_buffers_staged {false}
 
-    {
-        // TODO: replace vec3 with vec4 in the entire engine for positions
-        std::vector<glm::vec4> positionsCopy {};
-        positionsCopy.reserve(voxelPositions.size());
-        for (glm::vec3 v : voxelPositions)
-        {
-            positionsCopy.push_back(glm::vec4 {v, 1.0f});
-        }
+    // {
+    //     // TODO: replace vec3 with vec4 in the entire engine for positions
+    //     std::vector<glm::vec4> positionsCopy {};
+    //     positionsCopy.reserve(voxelPositions.size());
+    //     for (glm::vec3 v : voxelPositions)
+    //     {
+    //         positionsCopy.push_back(glm::vec4 {v, 1.0f});
+    //     }
 
-        std::vector<float> sizes {};
-        sizes.resize(voxelPositions.size());
-        std::ranges::fill(sizes, 10.0f);
+    //     std::vector<float> sizes {};
+    //     sizes.resize(voxelPositions.size());
+    //     std::ranges::fill(sizes, 10.0f);
 
-        std::vector<glm::vec4> colors {};
-        colors.resize(voxelPositions.size());
-        std::ranges::fill(colors, glm::vec4 {1.0f, 1.0f, 1.0f, 1.0f});
+    //     std::vector<glm::vec4> colors {};
+    //     colors.resize(voxelPositions.size());
+    //     std::ranges::fill(colors, glm::vec4 {1.0f, 1.0f, 1.0f, 1.0f});
 
-        this->positions_buffer.write(std::as_bytes(std::span {positionsCopy}));
-        this->sizes_buffer.write(std::as_bytes(std::span {sizes}));
-        this->colors_buffer.write(std::as_bytes(std::span {colors}));
+    //     this->positions_buffer.write(std::as_bytes(std::span
+    //     {positionsCopy})); this->sizes_buffer.write(std::as_bytes(std::span
+    //     {sizes})); this->colors_buffer.write(std::as_bytes(std::span
+    //     {colors}));
 
-        const vk::DescriptorBufferInfo positionsBufferInfo {
-            .buffer {*this->positions_buffer},
-            .offset {0},
-            .range {this->positions_buffer.sizeBytes()},
-        };
+    //     const vk::DescriptorBufferInfo positionsBufferInfo {
+    //         .buffer {*this->positions_buffer},
+    //         .offset {0},
+    //         .range {this->positions_buffer.sizeBytes()},
+    //     };
 
-        const vk::DescriptorBufferInfo sizesBufferInfo {
-            .buffer {*this->sizes_buffer},
-            .offset {0},
-            .range {this->sizes_buffer.sizeBytes()},
-        };
+    //     const vk::DescriptorBufferInfo sizesBufferInfo {
+    //         .buffer {*this->sizes_buffer},
+    //         .offset {0},
+    //         .range {this->sizes_buffer.sizeBytes()},
+    //     };
 
-        const vk::DescriptorBufferInfo colorsBufferInfo {
-            .buffer {*this->colors_buffer},
-            .offset {0},
-            .range {this->colors_buffer.sizeBytes()},
-        };
+    //     const vk::DescriptorBufferInfo colorsBufferInfo {
+    //         .buffer {*this->colors_buffer},
+    //         .offset {0},
+    //         .range {this->colors_buffer.sizeBytes()},
+    //     };
 
-        std::array<vk::WriteDescriptorSet, 3> descriptorSetWrites {
-            vk::WriteDescriptorSet {
-                .sType {vk::StructureType::eWriteDescriptorSet},
-                .pNext {nullptr},
-                .dstSet {*this->voxel_set},
-                .dstBinding {0},
-                .dstArrayElement {0},
-                .descriptorCount {1},
-                .descriptorType {vk::DescriptorType::eStorageBuffer},
-                .pImageInfo {nullptr},
-                .pBufferInfo {&positionsBufferInfo},
-                .pTexelBufferView {nullptr},
-            },
-            vk::WriteDescriptorSet {
-                .sType {vk::StructureType::eWriteDescriptorSet},
-                .pNext {nullptr},
-                .dstSet {*this->voxel_set},
-                .dstBinding {1},
-                .dstArrayElement {0},
-                .descriptorCount {1},
-                .descriptorType {vk::DescriptorType::eStorageBuffer},
-                .pImageInfo {nullptr},
-                .pBufferInfo {&sizesBufferInfo},
-                .pTexelBufferView {nullptr},
-            },
-            vk::WriteDescriptorSet {
-                .sType {vk::StructureType::eWriteDescriptorSet},
-                .pNext {nullptr},
-                .dstSet {*this->voxel_set},
-                .dstBinding {2},
-                .dstArrayElement {0},
-                .descriptorCount {1},
-                .descriptorType {vk::DescriptorType::eStorageBuffer},
-                .pImageInfo {nullptr},
-                .pBufferInfo {&colorsBufferInfo},
-                .pTexelBufferView {nullptr},
-            }};
+    //     std::array<vk::WriteDescriptorSet, 3> descriptorSetWrites {
+    //         vk::WriteDescriptorSet {
+    //             .sType {vk::StructureType::eWriteDescriptorSet},
+    //             .pNext {nullptr},
+    //             .dstSet {*this->voxel_set},
+    //             .dstBinding {0},
+    //             .dstArrayElement {0},
+    //             .descriptorCount {1},
+    //             .descriptorType {vk::DescriptorType::eStorageBuffer},
+    //             .pImageInfo {nullptr},
+    //             .pBufferInfo {&positionsBufferInfo},
+    //             .pTexelBufferView {nullptr},
+    //         },
+    //         vk::WriteDescriptorSet {
+    //             .sType {vk::StructureType::eWriteDescriptorSet},
+    //             .pNext {nullptr},
+    //             .dstSet {*this->voxel_set},
+    //             .dstBinding {1},
+    //             .dstArrayElement {0},
+    //             .descriptorCount {1},
+    //             .descriptorType {vk::DescriptorType::eStorageBuffer},
+    //             .pImageInfo {nullptr},
+    //             .pBufferInfo {&sizesBufferInfo},
+    //             .pTexelBufferView {nullptr},
+    //         },
+    //         vk::WriteDescriptorSet {
+    //             .sType {vk::StructureType::eWriteDescriptorSet},
+    //             .pNext {nullptr},
+    //             .dstSet {*this->voxel_set},
+    //             .dstBinding {2},
+    //             .dstArrayElement {0},
+    //             .descriptorCount {1},
+    //             .descriptorType {vk::DescriptorType::eStorageBuffer},
+    //             .pImageInfo {nullptr},
+    //             .pBufferInfo {&colorsBufferInfo},
+    //             .pTexelBufferView {nullptr},
+    //         }};
 
-        this->device->asLogicalDevice().updateDescriptorSets(
-            descriptorSetWrites, {});
-    }
+    //     this->device->asLogicalDevice().updateDescriptorSets(
+    //         descriptorSetWrites, {});
+    // }
 
-    VoxelObject::~VoxelObject() {}
+    // VoxelObject::~VoxelObject() {}
 
-    void VoxelObject::bind(
-        vk::CommandBuffer                                       commandBuffer,
-        BindState&                                              state,
-        const std::map<vulkan::PipelineType, vulkan::Pipeline>& pipelineMap)
-        const
-    {
-        if (!this->have_buffers_staged)
-        {
-            this->sizes_buffer.stage(commandBuffer);
-            this->colors_buffer.stage(commandBuffer);
-            this->colors_buffer.stage(commandBuffer);
+    // void VoxelObject::bind(
+    //     vk::CommandBuffer commandBuffer, BindState& state, const
+    //     std::map<vulkan::PipelineType, vulkan::Pipeline>& pipelineMap) const
+    // {
+    //     if (!this->have_buffers_staged)
+    //     {
+    //         this->sizes_buffer.stage(commandBuffer);
+    //         this->colors_buffer.stage(commandBuffer);
+    //         this->colors_buffer.stage(commandBuffer);
 
-            this->have_buffers_staged = true;
-        }
+    //         this->have_buffers_staged = true;
+    //     }
 
-        this->updateBindState(
-            commandBuffer,
-            state,
-            pipelineMap,
-            std::span<const gfx::vulkan::DescriptorSet> {&this->voxel_set, 1});
-    }
+    //     this->updateBindState(
+    //         commandBuffer,
+    //         state,
+    //         pipelineMap,
+    //         std::span<const gfx::vulkan::DescriptorSet> {&this->voxel_set,
+    //         1});
+    // }
 
-    void VoxelObject::setPushConstants(
-        vk::CommandBuffer       commandBuffer,
-        const vulkan::Pipeline& pipeline,
-        const Camera&           camera,
-        vk::Extent2D            renderExtent) const
-    {
-        vulkan::PushConstants pushConstants {.model_view_proj {
-            Camera::getPerspectiveMatrix(
-                glm::radians(70.f),
-                static_cast<float>(renderExtent.width)
-                    / static_cast<float>(renderExtent.height),
-                0.1f,
-                200000.0f)
-            * camera.getViewMatrix() * this->transform.asModelMatrix()}};
+    // void VoxelObject::setPushConstants(
+    //     vk::CommandBuffer       commandBuffer,
+    //     const vulkan::Pipeline& pipeline,
+    //     const Camera&           camera,
+    //     vk::Extent2D            renderExtent) const
+    // {
+    //     vulkan::PushConstants pushConstants {.model_view_proj {
+    //         Camera::getPerspectiveMatrix(
+    //             glm::radians(70.f),
+    //             static_cast<float>(renderExtent.width)
+    //                 / static_cast<float>(renderExtent.height),
+    //             0.1f,
+    //             200000.0f)
+    //         * camera.getViewMatrix() * this->transform.asModelMatrix()}};
 
-        commandBuffer.pushConstants<vulkan::PushConstants>(
-            pipeline.getLayout(),
-            vk::ShaderStageFlagBits::eVertex,
-            0,
-            pushConstants);
-    }
+    //     commandBuffer.pushConstants<vulkan::PushConstants>(
+    //         pipeline.getLayout(),
+    //         vk::ShaderStageFlagBits::eVertex,
+    //         0,
+    //         pushConstants);
+    // }
 
-    void VoxelObject::draw(vk::CommandBuffer commandBuffer) const
-    {
-        commandBuffer.draw(
-            static_cast<std::uint32_t>(this->number_of_voxels * 14), 1, 0, 0);
-    }
+    // void VoxelObject::draw(vk::CommandBuffer commandBuffer) const
+    // {
+    //     commandBuffer.draw(
+    //         static_cast<std::uint32_t>(this->number_of_voxels * 14), 1, 0,
+    //         0);
+    // }
 
     // std::size_t Object::getPipelineNumber() const
     // {

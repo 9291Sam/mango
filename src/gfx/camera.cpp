@@ -1,5 +1,5 @@
 #include "camera.hpp"
-#include "window.hpp"
+#include "renderer.hpp"
 #include <fmt/format.h>
 #include <util/log.hpp>
 
@@ -82,63 +82,6 @@ namespace gfx
     {
         this->yaw += yawToAdd;
         this->updateTransformFromRotations();
-    }
-
-    void Camera::updateState(const Window& window)
-    {
-        // TODO: moving diaginally is faster
-        const float MoveScale =
-            50.0f
-            * (window.isActionActive(Window::Action::PlayerSprint) ? 2.0f
-                                                                   : 1.0f);
-        const float rotateSpeedScale = 150.255f;
-        const float deltaTime        = window.getDeltaTimeSeconds();
-
-        if (window.isActionActive(Window::Action::PlayerMoveForward))
-        {
-            this->addPosition(this->getForwardVector() * deltaTime * MoveScale);
-        }
-
-        if (window.isActionActive(Window::Action::PlayerMoveBackward))
-        {
-            this->addPosition(
-                -this->getForwardVector() * deltaTime * MoveScale);
-        }
-
-        if (window.isActionActive(Window::Action::PlayerMoveLeft))
-        {
-            this->addPosition(-this->getRightVector() * deltaTime * MoveScale);
-        }
-
-        if (window.isActionActive(Window::Action::PlayerMoveRight))
-        {
-            this->addPosition(this->getRightVector() * deltaTime * MoveScale);
-        }
-
-        // TODO: what why are these flipped
-        if (window.isActionActive(Window::Action::PlayerMoveUp))
-        {
-            this->addPosition(-Transform::UpVector * deltaTime * MoveScale);
-        }
-
-        if (window.isActionActive(Window::Action::PlayerMoveDown))
-        {
-            this->addPosition(Transform::UpVector * deltaTime * MoveScale);
-        }
-
-        // if (this->pitch < -1.5507964f)
-        // {
-        //     util::panic("toofar");
-        // }
-
-        auto [xDelta, yDelta] = window.getMouseDelta();
-
-        this->addYaw(xDelta * deltaTime * rotateSpeedScale);
-        this->addPitch(yDelta * deltaTime * rotateSpeedScale);
-        // if (this->pitch < -1.5507964f)
-        // {
-        //     util::panic("toofar");
-        // }
     }
 
     Camera::operator std::string () const

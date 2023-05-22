@@ -6,7 +6,7 @@
 
 namespace gfx
 {
-    class Window;
+    class Renderer;
 
     class Camera
     {
@@ -21,15 +21,13 @@ namespace gfx
             float farClippingPlaneDistance);
         glm::mat4 getViewMatrix() const;
 
-        [[nodiscard]] glm::vec3 getForwardVector() const;
-        [[nodiscard]] glm::vec3 getRightVector() const;
-        [[nodiscard]] glm::vec3 getUpVector() const;
+        glm::vec3 getForwardVector() const;
+        glm::vec3 getRightVector() const;
+        glm::vec3 getUpVector() const;
 
         void addPosition(glm::vec3);
         void addPitch(float);
         void addYaw(float);
-
-        void updateState(const Window&);
 
         explicit operator std::string () const;
 

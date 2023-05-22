@@ -108,8 +108,7 @@ namespace util
                 workingString = fmt::format(
                     "{:0%b %m/%d/%Y %I:%M}:{:%S}",
                     fmt::localtime(std::time(nullptr)),
-                    std::chrono::system_clock::now()
-                );
+                    std::chrono::system_clock::now());
 
                 workingString.erase(30, std::string::npos);
 
@@ -134,13 +133,15 @@ namespace util
                     index = raw_file_name.find(str);
                 }
 
-                return raw_file_name.substr(index + 1);
+                using std::literals::string_literals::operator""s;
+
+                return raw_file_name.substr(index + 1 + "src/"s.size());
             }(),              // 1
             loc.line(),       // 2
             loc.column(),     // 3
             levelAsString(l), // 4
             msg               // 5
-        ));
+            ));
     }
 
 } // namespace util

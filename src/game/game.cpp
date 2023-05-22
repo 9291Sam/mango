@@ -17,8 +17,8 @@ namespace game
         this->entities.push_back(std::make_unique<entity::DiskEntity>(
             this->renderer, "../models/gizmo.obj"));
 
-        this->player.getCamera().addPitch(0.192699082f);
-        this->player.getCamera().addYaw(2.04719755f);
+        this->player.getCamera().addPitch(0.418879019f);
+        this->player.getCamera().addYaw(2.19911486f);
     }
 
     Game::~Game() {}

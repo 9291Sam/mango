@@ -4,7 +4,7 @@
 #include <gfx/renderer.hpp>
 #include <util/uuid.hpp>
 
-namespace game
+namespace game::entity
 {
     class Entity
     {
@@ -26,6 +26,6 @@ namespace game
         gfx::Renderer&   renderer;
         const util::UUID uuid;
     };
-} // namespace game
+} // namespace game::entity
 
 #endif // SRC_GAME_ENTITY_HPP

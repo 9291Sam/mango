@@ -3,7 +3,7 @@
 #include <gfx/renderer.hpp>
 #include <gfx/vulkan/gpu_data.hpp>
 
-namespace game
+namespace game::entity
 {
     Cube::Cube(gfx::Renderer& renderer_, glm::vec3 position)
         : Entity {renderer_}
@@ -79,4 +79,4 @@ namespace game
     {
         return {dynamic_cast<const gfx::Object*>(this->object.get())};
     }
-} // namespace game
+} // namespace game::entity

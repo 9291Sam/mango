@@ -1,7 +1,7 @@
 #include "entity.hpp"
 #include <fmt/format.h>
 
-namespace game
+namespace game::entity
 {
 
     Entity::Entity(gfx::Renderer& renderer_)
@@ -16,4 +16,4 @@ namespace game
         return fmt::format("Entity {}", static_cast<std::string>(this->uuid));
     }
 
-} // namespace game
+} // namespace game::entity

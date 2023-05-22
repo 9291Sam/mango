@@ -11,7 +11,7 @@
 
 #pragma clang diagnostic pop
 
-namespace game
+namespace game::entity
 {
     DiskEntity::DiskEntity(gfx::Renderer& renderer_, const char* filepath)
         : Entity {renderer_}
@@ -116,4 +116,4 @@ namespace game
     {
         return {dynamic_cast<const gfx::Object*>(this->object.get())};
     }
-} // namespace game
+} // namespace game::entity

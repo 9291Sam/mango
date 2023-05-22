@@ -9,7 +9,7 @@ namespace gfx
     class Renderer;
 }
 
-namespace game
+namespace game::entity
 {
     class Cube final : public Entity
     {
@@ -24,6 +24,6 @@ namespace game
     private:
         std::unique_ptr<gfx::TriangulatedObject> object;
     };
-} // namespace game
+} // namespace game::entity
 
 #endif // SRC_GAME_ENTITY_CUBE_HPP

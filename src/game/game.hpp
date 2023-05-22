@@ -11,7 +11,10 @@ namespace gfx
 
 namespace game
 {
-    class Entity;
+    namespace entity
+    {
+        class Entity;
+    }
 
     class Game
     {
@@ -28,9 +31,9 @@ namespace game
         void tick();
 
     private:
-        gfx::Renderer&                       renderer;
-        Player                               player;
-        std::vector<std::unique_ptr<Entity>> entities;
+        gfx::Renderer&                               renderer;
+        Player                                       player;
+        std::vector<std::unique_ptr<entity::Entity>> entities;
     };
 } // namespace game
 

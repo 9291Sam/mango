@@ -35,9 +35,10 @@ add_executable(mango
   src/util/log.cpp
   src/util/uuid.cpp
 
-  src/game/cube.cpp
-  src/game/disk_entity.cpp
-  src/game/entity.cpp
+  src/game/entity/cube.cpp
+  src/game/entity/disk_entity.cpp
+  src/game/entity/entity.cpp
+  
   src/game/game.cpp
   src/game/player.cpp
   

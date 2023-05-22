@@ -1,6 +1,6 @@
 #include "game.hpp"
-#include "cube.hpp"
-#include "disk_entity.hpp"
+#include "entity/cube.hpp"
+#include "entity/disk_entity.hpp"
 #include <gfx/renderer.hpp>
 #include <util/log.hpp>
 
@@ -11,10 +11,10 @@ namespace game
         , player {this->renderer, {-30.0f, 20.0f, -20.0f}}
         , entities {}
     {
-        this->entities.push_back(std::make_unique<Cube>(
+        this->entities.push_back(std::make_unique<entity::Cube>(
             this->renderer, glm::vec3 {0.0f, 12.5f, 0.0f}));
 
-        this->entities.push_back(std::make_unique<DiskEntity>(
+        this->entities.push_back(std::make_unique<entity::DiskEntity>(
             this->renderer, "../models/gizmo.obj"));
 
         this->player.getCamera().addPitch(0.192699082f);
@@ -29,7 +29,7 @@ namespace game
 
         std::vector<const gfx::Object*> objects {};
 
-        for (const std::unique_ptr<Entity>& e : this->entities)
+        for (const std::unique_ptr<entity::Entity>& e : this->entities)
         {
             e->tick();
 

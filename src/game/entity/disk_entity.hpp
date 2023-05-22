@@ -11,7 +11,7 @@ namespace gfx
     class TriangulatedObject;
 } // namespace gfx
 
-namespace game
+namespace game::entity
 {
     class DiskEntity final : public Entity
     {
@@ -27,6 +27,6 @@ namespace game
         std::unique_ptr<gfx::TriangulatedObject> object;
     }; // class DiskEntity
 
-} // namespace game
+} // namespace game::entity
 
 #endif // SRC_GAME_ENTITY_DISK__ENTITY_HPP

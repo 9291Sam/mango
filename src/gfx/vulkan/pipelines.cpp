@@ -199,37 +199,6 @@ namespace gfx::vulkan
         return device.createShaderModuleUnique(shaderCreateInfo);
     }
 
-    // auto PipelineBuilder::withVertexShader(vk::UniqueShaderModule
-    // shaderModule)
-    //     -> Self&
-    // {
-    //     this->vertex_shader = std::move(shaderModule);
-    //     return *this;
-    // }
-
-    // auto
-    // PipelineBuilder::withFragmentShader(vk::UniqueShaderModule shaderModule)
-    //     -> Self&
-    // {
-    //     this->fragment_shader = std::move(shaderModule);
-    //     return *this;
-    // }
-
-    // auto PipelineBuilder::withLayout(vk::UniquePipelineLayout layout_) ->
-    // Self&
-    // {
-    //     this->layout = std::move(layout_);
-    //     return *this;
-    // }
-
-    // vk::UniquePipeline PipelineBuilder::build(
-    //     const Device&     device,
-    //     const RenderPass& renderPass,
-    //     const Swapchain&  swapchain) const
-    // {
-    //     // TODO: :vomit:
-    // }
-
     Pipeline Pipeline::create(
         PipelineVertexType                           vertexType,
         std::shared_ptr<Device>                      device,

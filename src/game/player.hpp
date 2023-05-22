@@ -10,7 +10,7 @@ namespace gfx
 
 namespace game
 {
-    class Player final
+    class Player
     {
     public:
 
@@ -30,7 +30,5 @@ namespace game
         gfx::Camera    camera;
     };
 } // namespace game
-
-// TODO has a camera
 
 #endif // SRC_GAME_PLAYER_HPP

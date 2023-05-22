@@ -87,7 +87,7 @@ namespace gfx
     Camera::operator std::string () const
     {
         return fmt::format(
-            "{} | Pitch {} | Yaw {}",
+            "{}Pitch {} | Yaw {}",
             static_cast<std::string>(this->transform),
             this->pitch,
             this->yaw);

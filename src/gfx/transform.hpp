@@ -5,6 +5,16 @@
 
 namespace gfx
 {
+    enum class Direction
+    {
+        PositiveX,
+        PositiveY,
+        PositiveZ,
+        NegativeX,
+        NegativeY,
+        NegativeZ
+    };
+
     struct Transform
     {
         static constexpr glm::vec3 ForwardVector {0.0f, 0.0f, -1.0f};

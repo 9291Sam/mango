@@ -10,6 +10,7 @@ namespace game
         : renderer {renderer_}
         , player {this->renderer, {-30.0f, 20.0f, -20.0f}}
         , entities {}
+        , world {this->renderer}
     {
         this->entities.push_back(std::make_unique<entity::Cube>(
             this->renderer, glm::vec3 {0.0f, 12.5f, 0.0f}));
@@ -41,7 +42,12 @@ namespace game
 
         this->player.tick();
 
-        // TODO: world!
+        auto worldObjects = this->world.draw(glm::vec3 {0.0f, 0.0f, 0.0f});
+
+        for (std::shared_ptr<gfx::Object>& obj : worldObjects)
+        {
+            objects.push_back(obj.get());
+        }
 
         this->renderer.drawObjects(this->player.getCamera(), objects);
     }

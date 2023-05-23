@@ -116,6 +116,12 @@ namespace util
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
 
+    template<class... T>
+    struct VariantHelper : T...
+    {
+        using T::operator()...;
+    };
+
 } // namespace util
 
 #endif // SRC_UTIL_MISC_HPP

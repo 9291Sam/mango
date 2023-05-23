@@ -38,9 +38,13 @@ add_executable(mango
   src/game/entity/cube.cpp
   src/game/entity/disk_entity.cpp
   src/game/entity/entity.cpp
+
+  src/game/world/voxel_octree.cpp
   
   src/game/game.cpp
   src/game/player.cpp
+
+  
   
   src/main.cpp
 

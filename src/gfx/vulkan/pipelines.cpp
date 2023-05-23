@@ -18,16 +18,6 @@ namespace gfx::vulkan
         std::shared_ptr<RenderPass> renderPass,
         std::shared_ptr<Swapchain>  swapchain)
     {
-        static std::set<PipelineType> allocated_set;
-
-        if (allocated_set.contains(pipeline))
-        {
-            util::logWarn(
-                "Multiple allocation of pipeline {}",
-                static_cast<int>(pipeline));
-        }
-
-        allocated_set.insert(pipeline);
         switch (pipeline)
         {
         case PipelineType::None:

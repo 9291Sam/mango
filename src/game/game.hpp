@@ -2,6 +2,7 @@
 #define SRC_GAME_GAME_HPP
 
 #include "game/player.hpp"
+#include "world/voxel_octree.hpp"
 #include <memory>
 
 namespace gfx
@@ -14,7 +15,7 @@ namespace game
     namespace entity
     {
         class Entity;
-    }
+    } // namespace entity
 
     class Game
     {
@@ -34,6 +35,7 @@ namespace game
         gfx::Renderer&                               renderer;
         Player                                       player;
         std::vector<std::unique_ptr<entity::Entity>> entities;
+        world::VoxelOctree                           world;
     };
 } // namespace game
 

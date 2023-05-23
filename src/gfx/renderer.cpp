@@ -20,7 +20,7 @@
 namespace gfx
 {
     Renderer::Renderer()
-        : window {{1'200, 1'200}, "Mango"}
+        : window {{1'280, 720}, "Mango"}
         , instance {nullptr}
         , device {nullptr}
         , allocator {nullptr}

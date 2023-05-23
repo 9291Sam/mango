@@ -122,6 +122,31 @@ namespace util
         using T::operator()...;
     };
 
+    template<class T>
+    concept Integer = requires {
+        requires std::integral<T>;
+        requires !std::floating_point<T>;
+        requires !std::same_as<T, bool>;
+        requires !std::is_pointer_v<T>;
+    };
+
+    template<Integer I>
+    I exponentiate(I base, I power)
+    {
+        switch (power)
+        {
+        case 0:
+            return 1;
+        case 1:
+            return base;
+        default:
+            return base * exponentiate(base, power - 1);
+        }
+    }
+
+    template<class T>
+    using Fn = T*;
+
 } // namespace util
 
 #endif // SRC_UTIL_MISC_HPP

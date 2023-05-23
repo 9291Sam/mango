@@ -18,6 +18,18 @@ namespace game
         this->entities.push_back(std::make_unique<entity::DiskEntity>(
             this->renderer, "../models/gizmo.obj"));
 
+        this->world.insertVoxelAtPosition(
+            world::Voxel {.linear_color {0.0f, 0.5f, 0.6f, 1.0f}},
+            world::LocalPosition {.x {12}, .y {-3}, .z {4}});
+
+        this->world.insertVoxelAtPosition(
+            world::Voxel {.linear_color {0.0f, 0.2f, 0.6f, 1.0f}},
+            world::LocalPosition {.x {3}, .y {-3}, .z {8}});
+
+        this->world.insertVoxelAtPosition(
+            world::Voxel {.linear_color {0.0f, 0.5f, 0.2, 1.0f}},
+            world::LocalPosition {.x {7}, .y {11}, .z {-7}});
+
         this->player.getCamera().addPitch(0.418879019f);
         this->player.getCamera().addYaw(2.19911486f);
     }

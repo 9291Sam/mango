@@ -271,6 +271,12 @@ namespace util
         {
             this->workers.resize(std::thread::hardware_concurrency());
 
+            util::assertFatal(
+                this->workers.size() != 0 || this->workers.size() != ~0,
+                "Invalid std::thread::hardware_concurrency() | Received value "
+                "of {}",
+                this->workers.size());
+
             for (auto& [thread, shouldStop] : this->workers)
             {
                 shouldStop = std::make_unique<std::atomic<bool>>();

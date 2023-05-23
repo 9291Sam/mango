@@ -110,7 +110,7 @@ namespace util
                     fmt::localtime(std::time(nullptr)),
                     std::chrono::system_clock::now());
 
-                // workingString.erase(30, std::string::npos);
+                workingString.erase(30, std::string::npos);
 
                 workingString.at(workingString.size() - 7) = ':';
                 workingString.insert(workingString.size() - 3, ":");

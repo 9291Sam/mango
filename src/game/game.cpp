@@ -30,6 +30,10 @@ namespace game
             world::Voxel {.linear_color {0.0f, 0.5f, 0.2, 1.0f}},
             world::LocalPosition {.x {7}, .y {11}, .z {-7}});
 
+        this->world.insertVoxelAtPosition(
+            world::Voxel {.linear_color {0.7f, 0.7f, 0.7, 1.0f}},
+            world::LocalPosition {.x {0}, .y {0}, .z {0}});
+
         this->player.getCamera().addPitch(0.418879019f);
         this->player.getCamera().addYaw(2.19911486f);
     }

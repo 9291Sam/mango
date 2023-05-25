@@ -3,7 +3,11 @@
 
 #include <array>
 #include <cstdint>
+#include <exception>
 #include <numeric>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace util
 {
@@ -95,7 +99,8 @@ namespace util
         0xE197'51F3'0310'22E7, 0xB966'0FF1'13BF'1DE0, 0xC930'EA45'C754'05F5,
         0xC8D4'CF6B'9F88'40B3};
 
-    [[nodiscard]] constexpr std::uint64_t crc64(std::uint64_t input) noexcept
+    [[nodiscard]] constexpr inline std::uint64_t
+    crc64(std::uint64_t input) noexcept
     {
         const std::array<std::uint8_t, 8> data =
             std::bit_cast<std::array<std::uint8_t, 8>>(input);
@@ -111,7 +116,8 @@ namespace util
     }
 
     template<class T>
-    constexpr T map(T x, T in_min, T in_max, T out_min, T out_max) noexcept
+    constexpr inline T
+    map(T x, T in_min, T in_max, T out_min, T out_max) noexcept
     {
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
@@ -131,7 +137,7 @@ namespace util
     };
 
     template<Integer I>
-    I exponentiate(I base, I power)
+    constexpr inline I exponentiate(I base, I power)
     {
         switch (power)
         {
@@ -146,6 +152,27 @@ namespace util
 
     template<class T>
     using Fn = T*;
+
+    template<class T>
+    constexpr inline std::string stringifyVector(std::vector<T> vec)
+    {
+        throw std::logic_error {"Specification required"};
+    }
+
+    constexpr inline std::string stringifyVector(std::vector<std::size_t> vec)
+    {
+        std::string workingString {};
+
+        workingString.reserve(vec.size() * 13);
+
+        for (std::size_t i : vec)
+        {
+            // excess heap allocations my beloved
+            workingString += std::to_string(i) += ' ';
+        }
+
+        return workingString;
+    }
 
 } // namespace util
 

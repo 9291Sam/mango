@@ -127,7 +127,7 @@ namespace gfx
                         .color
                         {
                             vk::ClearColorValue {
-                                std::array<float, 4> {0.1f, 0.2f, 0.3f, 1.0f}
+                                std::array<float, 4> {0.01f, 0.3f, 0.4f, 1.0f}
                             }
                         }
                     },

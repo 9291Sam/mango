@@ -12,6 +12,12 @@
 
 namespace game::world
 {
+
+    LocalPosition::operator std::string ()
+    {
+        return fmt::format(
+            "LocalPosition X: {} | Y: {} | Z: {}", this->x, this->y, this->z);
+    }
     class Node;
 
     class Node
@@ -99,6 +105,42 @@ namespace game::world
         std::unreachable();
     }
 
+    LocalPosition getOffsetPositionByOctant(Octant octant, std::int32_t size)
+    {
+        using enum Octant;
+
+        switch (octant)
+        {
+        case pXpYpZ:
+            return LocalPosition {.x {size}, .y {size}, .z {size}};
+
+        case pXpYnZ:
+            return LocalPosition {.x {size}, .y {size}, .z {-size}};
+
+        case pXnYpZ:
+            return LocalPosition {.x {size}, .y {-size}, .z {size}};
+
+        case pXnYnZ:
+            return LocalPosition {.x {size}, .y {-size}, .z {-size}};
+
+        case nXpYpZ:
+            return LocalPosition {.x {-size}, .y {size}, .z {size}};
+
+        case nXpYnZ:
+            return LocalPosition {.x {-size}, .y {size}, .z {-size}};
+
+        case nXnYpZ:
+            return LocalPosition {.x {-size}, .y {-size}, .z {size}};
+
+        case nXnYnZ:
+            return LocalPosition {.x {-size}, .y {-size}, .z {-size}};
+        }
+
+        util::panic(
+            "Unreachable enum {}", static_cast<std::uint_fast8_t>(octant));
+        std::unreachable();
+    }
+
     std::array<std::pair<Node*, Octant>, 8>
     iterateOverChildren(std::array<std::unique_ptr<Node>, 8>& children)
     {
@@ -119,56 +161,56 @@ namespace game::world
         Voxel                             voxel,
         float                             size)
     {
-        if (voxel.linear_color.a == 0.0f)
+        if (!voxel.shouldDraw())
         {
             return;
         }
 
         const std::array<gfx::vulkan::Vertex, 8> cube_vertices {
             gfx::vulkan::Vertex {
-                .position {-1.0f, -1.0f, -1.0f},
+                .position {-0.5f, -0.5f, -0.5f},
                 .color {voxel.linear_color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
-                .position {-1.0f, -1.0f, 1.0f},
+                .position {-0.5f, -0.5f, 0.5f},
                 .color {voxel.linear_color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
-                .position {-1.0f, 1.0f, -1.0f},
+                .position {-0.5f, 0.5f, -0.5f},
                 .color {voxel.linear_color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
-                .position {-1.0f, 1.0f, 1.0f},
+                .position {-0.5f, 0.5f, 0.5f},
                 .color {voxel.linear_color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
-                .position {1.0f, -1.0f, -1.0f},
+                .position {0.5f, -0.5f, -0.5f},
                 .color {voxel.linear_color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
-                .position {1.0f, -1.0f, 1.0f},
+                .position {0.5f, -0.5f, 0.5f},
                 .color {voxel.linear_color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
-                .position {1.0f, 1.0f, -1.0f},
+                .position {0.5f, 0.5f, -0.5f},
                 .color {voxel.linear_color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
-                .position {1.0f, 1.0f, 1.0f},
+                .position {0.5f, 0.5f, 0.5f},
                 .color {voxel.linear_color},
                 .normal {},
                 .uv {},
@@ -191,7 +233,7 @@ namespace game::world
     }
 
     void generateVerticesFromOctree(
-        float                             size,
+        std::size_t                       size,
         glm::vec3                         voxelPosition,
         std::vector<gfx::vulkan::Vertex>& vertices,
         Node*                             node)
@@ -207,18 +249,31 @@ namespace game::world
                 [&](Voxel v)
                 {
                     generateTrianglesFromVoxel(
-                        vertices, voxelPosition, v, size);
+                        vertices, voxelPosition, v, static_cast<float>(size));
                 },
                 [&](std::array<std::unique_ptr<Node>, 8>& children)
                 {
-                    for (auto& [node, octant] : iterateOverChildren(children))
+                    if (size == 1)
                     {
-                        glm::vec3 newPosition =
-                            voxelPosition
-                            + getOffsetPositionByOctant(octant, size / 2);
+                        util::panic(
+                            "Tried to access child nodes of node of size 1");
+                    }
+                    else
+                    {
+                        // TODO: print out the required indicies to traverse
+                        // down wqhere veer taht is
 
-                        generateVerticesFromOctree(
-                            size / 2, newPosition, vertices, node);
+                        for (auto& [node, octant] :
+                             iterateOverChildren(children))
+                        {
+                            generateVerticesFromOctree(
+                                size / 2,
+                                voxelPosition
+                                    + getOffsetPositionByOctant(
+                                        octant, static_cast<float>(size) / 2),
+                                vertices,
+                                node);
+                        }
                     }
                 }},
             node->children);
@@ -246,7 +301,7 @@ namespace game::world
             std::vector<gfx::vulkan::Index>  indices {};
 
             generateVerticesFromOctree(
-                static_cast<float>(this->dimension),
+                this->dimension,
                 this->center_position,
                 vertices,
                 this->root.get());
@@ -324,56 +379,48 @@ namespace game::world
         std::unreachable();
     }
 
-    LocalPosition getOctantCenter(Octant o, std::size_t size)
-    {
-        glm::vec3 multipliers = getOffsetPositionByOctant(o, 1.0f);
-
-        std::int32_t xMultiplier = static_cast<std::int32_t>(multipliers.x);
-        std::int32_t yMultiplier = static_cast<std::int32_t>(multipliers.y);
-        std::int32_t zMultiplier = static_cast<std::int32_t>(multipliers.z);
-
-        return LocalPosition {
-            .x {xMultiplier * static_cast<std::int32_t>(size / 2)},
-            .y {yMultiplier * static_cast<std::int32_t>(size / 2)},
-            .z {zMultiplier * static_cast<std::int32_t>(size / 2)}};
-    }
-
-    bool isOneZeroOrNegativeOne(std::int32_t i)
-    {
-        if (i == 0 || i == -1 || i == 1)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    void generateImpl(
-        std::vector<std::size_t>& indices,
+    void generateIndiciesToGetToVoxelImpl(
+        std::vector<std::size_t>& indicies,
         LocalPosition             position,
         std::size_t               size)
     {
-        Octant o = getOctantFromPosition(position);
-
-        indices.push_back(static_cast<std::size_t>(o));
-
-        LocalPosition octantCenter = getOctantCenter(o, size / 2);
-
-        LocalPosition offsetPosition {
-            .x {position.x - octantCenter.x},
-            .y {position.y - octantCenter.y},
-            .z {position.z - octantCenter.z}};
-
-        if (isOneZeroOrNegativeOne(offsetPosition.x)
-            && isOneZeroOrNegativeOne(offsetPosition.y)
-            && isOneZeroOrNegativeOne(offsetPosition.z))
+        // TODO: move to switch
+        if (size < 2)
         {
+            util::panic(
+                "Invalid generateIndiciesToGetToVoxelImpl size {}", size);
+        }
+
+        if (size == 2)
+        {
+            // util::assertFatal(
+            //     position.x == 0 || position.x == -1,
+            //     "Invalid position.x {}",
+            //     position.x);
+
+            // util::assertFatal(
+            //     position.y == 0 || position.y == -1,
+            //     "Invalid position.y {}",
+            //     position.y);
+
+            // util::assertFatal(
+            //     position.z == 0 || position.z == -1,
+            //     "Invalid position.z {}",
+            //     position.z);
+
+            indicies.push_back(
+                static_cast<std::size_t>(getOctantFromPosition(position)));
             return;
         }
 
-        generateImpl(indices, offsetPosition, size / 2);
+        Octant o = getOctantFromPosition(position);
+
+        indicies.push_back(static_cast<std::size_t>(o));
+
+        LocalPosition offset =
+            getOffsetPositionByOctant(o, static_cast<std::int32_t>(size / 2));
+
+        generateIndiciesToGetToVoxelImpl(indicies, position - offset, size / 2);
     }
 
     std::vector<std::size_t>
@@ -381,7 +428,7 @@ namespace game::world
     {
         std::vector<std::size_t> indices {};
 
-        generateImpl(indices, position, totalSize);
+        generateIndiciesToGetToVoxelImpl(indices, position, totalSize);
 
         return indices;
     }
@@ -408,6 +455,14 @@ namespace game::world
 
         std::vector<std::size_t> indicesToVoxel =
             generateIndiciesToGetToVoxel(position, this->dimension);
+
+        util::assertWarn(
+            indicesToVoxel.size() == this->levels,
+            "Invalid number of indicies | Levels: {} | Indicies: {} | "
+            "DesiredPosition: {}",
+            this->levels,
+            util::stringifyVector(indicesToVoxel),
+            static_cast<std::string>(position));
 
         Node* workingNode = this->root.get();
 

@@ -25,6 +25,17 @@ namespace game::world
         std::int32_t x;
         std::int32_t y;
         std::int32_t z;
+
+        LocalPosition operator- (LocalPosition other)
+        {
+            return LocalPosition {
+                .x {this->x - other.x},
+                .y {this->y - other.y},
+                .z {this->z - other.z},
+            };
+        }
+
+        explicit operator std::string ();
     };
 
     class VoxelOctree

@@ -31,7 +31,7 @@ namespace game::world
             : children {std::move(nodes)}
         {}
         Node()
-            : children {Voxel {glm::vec4 {0.75f, 0.5f, 0.6f, 0.1f}}}
+            : children {Voxel {glm::vec4 {0.0f, 0.0f, 0.0f, 0.0f}}}
         {}
         ~Node() = default;
 
@@ -270,7 +270,7 @@ namespace game::world
                                 size / 2,
                                 voxelPosition
                                     + getOffsetPositionByOctant(
-                                        octant, static_cast<float>(size) / 2),
+                                        octant, static_cast<float>(size) / 4),
                                 vertices,
                                 node);
                         }
@@ -457,7 +457,7 @@ namespace game::world
             generateIndiciesToGetToVoxel(position, this->dimension);
 
         util::assertWarn(
-            indicesToVoxel.size() == this->levels,
+            indicesToVoxel.size() != this->levels,
             "Invalid number of indicies | Levels: {} | Indicies: {} | "
             "DesiredPosition: {}",
             this->levels,

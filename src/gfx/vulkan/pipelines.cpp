@@ -63,7 +63,7 @@ namespace gfx::vulkan
                 swapchain,
                 shaderStages,
                 vk::PrimitiveTopology::eTriangleList,
-                [&] -> vk::UniquePipelineLayout
+                [&] // -> vk::UniquePipelineLayout
                 {
                     const vk::PushConstantRange pushConstantsInformation {
                         .stageFlags {vk::ShaderStageFlagBits::eVertex},
@@ -124,7 +124,7 @@ namespace gfx::vulkan
                 swapchain,
                 shaderStages,
                 vk::PrimitiveTopology::eTriangleStrip,
-                [&] -> vk::UniquePipelineLayout
+                [&] //  -> vk::UniquePipelineLayout
                 {
                     const vk::PushConstantRange pushConstantsInformation {
                         .stageFlags {vk::ShaderStageFlagBits::eVertex},

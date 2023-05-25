@@ -8,7 +8,7 @@ namespace gfx::vulkan
         : allocator {nullptr}
         , buffer {nullptr}
         , allocation {nullptr}
-        , size {~0UZ}
+        , size {~ std::size_t {0}}
         , mapped_memory {nullptr}
     {}
 

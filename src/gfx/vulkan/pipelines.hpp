@@ -21,7 +21,7 @@ namespace gfx::vulkan
         Voxel,
     };
 
-    constexpr std::size_t PipelineTypeNumberOfValidEntries = 2UZ;
+    constexpr std::size_t PipelineTypeNumberOfValidEntries = 2;
 
     enum class PipelineVertexType
     {

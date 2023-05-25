@@ -133,9 +133,8 @@ namespace util
                     index = raw_file_name.find(str);
                 }
 
-                using std::literals::string_literals::operator""s;
 
-                return raw_file_name.substr(index + 1 + "src/"s.size());
+                return raw_file_name.substr(index + 1 + 4); // 4 is "src/"
             }(),              // 1
             loc.line(),       // 2
             loc.column(),     // 3

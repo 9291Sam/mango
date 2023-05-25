@@ -53,7 +53,7 @@ namespace game::world
             std::unreachable();
         default:
             [[likely]];
-            return util::exponentiate(2UZ, levels - 1);
+            return util::exponentiate<std::size_t>(2, levels - 1);
         }
     }
 
@@ -298,6 +298,8 @@ namespace game::world
     {
         if (this->objects.size() == 0)
         {
+            util::logTrace("Regenerating tree!");
+
             std::vector<gfx::vulkan::Vertex> vertices {};
             std::vector<gfx::vulkan::Index>  indices {};
 
@@ -437,23 +439,29 @@ namespace game::world
     void VoxelOctree::insertVoxelAtPosition(Voxel voxel, LocalPosition position)
     {
         // TODO: these arent accurate since its actually like -127 -> +128 ish
+
+        const std::size_t halfDimension = this->dimension / 2;
+
         util::assertFatal(
-            std::abs(position.x) <= this->dimension / 2,
-            "X position {0} is outside tree of dimension -{1} -> +{1}",
+            std::abs(position.x + 1) <= halfDimension,
+            "X position {} is outside tree of dimension -{} -> +{}",
             position.x,
-            this->dimension / 2);
+            halfDimension - 1,
+            halfDimension);
 
         util::assertFatal(
-            std::abs(position.y) <= this->dimension / 2,
-            "Y position {0} is outside tree of dimension -{1} -> +{1}",
+            std::abs(position.y + 1) <= halfDimension,
+            "Y position {} is outside tree of dimension -{} -> +{}",
             position.y,
-            this->dimension / 2);
+            halfDimension - 1,
+            halfDimension);
 
         util::assertFatal(
-            std::abs(position.z) <= this->dimension / 2,
-            "Z position {0} is outside tree of dimension -{1} -> +{1}",
+            std::abs(position.z + 1) <= halfDimension,
+            "Z position {} is outside tree of dimension -{} -> +{}",
             position.z,
-            this->dimension / 2);
+            halfDimension - 1,
+            halfDimension);
 
         std::vector<std::size_t> indicesToVoxel =
             generateIndiciesToGetToVoxel(position, this->dimension);

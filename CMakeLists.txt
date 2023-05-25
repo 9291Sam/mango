@@ -113,8 +113,12 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_options(mango  PUBLIC -fsanitize=address)
   endif()
 
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    
+    target_compile_options(mango PUBLIC "/std:c++latest")
+    
 else()
-  message(FATAL_ERROR "Unsupported compiler")
+   message(FATAL_ERROR "Unsupported compiler")
 endif()
 
 

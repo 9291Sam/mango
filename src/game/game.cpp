@@ -2,6 +2,7 @@
 #include "entity/cube.hpp"
 #include "entity/disk_entity.hpp"
 #include <gfx/renderer.hpp>
+#include <numbers>
 #include <util/log.hpp>
 
 namespace game
@@ -18,30 +19,37 @@ namespace game
         this->entities.push_back(std::make_unique<entity::DiskEntity>(
             this->renderer, "../models/gizmo.obj"));
 
-        const std::size_t extent = (this->world.dimension / 2);
+        const std::int32_t extent = (this->world.dimension / 2);
 
-        for (std::size_t x : std::views::iota(-extent, extent))
+        for (std::int32_t x : std::views::iota(-extent, extent))
         {
-            for (std::size_t y : std::views::iota(-extent, extent))
+            for (std::int32_t y : std::views::iota(-extent, extent))
             {
                 const float normalizedX =
                     static_cast<float>(x) / this->world.dimension;
                 const float normalizedY =
                     static_cast<float>(y) / this->world.dimension;
 
-                const float pix = std::numbers::pi * 20;
+                const float pi4 = std::numbers::pi * 40;
 
-                const std::size_t height = static_cast<std::size_t>(
-                    (22 * std::sin(normalizedX * pix))
-                    + (22 * std::cos(normalizedY * (pix))));
+                const std::int32_t height = static_cast<std::int32_t>(
+                    (9 * std::sin(normalizedX * pi4))
+                    + (9 * std::cos(normalizedY * (pi4))));
+
+                // const std::int32_t height = static_cast<std::int32_t>(
+                //     std::atan2(1, 20 * normalizedX * normalizedY) * 100);
+
+                // height += static_cast<std::int32_t>(
+                //     (9 * std::sin(normalizedX * pi4))
+                //     + (9 * std::cos(normalizedY * (pi4))));
 
                 this->world.insertVoxelAtPosition(
-                    world::Voxel {
-                        .linear_color {0.0f, normalizedX, normalizedY, 1.0f}},
-                    world::LocalPosition {
-                        .x {static_cast<std::int32_t>(x)},
-                        .y {static_cast<std::int32_t>(height)},
-                        .z {static_cast<std::int32_t>(y)}});
+                    world::Voxel {.linear_color {
+                        (std::sin(normalizedX * pi4) / 2) + 0.5f,
+                        normalizedX,
+                        normalizedY,
+                        1.0f}},
+                    world::LocalPosition {.x {x}, .y {height}, .z {y}});
             }
         }
 

@@ -42,7 +42,8 @@ namespace game::world
     {
     public:
 
-        VoxelOctree(gfx::Renderer& renderers);
+        VoxelOctree(
+            gfx::Renderer&, glm::vec3 centerPosition, std::size_t levels);
         ~VoxelOctree();
 
         VoxelOctree(const VoxelOctree&)             = delete;
@@ -55,6 +56,9 @@ namespace game::world
 
         void insertVoxelAtPosition(Voxel, LocalPosition);
 
+        const std::size_t levels;
+        const std::size_t dimension;
+
     private:
 
         void collapseTree();
@@ -66,8 +70,6 @@ namespace game::world
 
         std::unique_ptr<Node> root;
         glm::vec3             center_position;
-        const std::size_t     levels;
-        const std::size_t     dimension;
         // std::size_t           number_of_voxels;
         // const std::size_t     voxels_per_object;
     };

@@ -20,10 +20,6 @@ int main()
 
         while (!renderer.shouldClose())
         {
-            // std::chrono::duration<float> previous_render_time {
-            // renderer.getDeltaTimeSeconds()};
-            //
-            // std::this_thread::sleep_for(MIN_DURATION - previous_render_time);
             game.tick();
         }
     }

@@ -279,12 +279,13 @@ namespace game::world
             node->children);
     }
 
-    VoxelOctree::VoxelOctree(gfx::Renderer& renderer_)
+    VoxelOctree::VoxelOctree(
+        gfx::Renderer& renderer_, glm::vec3 centerPosition, std::size_t levels_)
         : renderer {renderer_}
         , objects {}
         , root {std::make_unique<Node>()}
-        , center_position {32.0f, 32.0f, 32.0f}
-        , levels {5}
+        , center_position {centerPosition}
+        , levels {levels_}
         , dimension {util::exponentiate<std::size_t>(2, this->levels)}
     // , number_of_voxels {1}
     // , voxels_per_object {10'000} // TODO: tune
@@ -435,6 +436,7 @@ namespace game::world
 
     void VoxelOctree::insertVoxelAtPosition(Voxel voxel, LocalPosition position)
     {
+        // TODO: these arent accurate since its actually like -127 -> +128 ish
         util::assertFatal(
             std::abs(position.x) <= this->dimension / 2,
             "X position {0} is outside tree of dimension -{1} -> +{1}",
@@ -457,7 +459,7 @@ namespace game::world
             generateIndiciesToGetToVoxel(position, this->dimension);
 
         util::assertWarn(
-            indicesToVoxel.size() != this->levels,
+            indicesToVoxel.size() == this->levels,
             "Invalid number of indicies | Levels: {} | Indicies: {} | "
             "DesiredPosition: {}",
             this->levels,

@@ -10,7 +10,7 @@ namespace game
         : renderer {renderer_}
         , player {this->renderer, {-30.0f, 20.0f, -20.0f}}
         , entities {}
-        , world {this->renderer}
+        , world {this->renderer, glm::vec3 {0.0f, 16.0f, 0.0f}, 10}
     {
         this->entities.push_back(std::make_unique<entity::Cube>(
             this->renderer, glm::vec3 {0.0f, 12.5f, 0.0f}));
@@ -18,21 +18,32 @@ namespace game
         this->entities.push_back(std::make_unique<entity::DiskEntity>(
             this->renderer, "../models/gizmo.obj"));
 
-        this->world.insertVoxelAtPosition(
-            world::Voxel {.linear_color {0.0f, 0.5f, 0.6f, 1.0f}},
-            world::LocalPosition {.x {12}, .y {-3}, .z {4}});
+        const std::size_t extent = (this->world.dimension / 2);
 
-        this->world.insertVoxelAtPosition(
-            world::Voxel {.linear_color {0.0f, 0.2f, 0.6f, 1.0f}},
-            world::LocalPosition {.x {3}, .y {-3}, .z {8}});
+        for (std::size_t x : std::views::iota(-extent, extent))
+        {
+            for (std::size_t y : std::views::iota(-extent, extent))
+            {
+                const float normalizedX =
+                    static_cast<float>(x) / this->world.dimension;
+                const float normalizedY =
+                    static_cast<float>(y) / this->world.dimension;
 
-        this->world.insertVoxelAtPosition(
-            world::Voxel {.linear_color {0.0f, 0.5f, 0.2, 1.0f}},
-            world::LocalPosition {.x {7}, .y {11}, .z {-7}});
+                const float pix = std::numbers::pi * 20;
 
-        this->world.insertVoxelAtPosition(
-            world::Voxel {.linear_color {0.7f, 0.7f, 0.7, 1.0f}},
-            world::LocalPosition {.x {0}, .y {0}, .z {0}});
+                const std::size_t height = static_cast<std::size_t>(
+                    (22 * std::sin(normalizedX * pix))
+                    + (22 * std::cos(normalizedY * (pix))));
+
+                this->world.insertVoxelAtPosition(
+                    world::Voxel {
+                        .linear_color {0.0f, normalizedX, normalizedY, 1.0f}},
+                    world::LocalPosition {
+                        .x {static_cast<std::int32_t>(x)},
+                        .y {static_cast<std::int32_t>(height)},
+                        .z {static_cast<std::int32_t>(y)}});
+            }
+        }
 
         this->player.getCamera().addPitch(0.418879019f);
         this->player.getCamera().addYaw(2.19911486f);

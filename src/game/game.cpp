@@ -11,7 +11,7 @@ namespace game
         : renderer {renderer_}
         , player {this->renderer, {-30.0f, 20.0f, -20.0f}}
         , entities {}
-        , world {this->renderer, glm::vec3 {0.0f, 16.0f, 0.0f}, 10}
+        , world {this->renderer, glm::vec3 {0.0f, 0.0f, 0.0f}, 12}
     {
         this->entities.push_back(std::make_unique<entity::Cube>(
             this->renderer, glm::vec3 {0.0f, 12.5f, 0.0f}));
@@ -30,24 +30,22 @@ namespace game
                 const float normalizedY =
                     static_cast<float>(y) / this->world.dimension;
 
-                const float pi4 = std::numbers::pi * 40;
+                const float pi4  = std::numbers::pi * 80;
+                const float sinX = std::sin(normalizedX * pi4);
+                const float cosY = std::cos(normalizedY * pi4);
 
-                const std::int32_t height = static_cast<std::int32_t>(
-                    (9 * std::sin(normalizedX * pi4))
-                    + (9 * std::cos(normalizedY * (pi4))));
+                std::int32_t height = static_cast<std::int32_t>(
+                    std::atan2(1, 75 * normalizedX * normalizedY) * 250);
 
-                // const std::int32_t height = static_cast<std::int32_t>(
-                //     std::atan2(1, 20 * normalizedX * normalizedY) * 100);
+                height += static_cast<std::int32_t>(9 * sinX + 9 * cosY);
 
-                // height += static_cast<std::int32_t>(
-                //     (9 * std::sin(normalizedX * pi4))
-                //     + (9 * std::cos(normalizedY * (pi4))));
+                float color = util::map(sinX + cosY, -2.83f, 2.83f, 0.0f, 1.0f);
 
                 this->world.insertVoxelAtPosition(
                     world::Voxel {.linear_color {
-                        (std::sin(normalizedX * pi4) / 2) + 0.5f,
-                        normalizedX,
-                        normalizedY,
+                        color,
+                        std::abs(normalizedX),
+                        std::abs(normalizedY),
                         1.0f}},
                     world::LocalPosition {.x {x}, .y {height}, .z {y}});
             }

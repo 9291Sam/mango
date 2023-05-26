@@ -104,6 +104,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(mango PUBLIC -std=c++2b)
   # target_compile_options(mango PUBLIC -Og)
   target_compile_options(mango PUBLIC -g)
+  target_compile_options(mango PUBLIC -O3)
   
   target_compile_options(mango PUBLIC -march=native)
   target_compile_options(mango PUBLIC -fvisibility=default)

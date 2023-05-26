@@ -303,15 +303,31 @@ namespace game::world
             std::vector<gfx::vulkan::Vertex> vertices {};
             std::vector<gfx::vulkan::Index>  indices {};
 
+            std::unordered_map<gfx::vulkan::Vertex, std::size_t>
+                                             uniqueVertices {};
+            std::vector<gfx::vulkan::Vertex> nonUniqueVertices {};
+
             generateVerticesFromOctree(
                 this->dimension,
                 this->center_position,
-                vertices,
+                nonUniqueVertices,
                 this->root.get());
 
-            indices.resize(vertices.size());
+            util::logTrace(
+                "De duplicating {} vertices", nonUniqueVertices.size());
 
-            std::iota(indices.begin(), indices.end(), 0);
+            for (const gfx::vulkan::Vertex& v : nonUniqueVertices)
+            {
+                if (uniqueVertices.count(v) == 0)
+                {
+                    uniqueVertices[v] = vertices.size();
+
+                    vertices.push_back(v);
+                }
+
+                indices.push_back(
+                    static_cast<std::uint32_t>(uniqueVertices[v]));
+            }
 
             // TODO: I just got bugged by something that would have been caught
             // by nodiscard...

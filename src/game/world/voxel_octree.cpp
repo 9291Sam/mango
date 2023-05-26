@@ -462,22 +462,22 @@ namespace game::world
             std::abs(position.x + 1) <= halfDimension,
             "X position {} is outside tree of dimension -{} -> +{}",
             position.x,
-            halfDimension - 1,
-            halfDimension);
+            halfDimension,
+            halfDimension - 1);
 
         util::assertFatal(
             std::abs(position.y + 1) <= halfDimension,
             "Y position {} is outside tree of dimension -{} -> +{}",
             position.y,
-            halfDimension - 1,
-            halfDimension);
+            halfDimension,
+            halfDimension - 1);
 
         util::assertFatal(
             std::abs(position.z + 1) <= halfDimension,
             "Z position {} is outside tree of dimension -{} -> +{}",
             position.z,
-            halfDimension - 1,
-            halfDimension);
+            halfDimension,
+            halfDimension - 1);
 
         std::vector<std::size_t> indicesToVoxel =
             generateIndiciesToGetToVoxel(position, this->dimension);

@@ -157,6 +157,7 @@ namespace game::world
 
     void generateTrianglesFromVoxel(
         std::vector<gfx::vulkan::Vertex>& vertices,
+        std::vector<gfx::vulkan::Index>&  indices,
         glm::vec3                         position,
         Voxel                             voxel,
         float                             size)
@@ -217,25 +218,36 @@ namespace game::world
             },
         };
 
-        const std::array<gfx::vulkan::Index, 36> indices {
+        std::array<gfx::vulkan::Index, 36> cube_indices {
             6, 2, 7, 2, 3, 7, 0, 4, 5, 1, 0, 5, 0, 2, 6, 4, 0, 6,
             3, 1, 7, 1, 5, 7, 2, 0, 3, 0, 1, 3, 4, 6, 7, 5, 4, 7};
 
-        for (gfx::vulkan::Index idx : indices)
-        {
-            gfx::vulkan::Vertex vertex = cube_vertices[idx];
+        const std::size_t indices_offset = vertices.size();
 
+        for (gfx::vulkan::Index& i : cube_indices)
+        {
+            i += indices_offset;
+        }
+
+        for (gfx::vulkan::Vertex vertex : cube_vertices)
+        {
             vertex.position *= size;
             vertex.position += position;
 
             vertices.push_back(vertex);
         }
+
+        for (gfx::vulkan::Index index : cube_indices)
+        {
+            indices.push_back(index);
+        }
     }
 
-    void generateVerticesFromOctree(
+    void generateTrianglesFromOctree(
         std::size_t                       size,
         glm::vec3                         voxelPosition,
         std::vector<gfx::vulkan::Vertex>& vertices,
+        std::vector<gfx::vulkan::Index>&  indices,
         Node*                             node)
     {
         if (node == nullptr)
@@ -249,7 +261,11 @@ namespace game::world
                 [&](Voxel v)
                 {
                     generateTrianglesFromVoxel(
-                        vertices, voxelPosition, v, static_cast<float>(size));
+                        vertices,
+                        indices,
+                        voxelPosition,
+                        v,
+                        static_cast<float>(size));
                 },
                 [&](std::array<std::unique_ptr<Node>, 8>& children)
                 {
@@ -260,18 +276,16 @@ namespace game::world
                     }
                     else
                     {
-                        // TODO: print out the required indicies to traverse
-                        // down wqhere veer taht is
-
                         for (auto& [node, octant] :
                              iterateOverChildren(children))
                         {
-                            generateVerticesFromOctree(
+                            generateTrianglesFromOctree(
                                 size / 2,
                                 voxelPosition
                                     + getOffsetPositionByOctant(
                                         octant, static_cast<float>(size) / 4),
                                 vertices,
+                                indices,
                                 node);
                         }
                     }
@@ -303,34 +317,13 @@ namespace game::world
             std::vector<gfx::vulkan::Vertex> vertices {};
             std::vector<gfx::vulkan::Index>  indices {};
 
-            std::unordered_map<gfx::vulkan::Vertex, std::size_t>
-                                             uniqueVertices {};
-            std::vector<gfx::vulkan::Vertex> nonUniqueVertices {};
-
-            generateVerticesFromOctree(
+            generateTrianglesFromOctree(
                 this->dimension,
                 this->center_position,
-                nonUniqueVertices,
+                vertices,
+                indices,
                 this->root.get());
 
-            util::logTrace(
-                "De duplicating {} vertices", nonUniqueVertices.size());
-
-            for (const gfx::vulkan::Vertex& v : nonUniqueVertices)
-            {
-                if (uniqueVertices.count(v) == 0)
-                {
-                    uniqueVertices[v] = vertices.size();
-
-                    vertices.push_back(v);
-                }
-
-                indices.push_back(
-                    static_cast<std::uint32_t>(uniqueVertices[v]));
-            }
-
-            // TODO: I just got bugged by something that would have been caught
-            // by nodiscard...
             this->objects.push_back(this->renderer.createTriangulatedObject(
                 gfx::vulkan::PipelineType::Flat, vertices, indices));
 

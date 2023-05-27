@@ -35,7 +35,7 @@ namespace game
                 const float cosY = std::cos(normalizedY * pi4);
 
                 std::int32_t height = static_cast<std::int32_t>(
-                    std::atan2(1, 75 * normalizedX * normalizedY) * 250); // 250
+                    std::atan2(1, 75 * normalizedX * normalizedY) * 256); // 250
 
                 height += static_cast<std::int32_t>(8 * sinX + 8 * cosY);
 

@@ -191,29 +191,29 @@ namespace gfx
         auto [sender, receiver] = util::mpmc::create<
             std::pair<vulkan::PipelineType, vulkan::Pipeline>>();
 
-        // futures.push_back(util::runAsynchronously<void>(
-        //     [&]
-        //     {
-        sender.send(std::make_pair(
-            vulkan::PipelineType::Flat,
-            vulkan::createPipeline(
-                vulkan::PipelineType::Flat,
-                this->device,
-                this->render_pass,
-                this->swapchain)));
-        // }));
+        futures.push_back(util::runAsynchronously<void>(
+            [&]
+            {
+                sender.send(std::make_pair(
+                    vulkan::PipelineType::Flat,
+                    vulkan::createPipeline(
+                        vulkan::PipelineType::Flat,
+                        this->device,
+                        this->render_pass,
+                        this->swapchain)));
+            }));
 
-        // futures.push_back(util::runAsynchronously<void>(
-        //     [&]
-        //     {
-        sender.send(std::make_pair(
-            vulkan::PipelineType::Voxel,
-            vulkan::createPipeline(
-                vulkan::PipelineType::Voxel,
-                this->device,
-                this->render_pass,
-                this->swapchain)));
-        // }));
+        futures.push_back(util::runAsynchronously<void>(
+            [&]
+            {
+                sender.send(std::make_pair(
+                    vulkan::PipelineType::Voxel,
+                    vulkan::createPipeline(
+                        vulkan::PipelineType::Voxel,
+                        this->device,
+                        this->render_pass,
+                        this->swapchain)));
+            }));
 
         for (std::shared_ptr<util::Future<void>>& f : futures)
         {

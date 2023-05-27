@@ -289,14 +289,11 @@ namespace util
                         {
                             std::optional<std::function<void()>> maybeFunc {};
 
-                            if (this->queue.try_dequeue(maybeFunc))
+                            if (this->queue.wait_dequeue_timed(
+                                    maybeFunc, 25000))
                             {
                                 maybeFunc->operator() ();
                                 maybeFunc = std::nullopt;
-                            }
-                            else
-                            {
-                                std::this_thread::yield();
                             }
                         }
                     }};
@@ -354,34 +351,32 @@ namespace util
         }
     } // namespace
 
-    // template<class R, class F>
-    // std::shared_ptr<Future<R>> runAsynchronously(F fn)
-    //     requires std::is_invocable_r_v<R, F>
-    // {
-    //     std::shared_ptr<Future<R>> future = std::make_shared<Future<R>>();
+    template<class R, class F>
+    std::shared_ptr<Future<R>> runAsynchronously(F fn)
+        requires std::is_invocable_r_v<R, F>
+    {
+        std::shared_ptr<Future<R>> future = std::make_shared<Future<R>>();
 
-    //     if constexpr (std::same_as<R, void>)
-    //     {
-    //         getThreadPool().addJob(
-    //             [=]
-    //             {
-    //                 fn();
-    //                 future->fulfillFuture();
-    //             });
-    //     }
-    //     else
-    //     {
-    //         getThreadPool().addJob(
-    //             [=]
-    //             {
-    //                 future->fulfillFuture(fn());
-    //             });
-    //     }
+        if constexpr (std::same_as<R, void>)
+        {
+            getThreadPool().addJob(
+                [=]
+                {
+                    fn();
+                    future->fulfillFuture();
+                });
+        }
+        else
+        {
+            getThreadPool().addJob(
+                [=]
+                {
+                    future->fulfillFuture(fn());
+                });
+        }
 
-    //     return future;
-    // }
-
-    // TODO: run vector of functions
+        return future;
+    }
 
 } // namespace util
 

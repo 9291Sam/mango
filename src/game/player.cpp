@@ -12,11 +12,13 @@ namespace game
     {
         // TODO: moving diaginally is faster
         const float MoveScale =
-            renderer.getActionAmount(gfx::Window::Action::PlayerSprint) ? 100.0f
-                                                                        : 25.0f;
+            renderer.getActionAmount(gfx::Window::Action::PlayerSprint) != 0.0f
+                ? 100.0f
+                : 25.0f;
         const float rotateSpeedScale = 150.255f;
 
-        if (this->renderer.getActionAmount(gfx::Window::Action::PrintLocation))
+        if (this->renderer.getActionAmount(gfx::Window::Action::PrintLocation)
+            != 0.0f)
         {
             util::logLog(
                 "Player Location: {}", static_cast<std::string>(this->camera));

@@ -1,13 +1,13 @@
 #include "log.hpp"
 #include <ctime>
-#include <fmt/chrono.h>
-#include <fmt/core.h>
 #include <iostream>
 #include <string_view>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 #include <concurrentqueue.h>
+#include <fmt/chrono.h>
+#include <fmt/core.h>
 #pragma clang diagnostic pop
 
 namespace util
@@ -133,13 +133,12 @@ namespace util
                     index = raw_file_name.find(str);
                 }
 
-
                 return raw_file_name.substr(index + 1 + 4); // 4 is "src/"
-            }(),              // 1
-            loc.line(),       // 2
-            loc.column(),     // 3
-            levelAsString(l), // 4
-            msg               // 5
+            }(),                                            // 1
+            loc.line(),                                     // 2
+            loc.column(),                                   // 3
+            levelAsString(l),                               // 4
+            msg                                             // 5
             ));
     }
 

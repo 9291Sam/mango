@@ -177,7 +177,7 @@ namespace util
 
     template<class T>
         requires (
-            std::is_move_constructible_v<T> && std::is_move_assignable_v<T>
+            (std::is_move_constructible_v<T> && std::is_move_assignable_v<T>)
             || std::same_as<T, void>)
     class Future
     {
@@ -271,8 +271,10 @@ namespace util
         {
             this->workers.resize(std::thread::hardware_concurrency());
 
+            const std::size_t Zero {0}; // TODO: replace with a literal
+
             util::assertFatal(
-                this->workers.size() != 0 || this->workers.size() != ~0,
+                this->workers.size() != Zero || this->workers.size() != ~Zero,
                 "Invalid std::thread::hardware_concurrency() | Received value "
                 "of {}",
                 this->workers.size());
@@ -342,17 +344,14 @@ namespace util
             workers;
     };
 
-    namespace
+    inline AsynchronousThreadPool& getThreadPool()
     {
-        AsynchronousThreadPool& getThreadPool()
-        {
-            static AsynchronousThreadPool threadPool {};
-            return threadPool;
-        }
-    } // namespace
+        static AsynchronousThreadPool threadPool {};
+        return threadPool;
+    }
 
     template<class R, class F>
-    std::shared_ptr<Future<R>> runAsynchronously(F fn)
+    inline std::shared_ptr<Future<R>> runAsynchronously(F fn)
         requires std::is_invocable_r_v<R, F>
     {
         std::shared_ptr<Future<R>> future = std::make_shared<Future<R>>();

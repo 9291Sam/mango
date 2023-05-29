@@ -127,6 +127,8 @@ namespace util
     {
         using T::operator()...;
     };
+    template<class... Ts>
+    VariantHelper(Ts...) -> VariantHelper<Ts...>;
 
     template<class T>
     concept Integer = requires {
@@ -152,27 +154,6 @@ namespace util
 
     template<class T>
     using Fn = T*;
-
-    template<class T>
-    constexpr inline std::string stringifyVector(std::vector<T> vec)
-    {
-        throw std::logic_error {"Specification required"};
-    }
-
-    constexpr inline std::string stringifyVector(std::vector<std::size_t> vec)
-    {
-        std::string workingString {};
-
-        workingString.reserve(vec.size() * 13);
-
-        for (std::size_t i : vec)
-        {
-            // excess heap allocations my beloved
-            workingString += std::to_string(i) += ' ';
-        }
-
-        return workingString;
-    }
 
 } // namespace util
 

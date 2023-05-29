@@ -19,23 +19,26 @@ namespace game
         this->entities.push_back(std::make_unique<entity::DiskEntity>(
             this->renderer, "../models/gizmo.obj"));
 
-        const std::int32_t extent = (this->world.dimension / 2);
+        const std::int32_t extent =
+            static_cast<std::int32_t>(this->world.dimension / 2);
 
         for (std::int32_t x : std::views::iota(-extent, extent))
         {
             for (std::int32_t y : std::views::iota(-extent, extent))
             {
                 const float normalizedX =
-                    static_cast<float>(x) / this->world.dimension;
+                    static_cast<float>(x)
+                    / static_cast<float>(this->world.dimension);
                 const float normalizedY =
-                    static_cast<float>(y) / this->world.dimension;
+                    static_cast<float>(y)
+                    / static_cast<float>(this->world.dimension);
 
-                const float pi4  = std::numbers::pi * 80;
+                const float pi4  = static_cast<float>(std::numbers::pi) * 80;
                 const float sinX = std::sin(normalizedX * pi4);
                 const float cosY = std::cos(normalizedY * pi4);
 
                 std::int32_t height = static_cast<std::int32_t>(
-                    std::atan2(1, 75 * normalizedX * normalizedY) * 256); // 250
+                    std::atan2(1, 75 * normalizedX * normalizedY) * 255); // 250
 
                 height += static_cast<std::int32_t>(8 * sinX + 8 * cosY);
 

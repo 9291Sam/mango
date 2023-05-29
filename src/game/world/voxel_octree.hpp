@@ -47,9 +47,9 @@ namespace game::world
         ~VoxelOctree();
 
         VoxelOctree(const VoxelOctree&)             = delete;
-        VoxelOctree(VoxelOctree&&)                  = default;
+        VoxelOctree(VoxelOctree&&)                  = delete;
         VoxelOctree& operator= (const VoxelOctree&) = delete;
-        VoxelOctree& operator= (VoxelOctree&&)      = default;
+        VoxelOctree& operator= (VoxelOctree&&)      = delete;
 
         // TODO: accept a position in the world for floating origin stuff
         std::vector<std::shared_ptr<gfx::Object>> draw(glm::vec3 lookAtVector);

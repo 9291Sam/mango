@@ -43,20 +43,6 @@ namespace game::world
         std::variant<Voxel, std::array<std::unique_ptr<Node>, 8>> children;
     };
 
-    float getTotalSizeFromLevels(std::size_t levels)
-    {
-        switch (levels)
-        {
-        case 0:
-            [[unlikely]];
-            util::panic("Invalid level size {}", levels);
-            std::unreachable();
-        default:
-            [[likely]];
-            return util::exponentiate<std::size_t>(2, levels - 1);
-        }
-    }
-
     enum class Octant : std::uint_fast8_t
     {
         pXpYpZ = 0,
@@ -276,7 +262,7 @@ namespace game::world
                     }
                     else
                     {
-                        for (auto& [node, octant] :
+                        for (auto& [currentNode, octant] :
                              iterateOverChildren(children))
                         {
                             generateTrianglesFromOctree(
@@ -286,7 +272,7 @@ namespace game::world
                                         octant, static_cast<float>(size) / 4),
                                 vertices,
                                 indices,
-                                node);
+                                currentNode);
                         }
                     }
                 }},
@@ -295,12 +281,12 @@ namespace game::world
 
     VoxelOctree::VoxelOctree(
         gfx::Renderer& renderer_, glm::vec3 centerPosition, std::size_t levels_)
-        : renderer {renderer_}
+        : levels {levels_}
+        , dimension {util::exponentiate<std::size_t>(2, this->levels)}
+        , renderer {renderer_}
         , objects {}
         , root {std::make_unique<Node>()}
         , center_position {centerPosition}
-        , levels {levels_}
-        , dimension {util::exponentiate<std::size_t>(2, this->levels)}
     // , number_of_voxels {1}
     // , voxels_per_object {10'000} // TODO: tune
     {}
@@ -388,7 +374,6 @@ namespace game::world
                 }
             }
         }
-        std::unreachable();
     }
 
     void generateIndiciesToGetToVoxelImpl(
@@ -452,21 +437,21 @@ namespace game::world
         const std::size_t halfDimension = this->dimension / 2;
 
         util::assertFatal(
-            std::abs(position.x + 1) <= halfDimension,
+            static_cast<std::size_t>(std::abs(position.x + 1)) <= halfDimension,
             "X position {} is outside tree of dimension -{} -> +{}",
             position.x,
             halfDimension,
             halfDimension - 1);
 
         util::assertFatal(
-            std::abs(position.y + 1) <= halfDimension,
+            static_cast<std::size_t>(std::abs(position.y + 1)) <= halfDimension,
             "Y position {} is outside tree of dimension -{} -> +{}",
             position.y,
             halfDimension,
             halfDimension - 1);
 
         util::assertFatal(
-            std::abs(position.z + 1) <= halfDimension,
+            static_cast<std::size_t>(std::abs(position.z + 1)) <= halfDimension,
             "Z position {} is outside tree of dimension -{} -> +{}",
             position.z,
             halfDimension,
@@ -477,10 +462,8 @@ namespace game::world
 
         util::assertWarn(
             indicesToVoxel.size() == this->levels,
-            "Invalid number of indicies | Levels: {} | Indicies: {} | "
-            "DesiredPosition: {}",
+            "Invalid number of indicies | Levels: {} | DesiredPosition: {}",
             this->levels,
-            util::stringifyVector(indicesToVoxel),
             static_cast<std::string>(position));
 
         Node* workingNode = this->root.get();

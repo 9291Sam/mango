@@ -18,9 +18,9 @@ namespace game
         ~Player() = default;
 
         Player(const Player&)             = delete;
-        Player(Player&&)                  = default;
+        Player(Player&&)                  = delete;
         Player& operator= (const Player&) = delete;
-        Player& operator= (Player&&)      = default;
+        Player& operator= (Player&&)      = delete;
 
         void         tick();
         gfx::Camera& getCamera();

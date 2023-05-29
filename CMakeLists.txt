@@ -6,8 +6,10 @@ project(mango VERSION 0.0.0.1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-  
+set(CMAKE_CXX_EXTENSIONS OFF) 
+# https://bugs.llvm.org/show_bug.cgi?id=47950
+set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
+
 add_executable(mango 
     
   src/gfx/vulkan/allocator.cpp
@@ -46,6 +48,9 @@ add_executable(mango
 
 )
 
+  
+
+
 target_include_directories(mango PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
 target_compile_definitions(mango PUBLIC VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
@@ -56,9 +61,6 @@ target_compile_definitions(mango PUBLIC VERSION_TWEAK=${PROJECT_VERSION_TWEAK})
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
-    # target_compile_options(mango PUBLIC -std=c++2b)
-    # target_compile_options(mango PUBLIC -Og)
-    # target_compile_options(mango PUBLIC -g)
     target_compile_options(mango PUBLIC -march=native)
     target_compile_options(mango PUBLIC -fvisibility=default)
     
@@ -74,28 +76,34 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-old-style-cast)
     target_compile_options(mango PUBLIC -Wno-c++20-compat)
     target_compile_options(mango PUBLIC -Wno-padded)
-
+    target_compile_options(mango PUBLIC -Wno-documentation-unknown-command)
     target_compile_options(mango PUBLIC -Wno-exit-time-destructors)
 
+    target_compile_options(mango PUBLIC -flto)
+    target_link_options(mango PUBLIC -flto)
 
-   target_link_options(mango PUBLIC -flto)
-  
-    target_compile_options(mango PUBLIC -fsanitize=address)
-    if (NOT WIN32)
-      target_compile_options(mango PUBLIC -fsanitize=leak)
-    endif()
-    target_compile_options(mango PUBLIC -fsanitize=undefined)
-    
-    target_link_options(mango PUBLIC -fsanitize=address)
-    if (NOT WIN32)
-      target_link_options(mango PUBLIC -fsanitize=leak)
-    endif()
-    target_link_options(mango PUBLIC -fsanitize=undefined)
-
+    # Windows edge case with the address sanitizer
+    # https://github.com/llvm/llvm-project/issues/56300
     if (WIN32)    
       target_compile_definitions(mango  PUBLIC _ITERATOR_DEBUG_LEVEL=0)
-      target_compile_definitions(mango  PUBLIC _DISABLE_STRING_ANNOTATION _DISABLE_VECTOR_ANNOTATION)
+      target_compile_definitions(mango  PUBLIC _DISABLE_STRING_ANNOTATION)
+      target_compile_definitions(mango  PUBLIC _DISABLE_VECTOR_ANNOTATION)
     endif()
+  
+    # https://clang.llvm.org/docs/UsersManual.html#controlling-code-generation
+    target_compile_options(mango PUBLIC -fsanitize=address)
+    target_link_options(mango PUBLIC -fsanitize=address)
+
+    target_compile_options(mango PUBLIC -fsanitize=undefined)
+    target_link_options(mango PUBLIC -fsanitize=undefined)
+
+    target_compile_options(mango PUBLIC -fsanitize=kcfi)
+    target_link_options(mango PUBLIC -fsanitize=kcfi)
+
+
+    
+
+
   else()
     message(FATAL_ERROR "Clang-cl is not supported")
   endif()
@@ -123,6 +131,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 else()
    message(FATAL_ERROR "Unsupported compiler")
 endif()
+
 
 
 

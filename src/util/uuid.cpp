@@ -2,8 +2,12 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
-#include <fmt/format.h>
 #include <random>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+#include <fmt/format.h>
+#pragma clang diagnostic pop
 
 namespace util
 {

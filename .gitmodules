@@ -1,21 +1,3 @@
-[submodule "inc/Vulkan-Headers"]
-	path = inc/Vulkan-Headers
-	url = https://github.com/KhronosGroup/Vulkan-Headers
-[submodule "inc/glfw"]
-	path = inc/glfw
-	url = https://github.com/glfw/glfw
-[submodule "inc/fmt"]
-	path = inc/fmt
-	url = https://github.com/fmtlib/fmt
-[submodule "inc/concurrentqueue"]
-	path = inc/concurrentqueue
-	url = https://github.com/cameron314/concurrentqueue
 [submodule "inc/VulkanMemoryAllocator"]
 	path = inc/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
-[submodule "inc/glm"]
-	path = inc/glm
-	url = https://github.com/g-truc/glm
-[submodule "inc/tinyobjloader"]
-	path = inc/tinyobjloader
-	url = https://github.com/tinyobjloader/tinyobjloader

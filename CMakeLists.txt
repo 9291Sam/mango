@@ -1,18 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
 
+include(FetchContent)
+
 project(mango VERSION 0.0.0.1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-if (WIN32)
-  set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
-endif()
-
+  
 add_executable(mango 
-
-  # pipelines
     
   src/gfx/vulkan/allocator.cpp
   src/gfx/vulkan/buffer.cpp
@@ -60,9 +56,9 @@ target_compile_definitions(mango PUBLIC VERSION_TWEAK=${PROJECT_VERSION_TWEAK})
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
-    target_compile_options(mango PUBLIC -std=c++2b)
-    target_compile_options(mango PUBLIC -Og)
-    target_compile_options(mango PUBLIC -g)
+    # target_compile_options(mango PUBLIC -std=c++2b)
+    # target_compile_options(mango PUBLIC -Og)
+    # target_compile_options(mango PUBLIC -g)
     target_compile_options(mango PUBLIC -march=native)
     target_compile_options(mango PUBLIC -fvisibility=default)
     
@@ -80,6 +76,9 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-padded)
 
     target_compile_options(mango PUBLIC -Wno-exit-time-destructors)
+
+
+   target_link_options(mango PUBLIC -flto)
   
     target_compile_options(mango PUBLIC -fsanitize=address)
     if (NOT WIN32)
@@ -101,13 +100,16 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     message(FATAL_ERROR "Clang-cl is not supported")
   endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  target_compile_options(mango PUBLIC -std=c++2b)
-  # target_compile_options(mango PUBLIC -Og)
-  target_compile_options(mango PUBLIC -g)
-  target_compile_options(mango PUBLIC -O3)
+  # target_compile_options(mango PUBLIC -std=c++2b)
+  # target_compile_options(mango PUBLIC -g)
+  # target_compile_options(mango PUBLIC -O3)
+
+  target_compile_options(mango PUBLIC -Wno-stringop-overflow)
   
   target_compile_options(mango PUBLIC -march=native)
   target_compile_options(mango PUBLIC -fvisibility=default)
+
+  target_link_options(mango PUBLIC -flto)
 
   if (NOT WIN32)
     target_compile_options(mango PUBLIC -fsanitize=address)
@@ -144,57 +146,81 @@ endif()
 #     $<${gcc_like}:-Wall -Wextra -pedantic-errors>
 # )
 
-add_library(concurrentQueue INTERFACE)
-set_target_properties(concurrentQueue PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/concurrentqueue
+FetchContent_Declare(fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG master
 )
-target_link_libraries(mango concurrentQueue)
+FetchContent_MakeAvailable(fmt)
+target_link_libraries(mango PUBLIC fmt::fmt)
 
-add_library(fmt STATIC IMPORTED)
-set_target_properties(fmt PROPERTIES
-  IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libfmt.a
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/fmt/include
+
+
+FetchContent_Declare(glfw
+  GIT_REPOSITORY https://github.com/glfw/glfw
+  GIT_TAG master
 )
-target_link_libraries(mango fmt)
+FetchContent_MakeAvailable(glfw)
+target_link_libraries(mango PUBLIC glfw)
 
-add_library(glfw STATIC IMPORTED)
-set_target_properties(glfw PROPERTIES
-  IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libglfw3.a
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/glfw/include
+
+
+FetchContent_Declare(concurrentqueue
+  GIT_REPOSITORY https://github.com/cameron314/concurrentqueue
+  GIT_TAG master
 )
-target_link_libraries(mango glfw)
+FetchContent_MakeAvailable(concurrentqueue)
+target_link_libraries(mango PUBLIC concurrentqueue)
 
-add_library(glm INTERFACE)
-set_target_properties(glm PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/glm
+
+
+FetchContent_Declare(glm
+  GIT_REPOSITORY https://github.com/g-truc/glm
+  GIT_TAG master
 )
-target_link_libraries(mango glm)
+FetchContent_MakeAvailable(glm)  
+target_link_libraries(mango PUBLIC glm)
 
-add_library(tinyobjloader INTERFACE)
-set_target_properties(tinyobjloader PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/tinyobjloader
+
+
+FetchContent_Declare(tinyobjloader
+  GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader
+  GIT_TAG release
 )
-target_link_libraries(mango tinyobjloader)
+FetchContent_MakeAvailable(tinyobjloader)  
+target_link_libraries(mango PUBLIC tinyobjloader)
 
-add_library(vulkan INTERFACE)
-target_include_directories(vulkan INTERFACE ${CMAKE_SOURCE_DIR}/inc/Vulkan-Headers/include)
-target_link_libraries(mango vulkan)
-if(APPLE) 
-  target_link_libraries(mango "-framework Cocoa -framework IOKit")
-endif()
+
+find_package(Vulkan REQUIRED)
+include_directories("${Vulkan_INCLUDE_DIRS}")
+
+
+# VMA's cmakescript is terribly broken, doesnt work with fetchContent + 
+# **requires** static linking the
+# VMA_DYNAMIC_VULKAN_FUNCTIONS and VMA_STATIC_VULKAN_FUNCTIONS options do
+# nothing!!!!!
+
+# as a result the best solution is to just include it as a submodule and include
+# the damned header. 
+# I love C++'s tooling, it is perfect and has no flaws.
+# I love C++'s tooling, it is perfect and has no flaws.
+# I love C++'s tooling, it is perfect and has no flaws.
+# I love C++'s tooling, it is perfect and has no flaws.
+# I love C++'s tooling, it is perfect and has no flaws.
+
+# todo try again, but this time without the linking with target_link_libraries, just use makeavailable
 
 add_library(VulkanMemoryAllocator INTERFACE)
 set_target_properties(VulkanMemoryAllocator PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/VulkanMemoryAllocator/include
 )
-target_link_libraries(mango VulkanMemoryAllocator)
+target_link_libraries(mango PUBLIC VulkanMemoryAllocator)
 
-# message(CMAKE_RC_COMPILER="${CMAKE_RC_COMPILER}")
-
-# "-DCMAKE_RC_COMPILER:FILEPATH=C:/Program Files/LLVM/bin/llvm-rc.exe"
 
 find_package(Vulkan COMPONENTS glslc)
 find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
+if(APPLE) 
+  target_link_libraries(mango "-framework Cocoa -framework IOKit")
+endif()
 
 function(compile_shader target)
     cmake_parse_arguments(PARSE_ARGV 1 arg "" "ENV;FORMAT" "SOURCES")

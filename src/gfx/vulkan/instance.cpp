@@ -12,8 +12,11 @@ static VkBool32 debugMessageCallback(
 {
     util::panic(
         "Validation Layer Message: Severity: {} | Type: {} | \n{}",
-        messageSeverity,
-        messageType,
+        static_cast<
+            std::underlying_type_t<VkDebugUtilsMessageSeverityFlagBitsEXT>>(
+            messageSeverity),
+        static_cast<std::underlying_type_t<VkDebugUtilsMessageTypeFlagBitsEXT>>(
+            messageType),
         pCallbackData->pMessage);
 
     return VK_FALSE;
@@ -177,15 +180,15 @@ namespace gfx::vulkan
                     }()},
             .flags {
 #ifdef __APPLE__
-                    vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
+                vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
 #endif // __APPLE__
-                    },
+            },
             .pApplicationInfo {&applicationInfo},
             .enabledLayerCount {
-                    static_cast<std::uint32_t>(instanceLayers.size())},
+                static_cast<std::uint32_t>(instanceLayers.size())},
             .ppEnabledLayerNames {instanceLayers.data()},
             .enabledExtensionCount {
-                    static_cast<std::uint32_t>(instanceExtensions.size())},
+                static_cast<std::uint32_t>(instanceExtensions.size())},
             .ppEnabledExtensionNames {instanceExtensions.data()},
         };
 

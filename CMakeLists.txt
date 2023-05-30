@@ -4,7 +4,7 @@ include(FetchContent)
 
 project(mango VERSION 0.0.0.1)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) 
 # https://bugs.llvm.org/show_bug.cgi?id=47950
@@ -85,9 +85,9 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     # Windows edge case with the address sanitizer
     # https://github.com/llvm/llvm-project/issues/56300
     if (WIN32)    
-      target_compile_definitions(mango  PUBLIC _ITERATOR_DEBUG_LEVEL=0)
-      target_compile_definitions(mango  PUBLIC _DISABLE_STRING_ANNOTATION)
-      target_compile_definitions(mango  PUBLIC _DISABLE_VECTOR_ANNOTATION)
+      target_compile_definitions(mango PUBLIC _ITERATOR_DEBUG_LEVEL=0)
+      target_compile_definitions(mango PUBLIC _DISABLE_STRING_ANNOTATION)
+      target_compile_definitions(mango PUBLIC _DISABLE_VECTOR_ANNOTATION)
     endif()
   
     # https://clang.llvm.org/docs/UsersManual.html#controlling-code-generation
@@ -100,6 +100,9 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -fsanitize=kcfi)
     target_link_options(mango PUBLIC -fsanitize=kcfi)
 
+    target_compile_options(mango PUBLIC -nostdinc++ -stdlib=libc++)
+    target_compile_options(mango PUBLIC -Wno-unused-command-line-argument)
+    
 
     
 

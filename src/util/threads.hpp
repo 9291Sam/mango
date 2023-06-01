@@ -46,6 +46,8 @@ namespace util
 
             void send(T&& t) const
             {
+                assert(this->queue != nullptr);
+
                 if (!this->queue->enqueue(std::forward<T>(t)))
                 {
                     throw std::bad_alloc {};

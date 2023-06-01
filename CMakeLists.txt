@@ -10,7 +10,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # https://bugs.llvm.org/show_bug.cgi?id=47950
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
 
-# TODO: enable lto on non debug
+# Enable Link Time Optimization on non debug builds
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
+else()
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+# Source Files
 
 add_executable(mango 
     
@@ -43,15 +50,10 @@ add_executable(mango
   
   src/game/game.cpp
   src/game/player.cpp
-
-  
   
   src/main.cpp
 
 )
-
-  
-
 
 target_include_directories(mango PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
@@ -60,14 +62,19 @@ target_compile_definitions(mango PUBLIC VERSION_MINOR=${PROJECT_VERSION_MINOR})
 target_compile_definitions(mango PUBLIC VERSION_PATCH=${PROJECT_VERSION_PATCH})
 target_compile_definitions(mango PUBLIC VERSION_TWEAK=${PROJECT_VERSION_TWEAK})
 
+#
+# Compiler specific flags 
+#
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+    # Clang
     target_compile_options(mango PUBLIC -march=native)
     target_compile_options(mango PUBLIC -fvisibility=default)
     
-    # target_compile_options(mango PUBLIC -Weverything)
-    # target_compile_options(mango PUBLIC -Werror)
+    # Add debug symbols that lldb can actually read
+    target_compile_options(mango PUBLIC -glldb)
+    target_compile_options(mango PUBLIC -gdwarf)
 
     target_compile_options(mango PUBLIC -Wno-c++98-compat)
     target_compile_options(mango PUBLIC -Wno-c++98-compat-pedantic)
@@ -90,36 +97,22 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     endif()
   
     # https://clang.llvm.org/docs/UsersManual.html#controlling-code-generation
-    # target_compile_options(mango PUBLIC -fsanitize=address)
-    # target_link_options(mango PUBLIC -fsanitize=address)
+    target_compile_options(mango PUBLIC -fsanitize=address)
+    target_link_options(mango PUBLIC -fsanitize=address)
 
-    # target_compile_options(mango PUBLIC -fsanitize=undefined)
-    # target_link_options(mango PUBLIC -fsanitize=undefined)
-
-    # target_compile_options(mango PUBLIC -fsanitize=kcfi)
-    # target_link_options(mango PUBLIC -fsanitize=kcfi)
-
-    target_compile_options(mango PUBLIC -nostdinc++ -stdlib=libc++)
-    target_compile_options(mango PUBLIC -Wno-unused-command-line-argument)
-    
-
-    
-
+    target_compile_options(mango PUBLIC -fsanitize=undefined)
+    target_link_options(mango PUBLIC -fsanitize=undefined)
 
   else()
-    message(FATAL_ERROR "Clang-cl is not supported")
+    # Clang-cl
+    message(FATAL_ERROR "Clang-cl support has not been added")
   endif()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  # target_compile_options(mango PUBLIC -std=c++2b)
-  # target_compile_options(mango PUBLIC -g)
-  # target_compile_options(mango PUBLIC -O3)
 
-  target_compile_options(mango PUBLIC -Wno-stringop-overflow)
-  
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(mango PUBLIC -march=native)
   target_compile_options(mango PUBLIC -fvisibility=default)
 
-  target_link_options(mango PUBLIC -flto)
+  target_compile_options(mango PUBLIC -Wno-stringop-overflow)
 
   if (NOT WIN32)
     target_compile_options(mango PUBLIC -fsanitize=address)
@@ -127,35 +120,16 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   endif()
 
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    
-    target_compile_options(mango PUBLIC "/std:c++latest")
-    
+  message(FATAL_ERROR "MSVC support has not been added")
 else()
-   message(FATAL_ERROR "Unsupported compiler")
+   message(FATAL_ERROR "Unknown and Unsupported compiler")
 endif()
 
 
 
-
-
-# # detect compilers, enable warnings and standard conformance
-# set(msvc "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
-# set(gcc "$<COMPILE_LANG_AND_ID:CXX,GNU>")
-# set(clang "$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang,ROCMClang,XLClang,FujitsuClang,ARMClang>")
-
-# set(simulate_msvc "$<STREQUAL:${CMAKE_CXX_COMPILER_FRONTEND_VARIANT},MSVC>")
-# set(clang_cl "$<AND:${clang},${simulate_msvc}>")
-
-# set(msvc_like "$<OR:${msvc},${clang_cl}>")
-# set(gcc_like "$<OR:${gcc},$<AND:${clang},$<NOT:${simulate_msvc}>>>")
-
-# add_library(options INTERFACE)
-# add_library(common::options ALIAS options)
-# target_compile_options(
-#     options INTERFACE
-#     $<${msvc_like}:/permissive- /utf-8 /diagnostics:caret /W4>
-#     $<${gcc_like}:-Wall -Wextra -pedantic-errors>
-# )
+#
+# Libraries 
+#
 
 FetchContent_Declare(fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
@@ -218,11 +192,10 @@ include_directories("${Vulkan_INCLUDE_DIRS}")
 # I love C++'s tooling, it is perfect and has no flaws.
 # I love C++'s tooling, it is perfect and has no flaws.
 
-# todo try again, but this time without the linking with target_link_libraries, just use makeavailable
-
 add_library(VulkanMemoryAllocator INTERFACE)
 set_target_properties(VulkanMemoryAllocator PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/inc/VulkanMemoryAllocator/include
+  INTERFACE_INCLUDE_DIRECTORIES 
+  ${CMAKE_SOURCE_DIR}/inc/VulkanMemoryAllocator/include
 )
 target_link_libraries(mango PUBLIC VulkanMemoryAllocator)
 

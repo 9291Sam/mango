@@ -155,6 +155,15 @@ namespace util
     template<class T>
     using Fn = T*;
 
+    [[noreturn]] inline void unreachable()
+    {
+#ifdef __GNUC__ // GCC, Clang, ICC
+        __builtin_unreachable();
+#elif defined(_MSC_VER) // MSVC
+        __assume(false);
+#endif
+    }
+
 } // namespace util
 
 #endif // SRC_UTIL_MISC_HPP

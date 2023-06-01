@@ -11,7 +11,7 @@ namespace game
         : renderer {renderer_}
         , player {this->renderer, {-30.0f, 20.0f, -20.0f}}
         , entities {}
-        , world {this->renderer, glm::vec3 {0.0f, 0.0f, 0.0f}, 12}
+        , world {this->renderer, glm::vec3 {0.0f, 0.0f, 0.0f}, 8}
     {
         this->entities.push_back(std::make_unique<entity::Cube>(
             this->renderer, glm::vec3 {0.0f, 12.5f, 0.0f}));
@@ -33,12 +33,12 @@ namespace game
                     static_cast<float>(y)
                     / static_cast<float>(this->world.dimension);
 
-                const float pi4  = static_cast<float>(std::numbers::pi) * 80;
+                const float pi4  = static_cast<float>(std::numbers::pi) * 20;
                 const float sinX = std::sin(normalizedX * pi4);
                 const float cosY = std::cos(normalizedY * pi4);
 
                 std::int32_t height = static_cast<std::int32_t>(
-                    std::atan2(1, 75 * normalizedX * normalizedY) * 255); // 250
+                    std::atan2(1, 75 * normalizedX * normalizedY) * 25); // 250
 
                 height += static_cast<std::int32_t>(8 * sinX + 8 * cosY);
 

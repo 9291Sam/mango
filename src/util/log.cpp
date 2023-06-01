@@ -13,9 +13,6 @@
 namespace util
 {
 
-    static constexpr std::array<std::string_view, 2> FOLDER_IDENTIFIERS {
-        "/src/", "/inc/"};
-
     const char* levelAsString(Level l)
     {
         using enum Level;
@@ -97,10 +94,10 @@ namespace util
     static AsyncStdoutLogger logger {};
 #pragma clang diagnostic pop
 
-    void logFormatted(Level l, const std::source_location& loc, std::string msg)
+    void logFormatted(Level l, const SourceLocation& loc, std::string msg)
     {
         logger.sendMessage(fmt::format(
-            "[{0}] [{1}:{2}:{3}] [{4}] {5}\n",
+            "[{0}] [{1}] [{2}] {3}\n",
             [&]
             {
                 std::string workingString {31, ' '};
@@ -116,29 +113,10 @@ namespace util
                 workingString.insert(workingString.size() - 3, ":");
 
                 return workingString;
-            }(), // 0
-            [&]  // 1
-            {
-                std::string raw_file_name = loc.file_name();
-
-                std::size_t index = std::string::npos;
-
-                for (std::string_view str : FOLDER_IDENTIFIERS)
-                {
-                    if (index != std::string::npos)
-                    {
-                        break;
-                    }
-
-                    index = raw_file_name.find(str);
-                }
-
-                return raw_file_name.substr(index + 1 + 4); // 4 is "src/"
-            }(),                                            // 1
-            loc.line(),                                     // 2
-            loc.column(),                                   // 3
-            levelAsString(l),                               // 4
-            msg                                             // 5
+            }(),                           // 0
+            static_cast<std::string>(loc), // 1
+            levelAsString(l),              // 2
+            msg                            // 3
             ));
     }
 

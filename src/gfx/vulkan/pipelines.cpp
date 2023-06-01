@@ -153,7 +153,7 @@ namespace gfx::vulkan
 
         util::panic(
             "Unimplemented pipeline creation! {}", static_cast<int>(pipeline));
-        std::unreachable();
+        util::unreachable();
     }
 
     vk::UniqueShaderModule

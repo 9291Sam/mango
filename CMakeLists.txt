@@ -10,6 +10,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # https://bugs.llvm.org/show_bug.cgi?id=47950
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
 
+# TODO: enable lto on non debug
+
 add_executable(mango 
     
   src/gfx/vulkan/allocator.cpp
@@ -64,8 +66,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -march=native)
     target_compile_options(mango PUBLIC -fvisibility=default)
     
-    target_compile_options(mango PUBLIC -Weverything)
-    target_compile_options(mango PUBLIC -Werror)
+    # target_compile_options(mango PUBLIC -Weverything)
+    # target_compile_options(mango PUBLIC -Werror)
 
     target_compile_options(mango PUBLIC -Wno-c++98-compat)
     target_compile_options(mango PUBLIC -Wno-c++98-compat-pedantic)
@@ -79,9 +81,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-documentation-unknown-command)
     target_compile_options(mango PUBLIC -Wno-exit-time-destructors)
 
-    target_compile_options(mango PUBLIC -flto)
-    target_link_options(mango PUBLIC -flto)
-
     # Windows edge case with the address sanitizer
     # https://github.com/llvm/llvm-project/issues/56300
     if (WIN32)    
@@ -91,14 +90,14 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     endif()
   
     # https://clang.llvm.org/docs/UsersManual.html#controlling-code-generation
-    target_compile_options(mango PUBLIC -fsanitize=address)
-    target_link_options(mango PUBLIC -fsanitize=address)
+    # target_compile_options(mango PUBLIC -fsanitize=address)
+    # target_link_options(mango PUBLIC -fsanitize=address)
 
-    target_compile_options(mango PUBLIC -fsanitize=undefined)
-    target_link_options(mango PUBLIC -fsanitize=undefined)
+    # target_compile_options(mango PUBLIC -fsanitize=undefined)
+    # target_link_options(mango PUBLIC -fsanitize=undefined)
 
-    target_compile_options(mango PUBLIC -fsanitize=kcfi)
-    target_link_options(mango PUBLIC -fsanitize=kcfi)
+    # target_compile_options(mango PUBLIC -fsanitize=kcfi)
+    # target_link_options(mango PUBLIC -fsanitize=kcfi)
 
     target_compile_options(mango PUBLIC -nostdinc++ -stdlib=libc++)
     target_compile_options(mango PUBLIC -Wno-unused-command-line-argument)

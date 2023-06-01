@@ -88,7 +88,7 @@ namespace game::world
 
         util::panic(
             "Unreachable enum {}", static_cast<std::uint_fast8_t>(octant));
-        std::unreachable();
+        util::unreachable();
     }
 
     LocalPosition getOffsetPositionByOctant(Octant octant, std::int32_t size)
@@ -124,7 +124,7 @@ namespace game::world
 
         util::panic(
             "Unreachable enum {}", static_cast<std::uint_fast8_t>(octant));
-        std::unreachable();
+        util::unreachable();
     }
 
     std::array<std::pair<Node*, Octant>, 8>

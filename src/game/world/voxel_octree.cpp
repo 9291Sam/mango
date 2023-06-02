@@ -5,6 +5,7 @@
 #include <ranges>
 #include <type_traits>
 #include <util/log.hpp>
+#include <variant>
 
 namespace game::world
 {
@@ -266,6 +267,12 @@ namespace game::world
         }
     }
 
+    VoxelOctree::Position::operator std::string () const
+    {
+        return fmt::format(
+            "Position X: {} | Y: {} | Z: {}", this->x, this->y, this->z);
+    }
+
     VoxelOctree::VoxelVolume::VoxelVolume()
         : storage {Voxel {{0.0f, 0.0f, 0.0f, 0.0f}}}
     {}
@@ -302,6 +309,19 @@ namespace game::world
     VoxelOctree::Voxel&
     VoxelOctree::VoxelVolume::access(VoxelOctree::Position position)
     {
+        util::assertFatal(
+            position.x >= 0 && position.x < VoxelVolume::Size,
+            "X: {} is out of bounds!",
+            position.x);
+        util::assertFatal(
+            position.y >= 0 && position.y < VoxelVolume::Size,
+            "Y: {} is out of bounds!",
+            position.y);
+        util::assertFatal(
+            position.z >= 0 && position.z < VoxelVolume::Size,
+            "Z: {} is out of bounds!",
+            position.z);
+
         return this->storage
             [position.x * VoxelVolume::XMultiplier
              + position.y * VoxelVolume::YMultiplier
@@ -316,6 +336,21 @@ namespace game::world
 
     auto VoxelOctree::access(Position position) -> Voxel&
     {
+        const std::size_t extent = VoxelOctree::Extent * VoxelVolume::Size;
+
+        util::assertFatal(
+            position.x >= -extent && position.x < extent,
+            "X: {} is out of bounds!",
+            position.x);
+        util::assertFatal(
+            position.y >= extent && position.y < extent,
+            "Y: {} is out of bounds!",
+            position.y);
+        util::assertFatal(
+            position.z >= extent && position.z < extent,
+            "Z: {} is out of bounds!",
+            position.z);
+
         Node*        workingNode = &this->parent;
         VoxelVolume* localVolume = nullptr;
 
@@ -330,7 +365,13 @@ namespace game::world
             // if last index
             if (i == path.size() - 1)
             {
-                workingNode->data = std::make_unique<VoxelVolume>();
+                // Only allocate the VoxelVolume the first time its seen, if its
+                // already there we just use the one already there
+                if (!std::holds_alternative<std::unique_ptr<VoxelVolume>>(
+                        workingNode->data))
+                {
+                    workingNode->data = std::make_unique<VoxelVolume>();
+                }
             }
 
             std::visit(
@@ -351,11 +392,18 @@ namespace game::world
                 workingNode->data);
         }
 
+        std::int32_t i32Size = static_cast<std::int32_t>(VoxelVolume::Size);
+
         Position localPosition {
-            .x {position.x % static_cast<std::int32_t>(VoxelVolume::Size)},
-            .y {position.y % static_cast<std::int32_t>(VoxelVolume::Size)},
-            .z {position.z % static_cast<std::int32_t>(VoxelVolume::Size)},
+            .x {((position.x % i32Size) + i32Size) % i32Size},
+            .y {((position.y % i32Size) + i32Size) % i32Size},
+            .z {((position.z % i32Size) + i32Size) % i32Size},
         };
+
+        // fmt::print(
+        //     "{} || {}\n",
+        //     static_cast<std::string>(position),
+        //     static_cast<std::string>(localPosition));
 
         return localVolume->access(localPosition);
     }
@@ -398,13 +446,13 @@ namespace game::world
                 {
                     for (std::size_t i = 0; i < nodes.size(); ++i)
                     {
-                        if (node != nullptr)
+                        if (nodes[i] != nullptr)
                         {
                             glm::vec3 offset =
                                 center
                                 + getOffsetPositionByOctant(
                                     static_cast<VoxelOctree::Octant>(i),
-                                    static_cast<float>(size / 2));
+                                    static_cast<float>(size) / 2.0f);
 
                             drawImpl(
                                 outVertices,

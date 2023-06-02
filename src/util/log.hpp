@@ -70,7 +70,8 @@ namespace util
                 removalSize = str.size();
             }
 
-            return raw_file_name.substr(index + 1);
+            return fmt::format(
+                "{}:{}", raw_file_name.substr(index + 1), this->lineNumber);
         }
 
     private:

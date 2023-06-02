@@ -33,6 +33,8 @@ namespace game::world
             std::int32_t x;
             std::int32_t y;
             std::int32_t z;
+
+            operator std::string () const;
         };
 
         enum class Octant : std::uint_fast8_t

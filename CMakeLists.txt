@@ -98,11 +98,11 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     endif()
   
     # https://clang.llvm.org/docs/UsersManual.html#controlling-code-generation
-    target_compile_options(mango PUBLIC -fsanitize=address)
-    target_link_options(mango PUBLIC -fsanitize=address)
+    # target_compile_options(mango PUBLIC -fsanitize=address)
+    # target_link_options(mango PUBLIC -fsanitize=address)
 
-    target_compile_options(mango PUBLIC -fsanitize=undefined)
-    target_link_options(mango PUBLIC -fsanitize=undefined)
+    # target_compile_options(mango PUBLIC -fsanitize=undefined)
+    # target_link_options(mango PUBLIC -fsanitize=undefined)
 
   else()
     # Clang-cl

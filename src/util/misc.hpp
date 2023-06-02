@@ -7,6 +7,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace util
@@ -152,6 +153,12 @@ namespace util
         }
     }
 
+    template<Integer I>
+    constexpr inline I log_2(I number)
+    {
+        return static_cast<I>(std::bit_width(number) - 1);
+    }
+
     template<class T>
     using Fn = T*;
 
@@ -162,6 +169,13 @@ namespace util
 #elif defined(_MSC_VER) // MSVC
         __assume(false);
 #endif
+    }
+
+    template<class E>
+    constexpr inline std::underlying_type_t<E> toUnderlyingType(E e)
+        requires std::is_enum_v<E>
+    {
+        return static_cast<std::underlying_type_t<E>>(e);
     }
 
 } // namespace util

@@ -1,63 +1,105 @@
 #include "voxel_octree.hpp"
-#include "voxel.hpp"
-#include <array>
-#include <gfx/renderer.hpp>
-#include <gfx/vulkan/includes.hpp>
-#include <iostream>
-#include <util/misc.hpp>
-#include <utility>
-#include <vector>
-
-// TODO: lmfao this file is a fucking mess!
+#include "game/world/voxel_octree.hpp"
+#include "gfx/vulkan/gpu_data.hpp"
+#include "util/misc.hpp"
+#include <ranges>
+#include <type_traits>
+#include <util/log.hpp>
 
 namespace game::world
 {
-
-    LocalPosition::operator std::string ()
+    VoxelOctree::Octant getOctantOfPosition(VoxelOctree::Position position)
     {
-        return fmt::format(
-            "LocalPosition X: {} | Y: {} | Z: {}", this->x, this->y, this->z);
+        if (position.x >= 0)
+        {
+            if (position.y >= 0)
+            {
+                if (position.z >= 0)
+                {
+                    return VoxelOctree::Octant::pXpYpZ;
+                }
+                else
+                {
+                    return VoxelOctree::Octant::pXpYnZ;
+                }
+            }
+            else
+            {
+                if (position.z >= 0)
+                {
+                    return VoxelOctree::Octant::pXnYpZ;
+                }
+                else
+                {
+                    return VoxelOctree::Octant::pXnYnZ;
+                }
+            }
+        }
+        else
+        {
+            if (position.y >= 0)
+            {
+                if (position.z >= 0)
+                {
+                    return VoxelOctree::Octant::nXpYpZ;
+                }
+                else
+                {
+                    return VoxelOctree::Octant::nXpYnZ;
+                }
+            }
+            else
+            {
+                if (position.z >= 0)
+                {
+                    return VoxelOctree::Octant::nXnYpZ;
+                }
+                else
+                {
+                    return VoxelOctree::Octant::nXnYnZ;
+                }
+            }
+        }
     }
-    class Node;
 
-    class Node
+    VoxelOctree::Position
+    getOffsetPositionByOctant(VoxelOctree::Octant octant, std::int32_t size)
     {
-    public:
+        using enum VoxelOctree::Octant;
 
-        Node(Voxel v)
-            : children {v}
-        {}
-        Node(std::array<std::unique_ptr<Node>, 8> nodes)
-            : children {std::move(nodes)}
-        {}
-        Node()
-            : children {Voxel {glm::vec4 {0.0f, 0.0f, 0.0f, 0.0f}}}
-        {}
-        ~Node() = default;
+        switch (octant)
+        {
+        case pXpYpZ:
+            return VoxelOctree::Position {.x {size}, .y {size}, .z {size}};
 
-        Node(const Node&)             = delete;
-        Node(Node&&)                  = default;
-        Node& operator= (const Node&) = delete;
-        Node& operator= (Node&&)      = default;
+        case pXpYnZ:
+            return VoxelOctree::Position {.x {size}, .y {size}, .z {-size}};
 
-        std::variant<Voxel, std::array<std::unique_ptr<Node>, 8>> children;
-    };
+        case pXnYpZ:
+            return VoxelOctree::Position {.x {size}, .y {-size}, .z {size}};
 
-    enum class Octant : std::uint_fast8_t
+        case pXnYnZ:
+            return VoxelOctree::Position {.x {size}, .y {-size}, .z {-size}};
+
+        case nXpYpZ:
+            return VoxelOctree::Position {.x {-size}, .y {size}, .z {size}};
+
+        case nXpYnZ:
+            return VoxelOctree::Position {.x {-size}, .y {size}, .z {-size}};
+
+        case nXnYpZ:
+            return VoxelOctree::Position {.x {-size}, .y {-size}, .z {size}};
+
+        case nXnYnZ:
+            return VoxelOctree::Position {.x {-size}, .y {-size}, .z {-size}};
+        }
+
+        util::panic("Unreachable enum {}", util::toUnderlyingType(octant));
+    }
+
+    glm::vec3 getOffsetPositionByOctant(VoxelOctree::Octant octant, float size)
     {
-        pXpYpZ = 0,
-        pXpYnZ = 1,
-        pXnYpZ = 2,
-        pXnYnZ = 3,
-        nXpYpZ = 4,
-        nXpYnZ = 5,
-        nXnYpZ = 6,
-        nXnYnZ = 7,
-    };
-
-    glm::vec3 getOffsetPositionByOctant(Octant octant, float size)
-    {
-        using enum Octant;
+        using enum VoxelOctree::Octant;
 
         switch (octant)
         {
@@ -86,66 +128,49 @@ namespace game::world
             return glm::vec3 {-size, -size, -size};
         }
 
-        util::panic(
-            "Unreachable enum {}", static_cast<std::uint_fast8_t>(octant));
-        util::unreachable();
+        util::panic("Unreachable enum {}", util::toUnderlyingType(octant));
     }
 
-    LocalPosition getOffsetPositionByOctant(Octant octant, std::int32_t size)
+    std::array<
+        std::underlying_type_t<VoxelOctree::Octant>,
+        VoxelOctree::TraversalSteps>
+    getPathToVolume(VoxelOctree::Position position)
     {
-        using enum Octant;
+        std::size_t nextIndexToPopulate = 0;
+        std::array<
+            std::underlying_type_t<VoxelOctree::Octant>,
+            VoxelOctree::TraversalSteps>
+            output {};
 
-        switch (octant)
+        std::int32_t size =
+            static_cast<std::int32_t>(VoxelOctree::VoxelVolume::Size / 2);
+
+        while (nextIndexToPopulate != VoxelOctree::TraversalSteps)
         {
-        case pXpYpZ:
-            return LocalPosition {.x {size}, .y {size}, .z {size}};
+            VoxelOctree::Octant octant = getOctantOfPosition(position);
 
-        case pXpYnZ:
-            return LocalPosition {.x {size}, .y {size}, .z {-size}};
+            output[nextIndexToPopulate] = util::toUnderlyingType(octant);
 
-        case pXnYpZ:
-            return LocalPosition {.x {size}, .y {-size}, .z {size}};
+            VoxelOctree::Position difference =
+                getOffsetPositionByOctant(octant, size / 2);
 
-        case pXnYnZ:
-            return LocalPosition {.x {size}, .y {-size}, .z {-size}};
+            size = size / 2;
 
-        case nXpYpZ:
-            return LocalPosition {.x {-size}, .y {size}, .z {size}};
+            position.x -= difference.x;
+            position.y -= difference.y;
+            position.z -= difference.z;
 
-        case nXpYnZ:
-            return LocalPosition {.x {-size}, .y {size}, .z {-size}};
-
-        case nXnYpZ:
-            return LocalPosition {.x {-size}, .y {-size}, .z {size}};
-
-        case nXnYnZ:
-            return LocalPosition {.x {-size}, .y {-size}, .z {-size}};
+            ++nextIndexToPopulate;
         }
 
-        util::panic(
-            "Unreachable enum {}", static_cast<std::uint_fast8_t>(octant));
-        util::unreachable();
-    }
-
-    std::array<std::pair<Node*, Octant>, 8>
-    iterateOverChildren(std::array<std::unique_ptr<Node>, 8>& children)
-    {
-        return std::array<std::pair<Node*, Octant>, 8> {
-            std::make_pair(children[0].get(), static_cast<Octant>(0)),
-            std::make_pair(children[1].get(), static_cast<Octant>(1)),
-            std::make_pair(children[2].get(), static_cast<Octant>(2)),
-            std::make_pair(children[3].get(), static_cast<Octant>(3)),
-            std::make_pair(children[4].get(), static_cast<Octant>(4)),
-            std::make_pair(children[5].get(), static_cast<Octant>(5)),
-            std::make_pair(children[6].get(), static_cast<Octant>(6)),
-            std::make_pair(children[7].get(), static_cast<Octant>(7))};
+        return output;
     }
 
     void generateTrianglesFromVoxel(
         std::vector<gfx::vulkan::Vertex>& vertices,
         std::vector<gfx::vulkan::Index>&  indices,
         glm::vec3                         position,
-        Voxel                             voxel,
+        VoxelOctree::Voxel                voxel,
         float                             size)
     {
         if (!voxel.shouldDraw())
@@ -156,49 +181,49 @@ namespace game::world
         const std::array<gfx::vulkan::Vertex, 8> cube_vertices {
             gfx::vulkan::Vertex {
                 .position {-0.5f, -0.5f, -0.5f},
-                .color {voxel.linear_color},
+                .color {voxel.color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
                 .position {-0.5f, -0.5f, 0.5f},
-                .color {voxel.linear_color},
+                .color {voxel.color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
                 .position {-0.5f, 0.5f, -0.5f},
-                .color {voxel.linear_color},
+                .color {voxel.color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
                 .position {-0.5f, 0.5f, 0.5f},
-                .color {voxel.linear_color},
+                .color {voxel.color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
                 .position {0.5f, -0.5f, -0.5f},
-                .color {voxel.linear_color},
+                .color {voxel.color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
                 .position {0.5f, -0.5f, 0.5f},
-                .color {voxel.linear_color},
+                .color {voxel.color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
                 .position {0.5f, 0.5f, -0.5f},
-                .color {voxel.linear_color},
+                .color {voxel.color},
                 .normal {},
                 .uv {},
             },
             gfx::vulkan::Vertex {
                 .position {0.5f, 0.5f, 0.5f},
-                .color {voxel.linear_color},
+                .color {voxel.color},
                 .normal {},
                 .uv {},
             },
@@ -229,275 +254,189 @@ namespace game::world
         }
     }
 
-    void generateTrianglesFromOctree(
-        std::size_t                       size,
-        glm::vec3                         voxelPosition,
-        std::vector<gfx::vulkan::Vertex>& vertices,
-        std::vector<gfx::vulkan::Index>&  indices,
-        Node*                             node)
+    bool VoxelOctree::Voxel::shouldDraw() const
     {
-        if (node == nullptr)
+        if (this->color.a == 0.0f)
         {
-            util::logWarn("node base case!");
-            return;
-        }
-
-        std::visit(
-            util::VariantHelper {
-                [&](Voxel v)
-                {
-                    generateTrianglesFromVoxel(
-                        vertices,
-                        indices,
-                        voxelPosition,
-                        v,
-                        static_cast<float>(size));
-                },
-                [&](std::array<std::unique_ptr<Node>, 8>& children)
-                {
-                    if (size == 1)
-                    {
-                        util::panic(
-                            "Tried to access child nodes of node of size 1");
-                    }
-                    else
-                    {
-                        for (auto& [currentNode, octant] :
-                             iterateOverChildren(children))
-                        {
-                            generateTrianglesFromOctree(
-                                size / 2,
-                                voxelPosition
-                                    + getOffsetPositionByOctant(
-                                        octant, static_cast<float>(size) / 4),
-                                vertices,
-                                indices,
-                                currentNode);
-                        }
-                    }
-                }},
-            node->children);
-    }
-
-    VoxelOctree::VoxelOctree(
-        gfx::Renderer& renderer_, glm::vec3 centerPosition, std::size_t levels_)
-        : levels {levels_}
-        , dimension {util::exponentiate<std::size_t>(2, this->levels)}
-        , renderer {renderer_}
-        , objects {}
-        , root {std::make_unique<Node>()}
-        , center_position {centerPosition}
-    // , number_of_voxels {1}
-    // , voxels_per_object {10'000} // TODO: tune
-    {}
-
-    VoxelOctree::~VoxelOctree() {}
-
-    std::vector<std::shared_ptr<gfx::Object>>
-    VoxelOctree::draw([[maybe_unused]] glm::vec3 lookAtVector)
-    {
-        if (this->objects.size() == 0)
-        {
-            util::logTrace("Regenerating tree!");
-
-            std::vector<gfx::vulkan::Vertex> vertices {};
-            std::vector<gfx::vulkan::Index>  indices {};
-
-            generateTrianglesFromOctree(
-                this->dimension,
-                this->center_position,
-                vertices,
-                indices,
-                this->root.get());
-
-            this->objects.push_back(this->renderer.createTriangulatedObject(
-                gfx::vulkan::PipelineType::Flat, vertices, indices));
-
-            util::logTrace(
-                "Created world with sizes of {} {}",
-                vertices.size(),
-                indices.size());
-        }
-
-        return this->objects; // copy!
-    }
-
-    Octant getOctantFromPosition(LocalPosition position)
-    {
-        if (position.x >= 0)
-        {
-            if (position.y >= 0)
-            {
-                if (position.z >= 0)
-                {
-                    return Octant::pXpYpZ;
-                }
-                else
-                {
-                    return Octant::pXpYnZ;
-                }
-            }
-            else
-            {
-                if (position.z >= 0)
-                {
-                    return Octant::pXnYpZ;
-                }
-                else
-                {
-                    return Octant::pXnYnZ;
-                }
-            }
+            return false;
         }
         else
         {
-            if (position.y >= 0)
+            return true;
+        }
+    }
+
+    VoxelOctree::VoxelVolume::VoxelVolume()
+        : storage {Voxel {{0.0f, 0.0f, 0.0f, 0.0f}}}
+    {}
+
+    std::pair<std::vector<gfx::vulkan::Vertex>, std::vector<gfx::vulkan::Index>>
+    VoxelOctree::VoxelVolume::draw() const
+    {
+        std::vector<gfx::vulkan::Vertex> outputVertices;
+        std::vector<gfx::vulkan::Index>  outputIndices;
+
+        auto iterator = std::ranges::iota_view {
+            0, static_cast<std::int32_t>(VoxelVolume::Size)};
+
+        for (std::int32_t x : iterator)
+        {
+            for (std::int32_t y : iterator)
             {
-                if (position.z >= 0)
+                for (std::int32_t z : iterator)
                 {
-                    return Octant::nXpYpZ;
-                }
-                else
-                {
-                    return Octant::nXpYnZ;
+                    generateTrianglesFromVoxel(
+                        outputVertices,
+                        outputIndices,
+                        glm::vec3 {x, y, z},
+                        this->access(Position {x, y, z}),
+                        1.0f);
                 }
             }
-            else
+        }
+
+        return std::make_pair(
+            std::move(outputVertices), std::move(outputIndices));
+    }
+
+    VoxelOctree::Voxel&
+    VoxelOctree::VoxelVolume::access(VoxelOctree::Position position)
+    {
+        return this->storage
+            [position.x * VoxelVolume::XMultiplier
+             + position.y * VoxelVolume::YMultiplier
+             + position.z * VoxelVolume::ZMultiplier];
+    }
+
+    VoxelOctree::Voxel
+    VoxelOctree::VoxelVolume::access(VoxelOctree::Position position) const
+    {
+        return const_cast<VoxelVolume*>(this)->access(position);
+    }
+
+    auto VoxelOctree::access(Position position) -> Voxel&
+    {
+        Node*        workingNode = &this->parent;
+        VoxelVolume* localVolume = nullptr;
+
+        std::array<
+            std::underlying_type_t<VoxelOctree::Octant>,
+            VoxelOctree::TraversalSteps>
+            path = getPathToVolume(position);
+
+        for (std::size_t i = 0; i < path.size(); ++i)
+        {
+            // population routine of Volume
+            // if last index
+            if (i == path.size() - 1)
             {
-                if (position.z >= 0)
-                {
-                    return Octant::nXnYpZ;
-                }
-                else
-                {
-                    return Octant::nXnYnZ;
-                }
-            }
-        }
-    }
-
-    void generateIndiciesToGetToVoxelImpl(
-        std::vector<std::size_t>& indicies,
-        LocalPosition             position,
-        std::size_t               size)
-    {
-        // TODO: move to switch
-        if (size < 2)
-        {
-            util::panic(
-                "Invalid generateIndiciesToGetToVoxelImpl size {}", size);
-        }
-
-        if (size == 2)
-        {
-            // util::assertFatal(
-            //     position.x == 0 || position.x == -1,
-            //     "Invalid position.x {}",
-            //     position.x);
-
-            // util::assertFatal(
-            //     position.y == 0 || position.y == -1,
-            //     "Invalid position.y {}",
-            //     position.y);
-
-            // util::assertFatal(
-            //     position.z == 0 || position.z == -1,
-            //     "Invalid position.z {}",
-            //     position.z);
-
-            indicies.push_back(
-                static_cast<std::size_t>(getOctantFromPosition(position)));
-            return;
-        }
-
-        Octant o = getOctantFromPosition(position);
-
-        indicies.push_back(static_cast<std::size_t>(o));
-
-        LocalPosition offset =
-            getOffsetPositionByOctant(o, static_cast<std::int32_t>(size / 2));
-
-        generateIndiciesToGetToVoxelImpl(indicies, position - offset, size / 2);
-    }
-
-    std::vector<std::size_t>
-    generateIndiciesToGetToVoxel(LocalPosition position, std::size_t totalSize)
-    {
-        std::vector<std::size_t> indices {};
-
-        generateIndiciesToGetToVoxelImpl(indices, position, totalSize);
-
-        return indices;
-    }
-
-    void VoxelOctree::insertVoxelAtPosition(Voxel voxel, LocalPosition position)
-    {
-        // TODO: these arent accurate since its actually like -127 -> +128 ish
-
-        const std::size_t halfDimension = this->dimension / 2;
-
-        util::assertFatal(
-            static_cast<std::size_t>(std::abs(position.x + 1)) <= halfDimension,
-            "X position {} is outside tree of dimension -{} -> +{}",
-            position.x,
-            halfDimension,
-            halfDimension - 1);
-
-        util::assertFatal(
-            static_cast<std::size_t>(std::abs(position.y + 1)) <= halfDimension,
-            "Y position {} is outside tree of dimension -{} -> +{}",
-            position.y,
-            halfDimension,
-            halfDimension - 1);
-
-        util::assertFatal(
-            static_cast<std::size_t>(std::abs(position.z + 1)) <= halfDimension,
-            "Z position {} is outside tree of dimension -{} -> +{}",
-            position.z,
-            halfDimension,
-            halfDimension - 1);
-
-        std::vector<std::size_t> indicesToVoxel =
-            generateIndiciesToGetToVoxel(position, this->dimension);
-
-        util::assertWarn(
-            indicesToVoxel.size() == this->levels,
-            "Invalid number of indicies | Levels: {} | DesiredPosition: {}",
-            this->levels,
-            static_cast<std::string>(position));
-
-        Node* workingNode = this->root.get();
-
-        for (std::size_t index : indicesToVoxel)
-        {
-            if (std::holds_alternative<Voxel>(workingNode->children))
-            {
-                // populate required tree nodes
-
-                Voxel voxelToPopulate =
-                    *std::get_if<Voxel>(&workingNode->children);
-
-                std::array<std::unique_ptr<Node>, 8> array {nullptr};
-                for (std::unique_ptr<Node>& n : array)
-                {
-                    n = std::make_unique<Node>(voxelToPopulate);
-                }
-
-                workingNode->children =
-                    std::variant<Voxel, std::array<std::unique_ptr<Node>, 8>> {
-                        std::move(array)};
+                workingNode->data = std::make_unique<VoxelVolume>();
             }
 
-            workingNode = (*std::get_if<std::array<std::unique_ptr<Node>, 8>>(
-                &workingNode->children))[index]
-                              .get();
+            std::visit(
+                util::VariantHelper {
+                    [&](const std::unique_ptr<VoxelVolume>& volume)
+                    {
+                        localVolume = volume.get();
+                    },
+                    [&](std::array<std::unique_ptr<Node>, 8>& nodes)
+                    {
+                        if (nodes[i] == nullptr)
+                        {
+                            nodes[i] = std::make_unique<Node>();
+                        }
+
+                        workingNode = nodes[i].get();
+                    }},
+                workingNode->data);
         }
 
-        // workingNode is now a pointer to the node that we want
-        workingNode->children =
-            std::variant<Voxel, std::array<std::unique_ptr<Node>, 8>> {voxel};
+        Position localPosition {
+            .x {position.x % static_cast<std::int32_t>(VoxelVolume::Size)},
+            .y {position.y % static_cast<std::int32_t>(VoxelVolume::Size)},
+            .z {position.z % static_cast<std::int32_t>(VoxelVolume::Size)},
+        };
 
-        this->objects.clear(); // reset
+        return localVolume->access(localPosition);
     }
+
+    void drawImpl(
+        std::vector<gfx::vulkan::Vertex>& outVertices,
+        std::vector<gfx::vulkan::Index>&  outIndices,
+        const VoxelOctree::Node*          node,
+        glm::vec3                         center,
+        std::size_t                       size)
+    {
+        std::visit(
+            util::VariantHelper {
+                [&](const std::unique_ptr<VoxelOctree::VoxelVolume>& volume)
+                {
+                    auto [vertices, indices] = volume->draw();
+
+                    // TODO: code duplication!
+                    const std::size_t indicesOffset = outVertices.size();
+
+                    for (gfx::vulkan::Index& i : indices)
+                    {
+                        i += indicesOffset;
+                    }
+
+                    for (gfx::vulkan::Vertex vertex : vertices)
+                    {
+                        vertex.position += center;
+
+                        outVertices.push_back(vertex);
+                    }
+
+                    for (gfx::vulkan::Index index : indices)
+                    {
+                        outIndices.push_back(index + indicesOffset);
+                    }
+                },
+                [&](const std::array<std::unique_ptr<VoxelOctree::Node>, 8>&
+                        nodes)
+                {
+                    for (std::size_t i = 0; i < nodes.size(); ++i)
+                    {
+                        if (node != nullptr)
+                        {
+                            glm::vec3 offset =
+                                center
+                                + getOffsetPositionByOctant(
+                                    static_cast<VoxelOctree::Octant>(i),
+                                    static_cast<float>(size / 2));
+
+                            drawImpl(
+                                outVertices,
+                                outIndices,
+                                nodes[i].get(),
+                                offset,
+                                size / 2);
+                        }
+                    }
+                }},
+            node->data);
+    }
+
+    std::pair<std::vector<gfx::vulkan::Vertex>, std::vector<gfx::vulkan::Index>>
+    VoxelOctree::draw() const
+    {
+        std::vector<gfx::vulkan::Vertex> outputVertices;
+        std::vector<gfx::vulkan::Index>  outputIndices;
+
+        drawImpl(
+            outputVertices,
+            outputIndices,
+            &this->parent,
+            glm::vec3 {0.0f, 0.0f, 0.0f},
+            VoxelOctree::Extent * VoxelOctree::VoxelVolume::Size);
+
+        return std::make_pair(
+            std::move(outputVertices), std::move(outputIndices));
+    }
+
+    VoxelOctree::Node::Node()
+        : data {std::array<std::unique_ptr<Node>, 8> {nullptr}}
+    {}
 
 } // namespace game::world

@@ -47,6 +47,7 @@ add_executable(mango
   src/game/entity/entity.cpp
 
   src/game/world/voxel_octree.cpp
+  src/game/world/world.cpp
   
   src/game/game.cpp
   src/game/player.cpp

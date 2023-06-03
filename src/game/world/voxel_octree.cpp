@@ -132,40 +132,101 @@ namespace game::world
         util::panic("Unreachable enum {}", util::toUnderlyingType(octant));
     }
 
+    void generateIndiciesToGetToVoxelImpl(
+        std::vector<std::size_t>& indicies,
+        VoxelOctree::Position     position,
+        std::size_t               size)
+    {
+        // TODO: move to switch
+        if (size < 2)
+        {
+            util::panic(
+                "Invalid generateIndiciesToGetToVoxelImpl size {}", size);
+        }
+
+        if (size == 2)
+        {
+            indicies.push_back(
+                static_cast<std::size_t>(getOctantOfPosition(position)));
+            return;
+        }
+
+        VoxelOctree::Octant o = getOctantOfPosition(position);
+
+        indicies.push_back(static_cast<std::size_t>(o));
+
+        VoxelOctree::Position offset =
+            getOffsetPositionByOctant(o, static_cast<std::int32_t>(size / 2));
+
+        VoxelOctree::Position subtractedOffset {
+            .x {position.x - offset.x},
+            .y {position.y - offset.y},
+            .z {position.z - offset.z},
+        };
+
+        generateIndiciesToGetToVoxelImpl(indicies, subtractedOffset, size / 2);
+    }
+
     std::array<
         std::underlying_type_t<VoxelOctree::Octant>,
         VoxelOctree::TraversalSteps>
     getPathToVolume(VoxelOctree::Position position)
     {
-        std::size_t nextIndexToPopulate = 0;
+        std::vector<std::size_t> indices {};
+
+        generateIndiciesToGetToVoxelImpl(
+            indices,
+            position,
+            VoxelOctree::VoxelVolume::Size * VoxelOctree::Extent);
+
         std::array<
             std::underlying_type_t<VoxelOctree::Octant>,
             VoxelOctree::TraversalSteps>
-            output {};
+            output;
 
-        std::int32_t size =
-            static_cast<std::int32_t>(VoxelOctree::VoxelVolume::Size / 2);
-
-        while (nextIndexToPopulate != VoxelOctree::TraversalSteps)
+        // TODO: trim the excess lmfao
+        for (std::size_t i = 0; i < output.size(); ++i)
         {
-            VoxelOctree::Octant octant = getOctantOfPosition(position);
-
-            output[nextIndexToPopulate] = util::toUnderlyingType(octant);
-
-            VoxelOctree::Position difference =
-                getOffsetPositionByOctant(octant, size / 2);
-
-            size = size / 2;
-
-            position.x -= difference.x;
-            position.y -= difference.y;
-            position.z -= difference.z;
-
-            ++nextIndexToPopulate;
+            output[i] = indices.at(i);
         }
 
         return output;
     }
+
+    // std::array<
+    //     std::underlying_type_t<VoxelOctree::Octant>,
+    //     VoxelOctree::TraversalSteps>
+    // getPathToVolume(VoxelOctree::Position position)
+    // {
+    //     std::size_t nextIndexToPopulate = 0;
+    //     std::array<
+    //         std::underlying_type_t<VoxelOctree::Octant>,
+    //         VoxelOctree::TraversalSteps>
+    //         output {};
+
+    //     std::int32_t size = static_cast<std::int32_t>(
+    //         VoxelOctree::VoxelVolume::Size * VoxelOctree::Extent);
+
+    //     while (nextIndexToPopulate != VoxelOctree::TraversalSteps)
+    //     {
+    //         VoxelOctree::Octant octant = getOctantOfPosition(position);
+
+    //         output[nextIndexToPopulate] = util::toUnderlyingType(octant);
+
+    //         VoxelOctree::Position difference =
+    //             getOffsetPositionByOctant(octant, size / 2);
+
+    //         size = size / 2;
+
+    //         position.x -= difference.x;
+    //         position.y -= difference.y;
+    //         position.z -= difference.z;
+
+    //         ++nextIndexToPopulate;
+    //     }
+
+    //     return output;
+    // }
 
     void generateTrianglesFromVoxel(
         std::vector<gfx::vulkan::Vertex>& vertices,
@@ -298,6 +359,13 @@ namespace game::world
                         glm::vec3 {x, y, z},
                         this->access(Position {x, y, z}),
                         1.0f);
+
+                    // util::logTrace(
+                    //     "Generated Voxel at position {} | {}",
+                    //     glm::to_string(
+                    //         outputVertices.at(outputVertices.size() - 1)
+                    //             .position),
+                    //     static_cast<std::string>(Position {x, y, z}));
                 }
             }
         }
@@ -336,42 +404,47 @@ namespace game::world
 
     auto VoxelOctree::access(Position position) -> Voxel&
     {
-        const std::size_t extent = VoxelOctree::Extent * VoxelVolume::Size;
+        const std::int32_t extent =
+            (VoxelOctree::Extent * VoxelVolume::Size) / 2;
 
         util::assertFatal(
             position.x >= -extent && position.x < extent,
             "X: {} is out of bounds!",
             position.x);
         util::assertFatal(
-            position.y >= extent && position.y < extent,
+            position.y >= -extent && position.y < extent,
             "Y: {} is out of bounds!",
             position.y);
         util::assertFatal(
-            position.z >= extent && position.z < extent,
+            position.z >= -extent && position.z < extent,
             "Z: {} is out of bounds!",
             position.z);
 
         Node*        workingNode = &this->parent;
         VoxelVolume* localVolume = nullptr;
 
+        // HERE
         std::array<
             std::underlying_type_t<VoxelOctree::Octant>,
             VoxelOctree::TraversalSteps>
             path = getPathToVolume(position);
 
+        // util::logTrace(
+        //     "Position: {} | Path: {}",
+        //     static_cast<std::string>(position),
+        //     util::toString(path));
+
         for (std::size_t i = 0; i < path.size(); ++i)
         {
             // population routine of Volume
             // if last index
-            if (i == path.size() - 1)
+            // If this is the last index and there isn't a voxelVolume here
+            // we need to create one, do so
+            if (i == path.size() - 1
+                && !std::holds_alternative<std::unique_ptr<VoxelVolume>>(
+                    workingNode->data))
             {
-                // Only allocate the VoxelVolume the first time its seen, if its
-                // already there we just use the one already there
-                if (!std::holds_alternative<std::unique_ptr<VoxelVolume>>(
-                        workingNode->data))
-                {
-                    workingNode->data = std::make_unique<VoxelVolume>();
-                }
+                workingNode->data = std::make_unique<VoxelVolume>();
             }
 
             std::visit(
@@ -382,12 +455,13 @@ namespace game::world
                     },
                     [&](std::array<std::unique_ptr<Node>, 8>& nodes)
                     {
-                        if (nodes[i] == nullptr)
+                        if (nodes[path[i]] == nullptr)
                         {
-                            nodes[i] = std::make_unique<Node>();
+                            // util::logTrace("Created new node!");
+                            nodes[path[i]] = std::make_unique<Node>();
                         }
 
-                        workingNode = nodes[i].get();
+                        workingNode = nodes[path[i]].get();
                     }},
                 workingNode->data);
         }
@@ -424,14 +498,14 @@ namespace game::world
                     // TODO: code duplication!
                     const std::size_t indicesOffset = outVertices.size();
 
-                    for (gfx::vulkan::Index& i : indices)
-                    {
-                        i += indicesOffset;
-                    }
-
-                    for (gfx::vulkan::Vertex vertex : vertices)
+                    for (gfx::vulkan::Vertex& vertex : vertices)
                     {
                         vertex.position += center;
+
+                        // util::logTrace(
+                        //     "Vertex at {} | {}",
+                        //     glm::to_string(vertex.position),
+                        //     glm::to_string(center));
 
                         outVertices.push_back(vertex);
                     }
@@ -440,6 +514,8 @@ namespace game::world
                     {
                         outIndices.push_back(index + indicesOffset);
                     }
+                    // util::logTrace(
+                    //     "Drew voxel volume @ {}", glm::to_string(center));
                 },
                 [&](const std::array<std::unique_ptr<VoxelOctree::Node>, 8>&
                         nodes)
@@ -448,18 +524,33 @@ namespace game::world
                     {
                         if (nodes[i] != nullptr)
                         {
-                            glm::vec3 offset =
-                                center
-                                + getOffsetPositionByOctant(
-                                    static_cast<VoxelOctree::Octant>(i),
-                                    static_cast<float>(size) / 2.0f);
+                            glm::vec3 rawOffset = getOffsetPositionByOctant(
+                                static_cast<VoxelOctree::Octant>(i),
+                                static_cast<float>(size) / 2.0f);
+
+                            glm::vec3 totalOffset = center + rawOffset;
+
+                            // util::logTrace(
+                            //     "Offset: {} | Center: {} | Total: {}",
+                            //     glm::to_string(rawOffset),
+                            //     glm::to_string(center),
+                            //     glm::to_string(totalOffset));
 
                             drawImpl(
                                 outVertices,
                                 outIndices,
                                 nodes[i].get(),
-                                offset,
+                                totalOffset,
                                 size / 2);
+
+                            // TODO: the drawing seems to be fine, its the
+                            // insertion routine
+                        }
+                        else
+                        {
+                            // util::logTrace(
+                            //     "Early discard of octant @ {}",
+                            //     glm::to_string(center));
                         }
                     }
                 }},

@@ -178,6 +178,22 @@ namespace util
         return static_cast<std::underlying_type_t<E>>(e);
     }
 
+    template<class T, std::size_t S>
+    constexpr inline std::string toString(const std::array<T, S>& array)
+        requires std::is_integral_v<T>
+    {
+        std::string output {};
+        output.reserve(S * 4);
+
+        for (const T& t : array)
+        {
+            output.append(std::to_string(t));
+            output.push_back(' ');
+        }
+
+        return output;
+    }
+
 } // namespace util
 
 #endif // SRC_UTIL_MISC_HPP

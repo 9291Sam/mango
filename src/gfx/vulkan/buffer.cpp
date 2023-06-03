@@ -8,7 +8,7 @@ namespace gfx::vulkan
         : allocator {nullptr}
         , buffer {nullptr}
         , allocation {nullptr}
-        , size {~ std::size_t {0}}
+        , size {~std::size_t {0}}
         , mapped_memory {nullptr}
     {}
 
@@ -56,8 +56,9 @@ namespace gfx::vulkan
 
         util::assertFatal(
             result == VK_SUCCESS,
-            "Failed to allocate buffer {}",
-            vk::to_string(vk::Result {result}));
+            "Failed to allocate buffer {} | Size: {}",
+            vk::to_string(vk::Result {result}),
+            this->size);
     }
 
     Buffer::~Buffer()

@@ -15,37 +15,54 @@ namespace game::world
             for (std::int32_t oy : std::views::iota(
                      VoxelOctree::VoxelMinimum, VoxelOctree::VoxelMaximum))
             {
-                const float normalizedX =
-                    static_cast<float>(ox)
-                    / static_cast<float>(VoxelOctree::VolumeExtent);
-                const float normalizedY =
-                    static_cast<float>(oy)
-                    / static_cast<float>(VoxelOctree::VolumeExtent);
+                const float normalizedX = util::map<float>(
+                    static_cast<float>(ox),
+                    static_cast<float>(VoxelOctree::VoxelMinimum),
+                    static_cast<float>(VoxelOctree::VoxelMaximum),
+                    -1.0f,
+                    1.0f);
 
-                const float pi4  = static_cast<float>(std::numbers::pi) * 2;
-                const float sinX = std::sin(normalizedX * pi4);
-                const float cosY = std::cos(normalizedY * pi4);
+                const float normalizedY = util::map<float>(
+                    static_cast<float>(oy),
+                    static_cast<float>(VoxelOctree::VoxelMinimum),
+                    static_cast<float>(VoxelOctree::VoxelMaximum),
+                    -1.0f,
+                    1.0f);
 
-                std::int32_t height = static_cast<std::int32_t>(
-                    std::atan2(1, 75 * normalizedX * normalizedY) * 25); // 250
+                auto height = [=]() -> std::int32_t
+                {
+                    const float rad =
+                        static_cast<float>(std::numbers::pi) * 120;
 
-                height += static_cast<std::int32_t>(8 * sinX + 8 * cosY);
+                    std::int32_t height =
+                        std::atan2(
+                            1.0f, std::numbers::pi * normalizedX * normalizedY)
+                        * 256;
 
-                // std::int32_t height = (ox + oy) / 2;
-                // std::int32_t height = 0;
+                    height += std::sin(normalizedX * rad) * 3;
+                    height += std::cos(normalizedY * rad) * 3;
 
-                float color = util::map(sinX + cosY, -2.83f, 2.83f, 0.0f, 1.0f);
+                    return height - 450;
+                };
 
-                color = std::sin(color * 100.0f);
+                world::Position outputPosition {ox, height(), oy};
 
-                // TODO: make flat and detect multiple accesses to the same
-                // place?
-                this->octree.access(world::Position {ox, height, oy}) =
-                    world::Voxel {glm::vec4 {
-                        std::abs(color),
-                        std::abs(normalizedX),
-                        std::abs(normalizedY),
-                        1.0f}};
+                glm::vec4 color {
+                    std::abs(
+                        normalizedX * normalizedY * normalizedX * normalizedY),
+                    util::map(normalizedX, -1.0f, 1.0f, 0.0f, 0.7f),
+                    util::map(normalizedY, -1.0f, 1.0f, 0.0f, 0.7f),
+                    1.0f};
+
+                if (height() % 2 == 0)
+                {
+                    color.r = 0.125f;
+                }
+
+                color /= 1.35f;
+                color.a = 1.0f;
+
+                this->octree.access(outputPosition) = world::Voxel {color};
             }
         }
 

@@ -61,7 +61,7 @@ namespace game::world
 
     struct VoxelVolume
     {
-        static constexpr std::size_t Extent {16};
+        static constexpr std::size_t Extent {26};
         static constexpr std::size_t Minimum {0};
         static constexpr std::size_t Maximum {Extent - 1};
 

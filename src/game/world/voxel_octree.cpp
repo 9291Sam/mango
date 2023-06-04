@@ -150,6 +150,11 @@ namespace game::world
                     const Voxel voxel = this->accessFromLocalPosition(
                         Position {localX, localY, localZ});
 
+                    if (!voxel.shouldDraw())
+                    {
+                        continue;
+                    }
+
                     // TODO: replace vertex with a smaller one
                     std::array<gfx::vulkan::Vertex, 8> cubeVertices {
                         gfx::vulkan::Vertex {

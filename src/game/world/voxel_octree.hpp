@@ -85,7 +85,7 @@ namespace game::world
     class VoxelOctree
     {
     public:
-        static constexpr std::size_t TraversalSteps {5};
+        static constexpr std::size_t TraversalSteps {7};
 
         static constexpr std::size_t VolumeExtent {
             util::exp(static_cast<std::size_t>(2), TraversalSteps)

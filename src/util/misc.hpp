@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <exception>
+#include <fmt/format.h>
 #include <numeric>
 #include <stdexcept>
 #include <string>
@@ -159,6 +160,23 @@ namespace util
         return static_cast<I>(std::bit_width(number) - 1);
     }
 
+    template<Integer I>
+    constexpr inline I exp(I base, I exp)
+    {
+        constexpr I Zero = static_cast<I>(0);
+        constexpr I One  = static_cast<I>(1);
+
+        switch (exp)
+        {
+        case Zero:
+            return One;
+        case One:
+            return base;
+        default:
+            return base * ::util::exp(base, exp - 1);
+        }
+    }
+
     template<class T>
     using Fn = T*;
 
@@ -189,6 +207,20 @@ namespace util
         {
             output.append(std::to_string(t));
             output.push_back(' ');
+        }
+
+        return output;
+    }
+
+    template<class T>
+    constexpr inline std::string toString(const std::vector<T>& vector)
+        requires std::is_integral_v<T>
+    {
+        std::string output {};
+
+        for (const T& t : vector)
+        {
+            output.append(fmt::format("{} ", std::to_string(t)));
         }
 
         return output;

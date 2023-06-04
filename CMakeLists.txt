@@ -11,7 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
 
 # Enable Link Time Optimization on non debug builds
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
 else()
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
@@ -73,9 +73,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -march=native)
     target_compile_options(mango PUBLIC -fvisibility=default)
     
-    # Add debug symbols that lldb can actually read
-    target_compile_options(mango PUBLIC -glldb)
-    target_compile_options(mango PUBLIC -gdwarf)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+      # Add debug symbols that lldb can actually read
+      target_compile_options(mango PUBLIC -glldb)
+      target_compile_options(mango PUBLIC -gdwarf-5)
+      target_compile_options(mango PUBLIC -g3)
+    endif()
 
     target_compile_options(mango PUBLIC -Wno-c++98-compat)
     target_compile_options(mango PUBLIC -Wno-c++98-compat-pedantic)

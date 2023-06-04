@@ -1,5 +1,5 @@
-#include "voxel_octree.hpp"
 #include "voxel.hpp"
+#include "voxel_octree.hpp"
 #include <array>
 #include <gfx/renderer.hpp>
 #include <gfx/vulkan/includes.hpp>

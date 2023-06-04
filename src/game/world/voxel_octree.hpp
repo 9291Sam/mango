@@ -1,75 +1,108 @@
-#ifndef SRC_GAME_WORLD_VOXEL__TREE_HPP
-#define SRC_GAME_WORLD_VOXEL__TREE_HPP
+#ifndef SRC_GAME_WORLD_VOXEL__OCTREE_HPP
+#define SRC_GAME_WORLD_VOXEL__OCTREE_HPP
 
 #include "gfx/vulkan/gpu_data.hpp"
-#include <bit>
 #include <gfx/vulkan/includes.hpp>
+#include <memory>
 #include <util/misc.hpp>
 #include <variant>
 
-// TODO: add floating origin
-// TODO: I like the idea of a fixed 65535^3 volume and you just have 27 of them
-// loaded in around the player?
-
 namespace game::world
 {
+    class VoxelVolume;
+
+    struct Node
+    {
+        Node();
+
+        std::variant<
+            std::unique_ptr<VoxelVolume>,
+            std::array<std::unique_ptr<Node>, 8>>
+            data;
+    };
+
+    struct Voxel
+    {
+        Voxel();
+        Voxel(glm::vec4);
+
+        glm::vec4 color;
+
+        bool shouldDraw() const;
+    };
+
+    enum class Octant : std::uint_fast8_t
+    {
+        pXpYpZ = 0,
+        pXpYnZ = 1,
+        pXnYpZ = 2,
+        pXnYnZ = 3,
+        nXpYpZ = 4,
+        nXpYnZ = 5,
+        nXnYpZ = 6,
+        nXnYnZ = 7,
+    };
+
+    struct Position
+    {
+        std::int32_t x;
+        std::int32_t y;
+        std::int32_t z;
+
+        Position operator- () const;
+        Position operator- (Position other) const;
+        Position operator+ (Position other) const;
+
+        operator glm::vec3 () const;
+
+        operator std::string () const;
+    };
+
+    struct VoxelVolume
+    {
+        static constexpr std::size_t Extent {16};
+        static constexpr std::size_t Minimum {0};
+        static constexpr std::size_t Maximum {Extent - 1};
+
+        VoxelVolume(Position localOffset);
+
+        // TODO: remove once working
+        Voxel& accessFromGlobalPosition(Position globalPosition);
+
+        void drawToVectors(
+            std::vector<gfx::vulkan::Vertex>&,
+            std::vector<gfx::vulkan::Index>&);
+
+    private:
+        Voxel& accessFromLocalPosition(Position localPosition);
+
+        Position local_offset;
+        std::array<std::array<std::array<Voxel, Extent>, Extent>, Extent>
+            storage;
+    };
+
     class VoxelOctree
     {
     public:
-        // this is the number of VoxelVolumes on on axis
-        // 4096^3 tree
-        static constexpr std::size_t Extent {256}; // TOTAL EXTENT -128 -> +127
-        static constexpr std::size_t TraversalSteps {util::log_2(Extent)};
+        static constexpr std::size_t TraversalSteps {8};
 
-        struct Voxel // TODO: migrate to std::uint8_t sRGB
-        {
-            glm::vec4 color;
+        static constexpr std::size_t VolumeExtent {
+            util::exp(static_cast<std::size_t>(2), TraversalSteps)
+            * VoxelVolume::Extent};
 
-            bool shouldDraw() const;
-        };
+        static constexpr std::int32_t VolumeMinimum {
+            -static_cast<std::int32_t>(VolumeExtent / 2)};
 
-        struct Position // TODO: make into a 16 bit integer for savings?
-        {
-            std::int32_t x;
-            std::int32_t y;
-            std::int32_t z;
+        static constexpr std::int32_t VolumeMaximum {
+            static_cast<std::int32_t>((VolumeExtent / 2) - 1)};
 
-            operator std::string () const;
-        };
+        static constexpr std::int32_t VoxelMinimum {
+            -static_cast<std::int32_t>((VolumeExtent * VoxelVolume::Extent))
+            / 2};
 
-        enum class Octant : std::uint_fast8_t
-        {
-            pXpYpZ = 0,
-            pXpYnZ = 1,
-            pXnYpZ = 2,
-            pXnYnZ = 3,
-            nXpYpZ = 4,
-            nXpYnZ = 5,
-            nXnYpZ = 6,
-            nXnYnZ = 7,
-        };
-
-        // TODO: bad name bad design
-        struct VoxelVolume
-        {
-            static constexpr std::size_t Size {16};
-            static constexpr std::size_t XMultiplier {1};
-            static constexpr std::size_t YMultiplier {Size};
-            static constexpr std::size_t ZMultiplier {Size * Size};
-
-            VoxelVolume();
-
-            std::pair<
-                std::vector<gfx::vulkan::Vertex>,
-                std::vector<gfx::vulkan::Index>>
-            draw() const;
-
-            Voxel& access(Position);
-            Voxel  access(Position) const;
-
-        private:
-            std::array<Voxel, Size * Size * Size> storage;
-        };
+        static constexpr std::int32_t VoxelMaximum {
+            (static_cast<std::int32_t>(VolumeExtent * VoxelVolume::Extent) / 2)
+            - 1};
     public:
         explicit VoxelOctree() = default;
         ~VoxelOctree()         = default;
@@ -79,35 +112,17 @@ namespace game::world
         VoxelOctree& operator= (const VoxelOctree&) = delete;
         VoxelOctree& operator= (VoxelOctree&&)      = delete;
 
-        Voxel& access(Position);
-
         std::pair<
             std::vector<gfx::vulkan::Vertex>,
             std::vector<gfx::vulkan::Index>>
         draw() const;
-        // TODO; draw from vertices
+
+        Voxel& access(Position);
+
 
     private:
-        struct Node
-        {
-            Node();
-
-            std::variant<
-                std::unique_ptr<VoxelVolume>,
-                std::array<std::unique_ptr<Node>, 8>>
-                data;
-        };
-
-        // me when I dont have recursive lambdas
-        friend void drawImpl(
-            std::vector<gfx::vulkan::Vertex>&,
-            std::vector<gfx::vulkan::Index>&,
-            const VoxelOctree::Node*,
-            glm::vec3,
-            std::size_t);
-
         Node parent;
     };
 } // namespace game::world
 
-#endif // SRC_GAME_WORLD_VOXEL__TREE_HPP
+#endif // SRC_GAME_WORLD_VOXEL__OCTREE_HPP

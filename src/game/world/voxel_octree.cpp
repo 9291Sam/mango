@@ -5,6 +5,7 @@
 #include <functional>
 #include <ranges>
 #include <util/log.hpp>
+#include <variant>
 
 namespace game::world
 {
@@ -15,19 +16,19 @@ namespace game::world
         switch (octant)
         {
         case pXpYpZ:
-            return Position {0, 0, 0};
+            return Position {size, size, size};
         case pXpYnZ:
-            return Position {0, 0, -size};
+            return Position {size, size, -size};
         case pXnYpZ:
-            return Position {0, -size, 0};
+            return Position {size, -size, size};
         case pXnYnZ:
-            return Position {0, -size, -size};
+            return Position {size, -size, -size};
         case nXpYpZ:
-            return Position {-size, 0, 0};
+            return Position {-size, size, size};
         case nXpYnZ:
-            return Position {-size, 0, -size};
+            return Position {-size, size, -size};
         case nXnYpZ:
-            return Position {-size, -size, 0};
+            return Position {-size, -size, size};
         case nXnYnZ:
             return Position {-size, -size, -size};
         }
@@ -75,6 +76,15 @@ namespace game::world
             this->x + other.x, this->y + other.y, this->z + other.z};
     }
 
+    Position Position::operator/ (std::int32_t number) const
+    {
+        return Position {
+            this->x / number,
+            this->y / number,
+            this->z / number,
+        };
+    }
+
     Position::operator glm::vec3 () const
     {
         return glm::vec3 {
@@ -96,17 +106,18 @@ namespace game::world
 
     Voxel& VoxelVolume::accessFromGlobalPosition(Position globalPosition)
     {
-        util::logTrace(
-            "Doing global lookup: {}",
-            static_cast<std::string>(globalPosition));
+        // util::logTrace(
+        //     "Doing global lookup: {}",
+        //     static_cast<std::string>(globalPosition));
         return this->accessFromLocalPosition(
             globalPosition - this->local_offset);
     }
 
     Voxel& VoxelVolume::accessFromLocalPosition(Position localPosition)
     {
-        util::logTrace(
-            "Doing local lookup: {}", static_cast<std::string>(localPosition));
+        // util::logTrace(
+        //     "Doing local lookup: {}",
+        //     static_cast<std::string>(localPosition));
 
         util::assertFatal(
             localPosition.x >= 0 && localPosition.x < VoxelVolume::Extent,
@@ -203,6 +214,9 @@ namespace game::world
                     {
                         v.position +=
                             static_cast<glm::vec3>(this->local_offset);
+
+                        v.position += static_cast<glm::vec3>(
+                            Position {localX, localY, localZ});
 
                         outputVertices.push_back(v);
                     }
@@ -307,63 +321,58 @@ namespace game::world
         }
     }
 
-    void generateIndiciesToGetToVoxelImpl(
-        std::vector<std::size_t>& indicies, Position position, std::size_t size)
+    std::array<std::size_t, VoxelOctree::TraversalSteps>
+    generateIndiciesToGetToVoxelVolume(Position position)
     {
-        // TODO: move to switch
-        if (size < 2)
+        std::size_t octantSize = VoxelOctree::VolumeExtent / 2;
+
+        std::vector<std::size_t> outputvec;
+
+        while (octantSize != 0)
         {
-            util::panic(
-                "Invalid generateIndiciesToGetToVoxelImpl size {}", size);
+            const Position origionalPosition = position;
+            const Octant   octant            = getOctantFromPosition(position);
+            const Position offsetPosition =
+                getOffsetPositionByOctant(octant, octantSize / 2);
+
+            outputvec.push_back(
+                static_cast<std::size_t>(util::toUnderlyingType(octant)));
+
+            position = position - offsetPosition;
+
+            // position = position / 2;
+
+            // util::logTrace(
+            //     "Iteration! | OctantSize: {} | OPosition: {} | MPosition: {}
+            //     | " "octant: {} | offset: {}", octantSize,
+            //     static_cast<std::string>(origionalPosition),
+            //     static_cast<std::string>(position),
+            //     util::toUnderlyingType(octant),
+            //     static_cast<std::string>(offsetPosition));
+
+            octantSize /= 2;
         }
 
-        if (size == 2)
+        // util::logTrace("Generated indices {}", util::toString(outputvec));
+
+        std::array<std::size_t, VoxelOctree::TraversalSteps> trunc {};
+
+        for (std::size_t i = 0; i < trunc.size(); ++i)
         {
-            // util::assertFatal(
-            //     position.x == 0 || position.x == -1,
-            //     "Invalid position.x {}",
-            //     position.x);
-
-            // util::assertFatal(
-            //     position.y == 0 || position.y == -1,
-            //     "Invalid position.y {}",
-            //     position.y);
-
-            // util::assertFatal(
-            //     position.z == 0 || position.z == -1,
-            //     "Invalid position.z {}",
-            //     position.z);
-
-            indicies.push_back(
-                static_cast<std::size_t>(getOctantFromPosition(position)));
-            return;
+            trunc[i] = outputvec.at(i);
         }
 
-        Octant o = getOctantFromPosition(position);
+        // util::logTrace(
+        //     "Generated Indices {} |T {}",
+        //     util::toString(outputvec),
+        //     util::toString(trunc));
 
-        indicies.push_back(static_cast<std::size_t>(o));
-
-        Position offset =
-            getOffsetPositionByOctant(o, static_cast<std::int32_t>(size / 2));
-
-        generateIndiciesToGetToVoxelImpl(indicies, position - offset, size / 2);
-    }
-
-    // TODO: make this function not redundant
-    std::vector<std::size_t>
-    generateIndiciesToGetToVoxel(Position position, std::size_t totalSize)
-    {
-        std::vector<std::size_t> indices {};
-
-        generateIndiciesToGetToVoxelImpl(indices, position, totalSize);
-
-        util::logTrace("generated indices {}", util::toString(indices));
-
-        return indices;
+        return trunc;
     }
 
     Voxel& VoxelOctree::access(Position globalPosition)
     {
+        // util::logTrace("\n\nStarted new access!");
         util::assertFatal(
             globalPosition.x >= VoxelMinimum
                 && globalPosition.x <= VoxelMaximum,
@@ -403,40 +412,15 @@ namespace game::world
             }
         };
 
+        // std::ignore = generateIndiciesToGetToVoxelVolume(Position {1602, 1,
+        // 0}); util::panic("Earlyterm");
+
         Node* workingNode = &this->parent;
 
-        std::size_t iteration = 0;
         for (std::size_t index :
-             generateIndiciesToGetToVoxel(globalPosition, VolumeExtent))
+             generateIndiciesToGetToVoxelVolume(globalPosition))
         {
-            util::logTrace("Traversal step {}", index);
-            // on final iteration
-            if (iteration == VoxelOctree::TraversalSteps - 1)
-            {
-                std::unique_ptr<VoxelVolume>* maybeVolume =
-                    std::get_if<std::unique_ptr<VoxelVolume>>(
-                        &workingNode->data);
-
-                if (maybeVolume == nullptr)
-                {
-                    // initalize node with correct position
-                    workingNode->data = std::make_unique<VoxelVolume>(Position {
-                        roundDownToNearestMultipleOfN(
-                            static_cast<std::int32_t>(VoxelVolume::Extent),
-                            globalPosition.x),
-                        roundDownToNearestMultipleOfN(
-                            static_cast<std::int32_t>(VoxelVolume::Extent),
-                            globalPosition.y),
-                        roundDownToNearestMultipleOfN(
-                            static_cast<std::int32_t>(VoxelVolume::Extent),
-                            globalPosition.z),
-                    });
-                }
-                // else just fall through and exit the loop
-                // the following code already knows its a tree
-
-                break;
-            }
+            // util::logTrace("Traversal step {}", index);
 
             std::visit(
                 util::VariantHelper {
@@ -444,9 +428,9 @@ namespace game::world
                     {
                         util::panic(
                             "Found voxel volume too early! Global position: {} "
-                            "| Iteration: {}",
+                            "| Index: {}",
                             static_cast<std::string>(globalPosition),
-                            iteration);
+                            index);
                     },
                     [&](std::array<std::unique_ptr<Node>, 8>& nodes)
                     {
@@ -458,15 +442,66 @@ namespace game::world
                             maybeNodeToTraverse = std::make_unique<Node>();
                         }
 
+                        // util::logTrace(
+                        //     "Traversing to node {} @ {}",
+                        //     (void*)(maybeNodeToTraverse.get()),
+                        //     index);
                         workingNode = maybeNodeToTraverse.get();
                     }},
                 workingNode->data);
 
-            ++iteration;
+            // on final iteration
+            // if (iteration == VoxelOctree::TraversalSteps - 1)
+            // {
+            //     util::logTrace("Broke out of traversal!");
+            //     break;
+            // }
+
+            // ++iteration;
         }
 
-        // We have traversed down the tree, workingNode is now pointing towards
-        // the node that contains the position that we want.
+        // We now have the last node. It's either a volume in which case
+        // everything is good. Or its more nodes in which case we need to
+        // replace it with a volume
+        if (std::array<std::unique_ptr<Node>, 8>* ptr =
+                std::get_if<std::array<std::unique_ptr<Node>, 8>>(
+                    &workingNode->data))
+        {
+            // The last node isn't a VoxelVolume, make it one
+            for (const std::unique_ptr<Node>& n : *ptr)
+            {
+                util::assertFatal(
+                    n == nullptr, "Node traversal was not nullptr");
+            }
+
+            Position volumePosition {
+                roundDownToNearestMultipleOfN(
+                    static_cast<std::int32_t>(VoxelVolume::Extent),
+                    globalPosition.x),
+                roundDownToNearestMultipleOfN(
+                    static_cast<std::int32_t>(VoxelVolume::Extent),
+                    globalPosition.y),
+                roundDownToNearestMultipleOfN(
+                    static_cast<std::int32_t>(VoxelVolume::Extent),
+                    globalPosition.z),
+            };
+
+            workingNode->data = std::make_unique<VoxelVolume>(volumePosition);
+
+            // util::logTrace(
+            //     "Instantiated new Volume @ {} | {}",
+            //     (void*)(std::get_if<std::unique_ptr<VoxelVolume>>(
+            //         &workingNode->data)),
+            //     static_cast<std::string>(volumePosition));
+        }
+
+        // util::logTrace(
+        //     "Working volulume Addr: {}",
+        //     (void*)(&std::get<std::unique_ptr<VoxelVolume>>(
+        //         workingNode->data)));
+
+        // We have traversed down the tree, workingNode is now pointing
+        // towards the node that contains the position that we want.
         return std::get<std::unique_ptr<VoxelVolume>>(workingNode->data)
             ->accessFromGlobalPosition(globalPosition);
     }

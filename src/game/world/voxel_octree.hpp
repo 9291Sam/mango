@@ -52,6 +52,7 @@ namespace game::world
         Position operator- () const;
         Position operator- (Position other) const;
         Position operator+ (Position other) const;
+        Position operator/ (std::int32_t) const;
 
         operator glm::vec3 () const;
 
@@ -84,25 +85,23 @@ namespace game::world
     class VoxelOctree
     {
     public:
-        static constexpr std::size_t TraversalSteps {8};
+        static constexpr std::size_t TraversalSteps {5};
 
         static constexpr std::size_t VolumeExtent {
             util::exp(static_cast<std::size_t>(2), TraversalSteps)
             * VoxelVolume::Extent};
 
-        static constexpr std::int32_t VolumeMinimum {
-            -static_cast<std::int32_t>(VolumeExtent / 2)};
+        // static constexpr std::int32_t VolumeMinimum {
+        //     -static_cast<std::int32_t>(VolumeExtent / 2)};
 
-        static constexpr std::int32_t VolumeMaximum {
-            static_cast<std::int32_t>((VolumeExtent / 2) - 1)};
+        // static constexpr std::int32_t VolumeMaximum {
+        //     static_cast<std::int32_t>((VolumeExtent / 2) - 1)};
 
         static constexpr std::int32_t VoxelMinimum {
-            -static_cast<std::int32_t>((VolumeExtent * VoxelVolume::Extent))
-            / 2};
+            -static_cast<std::int32_t>((VolumeExtent)) / 2};
 
         static constexpr std::int32_t VoxelMaximum {
-            (static_cast<std::int32_t>(VolumeExtent * VoxelVolume::Extent) / 2)
-            - 1};
+            (static_cast<std::int32_t>(VolumeExtent) / 2) - 1};
     public:
         explicit VoxelOctree() = default;
         ~VoxelOctree()         = default;

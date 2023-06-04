@@ -26,14 +26,13 @@ namespace game::world
                 const float sinX = std::sin(normalizedX * pi4);
                 const float cosY = std::cos(normalizedY * pi4);
 
-                // std::int32_t height = static_cast<std::int32_t>(
-                //     std::atan2(1, 75 * normalizedX * normalizedY) * 25); //
-                //     250
+                std::int32_t height = static_cast<std::int32_t>(
+                    std::atan2(1, 75 * normalizedX * normalizedY) * 25); // 250
 
-                // height += static_cast<std::int32_t>(8 * sinX + 8 * cosY);
+                height += static_cast<std::int32_t>(8 * sinX + 8 * cosY);
 
                 // std::int32_t height = (ox + oy) / 2;
-                std::int32_t height = 0;
+                // std::int32_t height = 0;
 
                 float color = util::map(sinX + cosY, -2.83f, 2.83f, 0.0f, 1.0f);
 
@@ -41,9 +40,12 @@ namespace game::world
 
                 // TODO: make flat and detect multiple accesses to the same
                 // place?
-                this->octree.access(world::Position {
-                    ox, height, oy}) = world::Voxel {glm::vec4 {
-                    color, std::abs(normalizedX), std::abs(normalizedY), 1.0f}};
+                this->octree.access(world::Position {ox, height, oy}) =
+                    world::Voxel {glm::vec4 {
+                        std::abs(color),
+                        std::abs(normalizedX),
+                        std::abs(normalizedY),
+                        1.0f}};
             }
         }
 

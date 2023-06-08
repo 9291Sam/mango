@@ -7,8 +7,6 @@
 
 int main()
 {
-    puts("asdf");
-
     util::logLog("mango started");
 
     try

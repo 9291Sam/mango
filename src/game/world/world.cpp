@@ -31,18 +31,17 @@ namespace game::world
 
                 auto height = [=]() -> std::int32_t
                 {
-                    const float rad =
-                        static_cast<float>(std::numbers::pi) * 120;
+                    const float rad = static_cast<float>(std::numbers::pi) * 60;
 
                     std::int32_t height =
                         std::atan2(
                             1.0f, std::numbers::pi * normalizedX * normalizedY)
-                        * 256;
+                        * 128;
 
-                    height += std::sin(normalizedX * rad) * 3;
-                    height += std::cos(normalizedY * rad) * 3;
+                    height += std::sin(normalizedX * rad) * 5;
+                    height += std::cos(normalizedY * rad) * 5;
 
-                    return height - 450;
+                    return height - 225;
                 };
 
                 world::Position outputPosition {ox, height(), oy};

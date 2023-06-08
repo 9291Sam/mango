@@ -3,9 +3,12 @@
 #include "util/log.hpp"
 #include "util/threads.hpp"
 #include "util/uuid.hpp"
+#include <stdio.h>
 
 int main()
 {
+    puts("asdf");
+
     util::logLog("mango started");
 
     try

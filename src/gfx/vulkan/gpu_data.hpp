@@ -2,11 +2,42 @@
 #define SRC_GFX_VULKAN_DATA_HPP
 
 #include "includes.hpp"
+#include "vulkan/vulkan_structs.hpp"
+#include <compare>
 #include <string>
+#include <type_traits>
 
 namespace gfx::vulkan
 {
     using Index = std::uint32_t;
+
+    template<class T, std::size_t N>
+    concept VulkanVertex = requires(const T t) {
+        {
+            T::getBindingDescription
+        } -> std::same_as<const vk::VertexInputBindingDescription*>;
+
+        {
+            T::getAttributeDescriptions
+        } -> std::same_as<
+            const std::array<vk::VertexInputAttributeDescription, N>*>;
+
+        {
+            t.operator std::string ()
+        } -> std::same_as<std::string>;
+
+        {
+            t == t
+        } -> std::same_as<bool>;
+
+        {
+            t <=> t
+        } -> std::same_as<std::partial_ordering>;
+
+        {
+            std::is_trivially_copyable_v<T>
+        };
+    };
     /// NOTE:
     /// If you change any of these, dont forget to update their
     /// corresponding structs in the shaders!

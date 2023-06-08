@@ -119,18 +119,18 @@ namespace game::world
         //     "Doing local lookup: {}",
         //     static_cast<std::string>(localPosition));
 
-        util::assertFatal(
-            localPosition.x >= 0 && localPosition.x < VoxelVolume::Extent,
-            "X: {} is out of bounds!",
-            localPosition.x);
-        util::assertFatal(
-            localPosition.y >= 0 && localPosition.y < VoxelVolume::Extent,
-            "Y: {} is out of bounds!",
-            localPosition.y);
-        util::assertFatal(
-            localPosition.z >= 0 && localPosition.z < VoxelVolume::Extent,
-            "Z: {} is out of bounds!",
-            localPosition.z);
+        // util::assertFatal(
+        //     localPosition.x >= 0 && localPosition.x < VoxelVolume::Extent,
+        //     "X: {} is out of bounds!",
+        //     localPosition.x);
+        // util::assertFatal(
+        //     localPosition.y >= 0 && localPosition.y < VoxelVolume::Extent,
+        //     "Y: {} is out of bounds!",
+        //     localPosition.y);
+        // util::assertFatal(
+        //     localPosition.z >= 0 && localPosition.z < VoxelVolume::Extent,
+        //     "Z: {} is out of bounds!",
+        //     localPosition.z);
 
         return this->storage[localPosition.x][localPosition.y][localPosition.z];
     }
@@ -156,7 +156,7 @@ namespace game::world
                     }
 
                     // TODO: replace vertex with a smaller one
-                    std::array<gfx::vulkan::Vertex, 8> cubeVertices {
+                    const std::array<gfx::vulkan::Vertex, 8> cubeVertices {
                         gfx::vulkan::Vertex {
                             .position {-0.5f, -0.5f, -0.5f},
                             .color {voxel.color},
@@ -207,7 +207,7 @@ namespace game::world
                         },
                     };
 
-                    std::array<gfx::vulkan::Index, 36> cubeIndices {
+                    constexpr std::array<gfx::vulkan::Index, 36> cubeIndices {
                         6, 2, 7, 2, 3, 7, 0, 4, 5, 1, 0, 5, 0, 2, 6, 4, 0, 6,
                         3, 1, 7, 1, 5, 7, 2, 0, 3, 0, 1, 3, 4, 6, 7, 5, 4, 7};
 
@@ -215,7 +215,7 @@ namespace game::world
 
                     // Update positions to be aligned with the world and insert
                     // into output
-                    for (gfx::vulkan::Vertex& v : cubeVertices)
+                    for (gfx::vulkan::Vertex v : cubeVertices)
                     {
                         v.position +=
                             static_cast<glm::vec3>(this->local_offset);
@@ -227,7 +227,7 @@ namespace game::world
                     }
 
                     // update indices to actually point to the correct index
-                    for (gfx::vulkan::Index& i : cubeIndices)
+                    for (gfx::vulkan::Index i : cubeIndices)
                     {
                         i += static_cast<std::uint32_t>(IndicesOffset);
 
@@ -329,55 +329,33 @@ namespace game::world
     std::array<std::size_t, VoxelOctree::TraversalSteps>
     generateIndiciesToGetToVoxelVolume(Position position)
     {
+        std::array<std::size_t, VoxelOctree::TraversalSteps> output {
+            ~static_cast<std::size_t>(0)};
+
+        std::size_t nextIndexToAdd = 0;
+
         std::size_t octantSize = VoxelOctree::VolumeExtent / 2;
 
-        std::vector<std::size_t> outputvec;
-
-        while (octantSize != 0)
+        while (nextIndexToAdd != output.size())
         {
-            const Position origionalPosition = position;
-            const Octant   octant            = getOctantFromPosition(position);
-            const Position offsetPosition =
-                getOffsetPositionByOctant(octant, octantSize / 2);
+            const Octant octant = getOctantFromPosition(position);
 
-            outputvec.push_back(
-                static_cast<std::size_t>(util::toUnderlyingType(octant)));
+            output[nextIndexToAdd] =
+                static_cast<std::size_t>(util::toUnderlyingType(octant));
 
-            position = position - offsetPosition;
+            position =
+                position - getOffsetPositionByOctant(octant, octantSize / 2);
 
-            // position = position / 2;
-
-            // util::logTrace(
-            //     "Iteration! | OctantSize: {} | OPosition: {} | MPosition: {}
-            //     | " "octant: {} | offset: {}", octantSize,
-            //     static_cast<std::string>(origionalPosition),
-            //     static_cast<std::string>(position),
-            //     util::toUnderlyingType(octant),
-            //     static_cast<std::string>(offsetPosition));
+            nextIndexToAdd++;
 
             octantSize /= 2;
         }
 
-        // util::logTrace("Generated indices {}", util::toString(outputvec));
-
-        std::array<std::size_t, VoxelOctree::TraversalSteps> trunc {};
-
-        for (std::size_t i = 0; i < trunc.size(); ++i)
-        {
-            trunc[i] = outputvec.at(i);
-        }
-
-        // util::logTrace(
-        //     "Generated Indices {} |T {}",
-        //     util::toString(outputvec),
-        //     util::toString(trunc));
-
-        return trunc;
+        return output;
     }
 
     Voxel& VoxelOctree::access(Position globalPosition)
     {
-        // util::logTrace("\n\nStarted new access!");
         util::assertFatal(
             globalPosition.x >= VoxelMinimum
                 && globalPosition.x <= VoxelMaximum,
@@ -473,11 +451,11 @@ namespace game::world
                     &workingNode->data))
         {
             // The last node isn't a VoxelVolume, make it one
-            for (const std::unique_ptr<Node>& n : *ptr)
-            {
-                util::assertFatal(
-                    n == nullptr, "Node traversal was not nullptr");
-            }
+            // for (const std::unique_ptr<Node>& n : *ptr)
+            // {
+            //     util::assertFatal(
+            //         n == nullptr, "Node traversal was not nullptr");
+            // }
 
             Position volumePosition {
                 roundDownToNearestMultipleOfN(
@@ -507,7 +485,7 @@ namespace game::world
 
         // We have traversed down the tree, workingNode is now pointing
         // towards the node that contains the position that we want.
-        return std::get<std::unique_ptr<VoxelVolume>>(workingNode->data)
+        return (*std::get_if<std::unique_ptr<VoxelVolume>>(&workingNode->data))
             ->accessFromGlobalPosition(globalPosition);
     }
 

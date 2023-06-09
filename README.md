@@ -10,6 +10,7 @@ Figure out a better type of noise
 
 Put this in the world generator (seeded)
 
+allow for "all voxels of same type optimization" (solid world)
 generate the world with multiple objects
 allow for modification
 multiple "octrees" that can be loaded in and out

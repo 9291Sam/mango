@@ -1,8 +1,10 @@
 #include "world.hpp"
-#include "game/world/voxel_octree.hpp"
-#include "gfx/renderer.hpp"
-#include "gfx/vulkan/pipelines.hpp"
+#include "voxel_octree.hpp"
+#include <functional>
+#include <gfx/renderer.hpp>
+#include <gfx/vulkan/pipelines.hpp>
 #include <numbers>
+#include <util/noise.hpp>
 
 namespace game::world
 {
@@ -29,19 +31,27 @@ namespace game::world
                     -1.0f,
                     1.0f);
 
-                auto height = [=]() -> std::int32_t
+                std::function<std::int32_t(void)> height;
+
+                height = [=]() -> std::int32_t
                 {
-                    const float rad = static_cast<float>(std::numbers::pi) * 60;
+                    // const float rad = static_cast<float>(std::numbers::pi) *
+                    // 60;
 
-                    std::int32_t height =
-                        std::atan2(
-                            1.0f, std::numbers::pi * normalizedX * normalizedY)
-                        * 128;
+                    std::int32_t workingHeight = 0;
+                    // std::atan2(
+                    //     1.0f, std::numbers::pi * normalizedX * normalizedY)
+                    // * 128;
 
-                    height += std::sin(normalizedX * rad) * 2;
-                    height += std::cos(normalizedY * rad) * 2;
+                    workingHeight +=
+                        util::perlin(normalizedX, normalizedY) * 256;
 
-                    return height - 225;
+                    // workingHeight += std::sin(normalizedX * rad) * 2;
+                    // workingHeight += std::cos(normalizedY * rad) * 2;
+
+                    // return workingHeight - 225;
+
+                    return workingHeight - util::perlin(0.0f, 0.0f) * 256;
                 };
 
                 world::Position outputPosition {ox, height(), oy};

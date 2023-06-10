@@ -2,6 +2,7 @@
 #define SRC_UTIL_MISC_HPP
 
 #include <array>
+#include <concepts>
 #include <cstdint>
 #include <exception>
 #include <fmt/format.h>
@@ -136,6 +137,13 @@ namespace util
     concept Integer = requires {
         requires std::integral<T>;
         requires !std::floating_point<T>;
+        requires !std::same_as<T, bool>;
+        requires !std::is_pointer_v<T>;
+    };
+
+    template<class T>
+    concept Arithmetic = requires {
+        requires std::integral<T> || std::floating_point<T>;
         requires !std::same_as<T, bool>;
         requires !std::is_pointer_v<T>;
     };

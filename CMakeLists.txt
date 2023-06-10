@@ -178,6 +178,16 @@ FetchContent_Declare(tinyobjloader
 FetchContent_MakeAvailable(tinyobjloader)  
 target_link_libraries(mango PUBLIC tinyobjloader)
 
+FetchContent_Declare(gcem
+  GIT_REPOSITORY https://github.com/kthohr/gcem
+  GIT_TAG master
+)
+FetchContent_MakeAvailable(gcem)  
+target_link_libraries(mango PUBLIC gcem)
+
+
+
+
 
 find_package(Vulkan REQUIRED)
 include_directories("${Vulkan_INCLUDE_DIRS}")

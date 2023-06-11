@@ -69,8 +69,10 @@ namespace game::world
 
                 glm::vec4 color {0.0f, 1.0f, 1.0f, 1.0f};
 
-                color.g = util::map(normalizedX, -1.0f, 1.0f, 0.0f, 1.0f);
-                color.b = util::map(normalizedY, -1.0f, 1.0f, 0.0f, 1.0f);
+                color.g = std::fmod(
+                    util::map(normalizedX, -1.0f, 1.0f, 0.0f, 8.0f), 1.0f);
+                color.b = std::fmod(
+                    util::map(normalizedY, -1.0f, 1.0f, 0.0f, 8.0f), 1.0f);
 
                 if (outputPosition.y % 2 == 0)
                 {

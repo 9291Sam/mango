@@ -38,23 +38,23 @@ namespace game::world
 
                 height = [=]() -> std::int32_t
                 {
-                    // const float rad = static_cast<float>(std::numbers::pi) *
-                    // 60;
-
                     std::int32_t workingHeight = 0;
-                    // std::atan2(
-                    //     1.0f, std::numbers::pi * normalizedX * normalizedY)
-                    // * 128;
 
                     workingHeight +=
                         util::perlin(normalizedX * 16, normalizedY * 16) * 64;
 
-                    // workingHeight += std::sin(normalizedX * rad) * 2;
-                    // workingHeight += std::cos(normalizedY * rad) * 2;
+                    workingHeight +=
+                        util::perlin(normalizedX * 8, normalizedY * 8) * 128;
 
-                    // return workingHeight - 225;
+                    workingHeight +=
+                        util::perlin(normalizedX * 4, normalizedY * 4) * 256;
 
-                    return workingHeight;
+                    workingHeight +=
+                        util::perlin(normalizedX * 2, normalizedY * 2) * 512;
+
+                    // TODO: add seeds
+
+                    return workingHeight / 4;
                 };
 
                 world::Position outputPosition {ox, height(), oy};

@@ -5,6 +5,9 @@
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
+#include <numbers>
+#include <tuple>
+#include <util/misc.hpp>
 
 ///
 /// This entire implementation is unceremoniously sz`tolen from the wikipedia
@@ -15,10 +18,51 @@
 namespace util
 {
     // TODO: N dimensional noise
-    template<std::size_t N>
-    struct Vector
+
+    class LCG
     {
-        std::array<float, N> data;
+    public:
+
+        constexpr explicit LCG(std::uint64_t seed_)
+            : seed(seed_)
+            , multiplier(6364136223846793005ULL)
+            , increment(1442695040888963407ULL)
+            , modulus(18436744073709551616ULL)
+        {
+            std::ignore = this->next();
+            std::ignore = this->next();
+            std::ignore = this->next();
+        }
+        constexpr ~LCG() = default;
+
+        constexpr explicit LCG(const LCG&)    = default;
+        constexpr LCG(LCG&&)                  = default;
+        constexpr LCG& operator= (const LCG&) = delete;
+        constexpr LCG& operator= (LCG&&)      = default;
+
+        constexpr std::uint64_t next()
+        {
+            constexpr std::uint64_t width {8 * sizeof(std::uint64_t)};
+            constexpr std::uint64_t offset {width / 2};
+
+            const std::uint64_t prev = this->seed;
+
+            this->seed = (this->multiplier * this->seed + this->increment)
+                       % this->modulus;
+
+            std::uint64_t output =
+                (this->multiplier * this->seed) % this->modulus;
+
+            output ^= prev << offset | prev >> (width - offset);
+
+            return output;
+        }
+
+    private:
+        std::uint64_t seed;
+        std::uint64_t multiplier;
+        std::uint64_t increment;
+        std::uint64_t modulus;
     };
 
     /// Interpolates between [value1, rightBound] given a weight [0.0, 1.0]
@@ -47,15 +91,30 @@ namespace util
     {
         // No precomputed gradients mean this works for any number of grid
         // coordinates
-        const unsigned w = 8 * sizeof(unsigned);
-        const unsigned s = w / 2; // rotation width
-        unsigned       a = ix, b = iy;
-        a *= 3284157443;
-        b ^= a << s | a >> (w - s);
-        b *= 1911520717;
-        a ^= b << s | b >> (w - s);
-        a *= 2048419325;
-        float   random = a * (3.14159265 / ~(~0u >> 1)); // in [0, 2*Pi]
+        // const unsigned w = 8 * sizeof(unsigned);
+        // const unsigned s = w / 2; // rotation width
+        // unsigned       a = ix, b = iy;
+        // a *= 3284157443;
+        // b ^= a << s | a >> (w - s);
+        // b *= 1911520717;
+        // a ^= b << s | b >> (w - s);
+        // a *= 2048419325;
+        // float   random = a * (3.14159265 / ~(~0u >> 1)); // in [0, 2*Pi]
+
+        std::uint64_t workingSeed {
+            std::bit_cast<std::uint64_t>(78234748926789234)};
+
+        util::hashCombine(workingSeed, ix);
+        util::hashCombine(workingSeed, iy);
+
+        LCG engine {workingSeed};
+
+        float random = util::map<float>(
+            engine.next(),
+            static_cast<float>(std::numeric_limits<std::uint64_t>::min()),
+            static_cast<float>(std::numeric_limits<std::uint64_t>::max()),
+            0.0f,
+            std::numbers::pi_v<float> * 2);
         vector2 v;
         v.x = cos(random);
         v.y = sin(random);

@@ -40,17 +40,21 @@ namespace game::world
                 {
                     std::int32_t workingHeight = 0;
 
-                    workingHeight +=
-                        util::perlin(normalizedX * 16, normalizedY * 16) * 64;
+                    workingHeight += util::perlin(util::Vector<float, 2> {
+                                         normalizedX * 16, normalizedY * 16})
+                                   * 64;
 
-                    workingHeight +=
-                        util::perlin(normalizedX * 8, normalizedY * 8) * 128;
+                    workingHeight += util::perlin(util::Vector<float, 2> {
+                                         normalizedX * 8, normalizedY * 8})
+                                   * 128;
 
-                    workingHeight +=
-                        util::perlin(normalizedX * 4, normalizedY * 4) * 256;
+                    workingHeight += util::perlin(util::Vector<float, 2> {
+                                         normalizedX * 4, normalizedY * 4})
+                                   * 256;
 
-                    workingHeight +=
-                        util::perlin(normalizedX * 2, normalizedY * 2) * 512;
+                    workingHeight += util::perlin(util::Vector<float, 2> {
+                                         normalizedX * 2, normalizedY * 2})
+                                   * 512;
 
                     // TODO: add seeds
 
@@ -70,9 +74,9 @@ namespace game::world
                 glm::vec4 color {0.0f, 1.0f, 1.0f, 1.0f};
 
                 color.g = std::fmod(
-                    util::map(normalizedX, -1.0f, 1.0f, 0.0f, 8.0f), 1.0f);
+                    util::map(normalizedX, -1.0f, 1.0f, 0.0f, 0.5f), 1.0f);
                 color.b = std::fmod(
-                    util::map(normalizedY, -1.0f, 1.0f, 0.0f, 8.0f), 1.0f);
+                    util::map(normalizedY, -1.0f, 1.0f, 0.0f, 0.5f), 1.0f);
 
                 if (outputPosition.y % 2 == 0)
                 {

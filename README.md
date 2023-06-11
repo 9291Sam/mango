@@ -32,3 +32,5 @@ add ambient occlusion
 
 
 NOAS
+
+replace gcem with cmath once its constexpr

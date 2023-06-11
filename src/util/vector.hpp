@@ -39,6 +39,26 @@ namespace util
         constexpr Vector& operator= (Vector&&)        = default;
 
         ///
+        /// Conversion operators
+        ///
+
+        // noexcept false -> throwing
+        template<class J>
+        [[nodiscard]] constexpr operator Vector<J, N> () const
+            noexcept(noexcept(std::is_nothrow_convertible_v<T, J>))
+            requires std::is_convertible_v<T, J>
+        {
+            Vector<J, N> output {};
+
+            for (std::size_t i = 0; i < N; ++i)
+            {
+                output[i] = static_cast<J>(this->data[i]);
+            }
+
+            return output;
+        }
+
+        ///
         /// Comparison operators
         ///
 
@@ -216,6 +236,18 @@ namespace util
             return output;
         }
 
+        [[nodiscard]] constexpr Vector operator+ (T value) const noexcept
+        {
+            Vector output {*this};
+
+            for (std::size_t i = 0; i < N; ++i)
+            {
+                output.data[i] += value;
+            }
+
+            return output;
+        }
+
         [[nodiscard]] constexpr Vector
         operator- (const Vector& other) const noexcept
         {
@@ -224,6 +256,18 @@ namespace util
             for (std::size_t i = 0; i < N; ++i)
             {
                 output.data[i] -= other.data[i];
+            }
+
+            return output;
+        }
+
+        [[nodiscard]] constexpr Vector operator- (T value) const noexcept
+        {
+            Vector output {*this};
+
+            for (std::size_t i = 0; i < N; ++i)
+            {
+                output.data[i] -= value;
             }
 
             return output;
@@ -429,6 +473,10 @@ namespace util
     public:
         std::array<T, N> data;
     };
+
+    using Vec2 = Vector<float, 2>;
+    using Vec3 = Vector<float, 3>;
+    using Vec4 = Vector<float, 4>;
 } // namespace util
 
 namespace

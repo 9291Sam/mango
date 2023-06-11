@@ -234,6 +234,13 @@ namespace util
         return output;
     }
 
+    constexpr inline void
+    hashCombine(std::size_t& seed_, std::size_t hash_) noexcept
+    {
+        hash_ += 0x9e3779b9 + (seed_ << 6) + (seed_ >> 2);
+        seed_ ^= hash_;
+    };
+
 } // namespace util
 
 #endif // SRC_UTIL_MISC_HPP

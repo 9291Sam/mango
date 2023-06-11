@@ -1,5 +1,6 @@
 #include "world.hpp"
 #include "voxel_octree.hpp"
+#include <chrono>
 #include <functional>
 #include <gfx/renderer.hpp>
 #include <gfx/vulkan/pipelines.hpp>
@@ -11,6 +12,8 @@ namespace game::world
     World::World(gfx::Renderer& renderer_)
         : renderer {renderer_}
     {
+        auto begin = std::chrono::high_resolution_clock::now();
+
         for (std::int32_t ox : std::views::iota(
                  VoxelOctree::VoxelMinimum, VoxelOctree::VoxelMaximum))
         {
@@ -44,14 +47,14 @@ namespace game::world
                     // * 128;
 
                     workingHeight +=
-                        util::perlin(normalizedX, normalizedY) * 256;
+                        util::perlin(normalizedX * 16, normalizedY * 16) * 64;
 
                     // workingHeight += std::sin(normalizedX * rad) * 2;
                     // workingHeight += std::cos(normalizedY * rad) * 2;
 
                     // return workingHeight - 225;
 
-                    return workingHeight - util::perlin(0.0f, 0.0f) * 256;
+                    return workingHeight;
                 };
 
                 world::Position outputPosition {ox, height(), oy};
@@ -78,6 +81,13 @@ namespace game::world
             }
         }
 
+        auto end = std::chrono::high_resolution_clock::now();
+
+        util::logTrace(
+            "World generation complete {}ms",
+            std::chrono::duration_cast<std::chrono::milliseconds>(end - begin)
+                .count());
+
         auto [vertices, indices] = this->octree.draw();
 
         this->objects.push_back(this->renderer.createTriangulatedObject(
@@ -85,7 +95,7 @@ namespace game::world
             std::move(vertices),
             std::move(indices)));
 
-        util::logTrace("World initalization complete");
+        util::logTrace("World initialization complete");
     }
 
     std::vector<std::shared_ptr<gfx::Object>> World::draw() const

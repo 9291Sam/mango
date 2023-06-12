@@ -1,36 +1,63 @@
 ## Demonstration video
 
-[![std_atan2.mp4](std_atan2.mp4)](std_atan2.mp4)
+[![perlin_noise_test.mp4](perlin_noise_test.mp4)](perlin_noise_test.mp4)
 
-8192^3 voxel volume drawing about ~80 million voxels in realtime
+8192^3 voxel volume drawing about ~67 million Voxels in realtime
 
-TODO:
+## Plans for the future
 
-Figure out a better type of noise 
+Graphics optimization chages:
+Re-do the piopeline + object abstraction'
+template pipelines over Vertex Type
 
-Put this in the world generator (seeded)
-
-allow for "all voxels of same type optimization" (solid world)
-generate the world with multiple objects
-allow for modification
-multiple "octrees" that can be loaded in and out
-iffering levels of detail if its far away (approximation for hihher levels by reading only parts of the tree when its far)
- NOTE: youre being limited by available memory, there's a better way to structure this 
- -? lots of disk space....
-
- seperate the trees into four trees
- Solid tree - - transparent tree
- culling tree  for both
-
-Re-do pipeline and object abstraction now that you know what you want
- - Support for multiple types of vertex
-
-Add culling support to the world generator
-
-add basic voxel lighting to the world and ray traced shadows at the granularity of individial voxels
-add ambient occlusion
+Many differing pipelines wont be needed. just make them all at once up front and just store them
 
 
-NOAS
+Object
+ - Buffers
+ - pipeline(enum)
 
-replace gcem with cmath once its constexpr
+ SpecializedObject : Object
+ { // automatically grabs the right pipeline
+    holds buffers + all the bits that are required
+ }
+
+ Say the world wants to render some stuff it creates a World
+
+
+
+
+Voxel tree re-write!!!
+Goals:
+Voxel Optimizations
+Modification 
+Vertex optimizations (position + sRGBA color) 16 bytes (12 for position, 4 for srgbA)
+LODs (re write)
+Loading in/out
+
+floating origin (later)
+
+
+Graphics changes:
+Ambient Occlussion
+Voxel spread lighting
+
+
+Proper world:
+Multiple types of voxels
+(statc map of Voxel -> GraphicsVoxel i.e sRGB)
+diggable
+Player physics (plan for more general physics)
+(the goal of magic like stuff but its actually technology)
+
+Debug menu
+
+
+
+gameplay?????
+
+
+
+
+Long term:
+Replace gcem with cmath once its constexpr

@@ -23,6 +23,15 @@ namespace gfx::vulkan
         , size {sizeBytes}
         , mapped_memory {nullptr}
     {
+        if (this->size > MaxBufferSize)
+        {
+            util::panic(
+                "Buffer of size {} requested, but that is larger than the {} "
+                "limit!",
+                this->size,
+                MaxBufferSize);
+        }
+
         const VkBufferCreateInfo bufferCreateInfo {
             .sType {VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO},
             .pNext {nullptr},

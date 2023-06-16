@@ -15,6 +15,8 @@ namespace gfx::vulkan
     class Buffer
     {
     public:
+        static constexpr std::size_t MaxBufferSize {192 * 1024 * 1024}; // 192Mb
+    public:
 
         Buffer();
         Buffer(

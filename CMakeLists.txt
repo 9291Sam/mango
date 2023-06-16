@@ -89,6 +89,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mango PUBLIC -Wno-old-style-cast)
     target_compile_options(mango PUBLIC -Wno-c++20-compat)
     target_compile_options(mango PUBLIC -Wno-padded)
+    target_compile_options(mango PUBLIC -Wno-unknown-attributes)   
     target_compile_options(mango PUBLIC -Wno-documentation-unknown-command)
     target_compile_options(mango PUBLIC -Wno-exit-time-destructors)
 
@@ -101,11 +102,11 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     endif()
   
     # https://clang.llvm.org/docs/UsersManual.html#controlling-code-generation
-    # target_compile_options(mango PUBLIC -fsanitize=address)
-    # target_link_options(mango PUBLIC -fsanitize=address)
+    target_compile_options(mango PUBLIC -fsanitize=address)
+    target_link_options(mango PUBLIC -fsanitize=address)
 
-    # target_compile_options(mango PUBLIC -fsanitize=undefined)
-    # target_link_options(mango PUBLIC -fsanitize=undefined)
+    target_compile_options(mango PUBLIC -fsanitize=undefined)
+    target_link_options(mango PUBLIC -fsanitize=undefined)
 
   else()
     # Clang-cl

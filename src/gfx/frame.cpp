@@ -161,17 +161,12 @@ namespace gfx
                 commandBuffer.beginRenderPass(
                     renderPassBeginInfo, vk::SubpassContents::eInline);
 
-                // std::size_t currentBoundPipelineIndex = ~0UZ;
                 BindState bindState {};
 
                 for (const Object* o : sortedObjects)
                 {
-                    o->bind(commandBuffer, bindState, pipelineMap);
-                    o->setPushConstants(
-                        commandBuffer,
-                        pipelineMap.at(bindState.current_pipeline),
-                        camera,
-                        size);
+                    o->bind(commandBuffer, bindState);
+                    o->setPushConstants(commandBuffer, camera);
                     o->draw(commandBuffer);
                 }
 

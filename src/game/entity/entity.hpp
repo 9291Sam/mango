@@ -9,22 +9,22 @@ namespace game::entity
     class Entity
     {
     public:
-        Entity(gfx::Renderer&);
-        virtual ~Entity();
+        explicit Entity(const gfx::Renderer&);
+        virtual ~Entity() = default;
 
         Entity(const Entity&)             = delete;
         Entity(Entity&&)                  = delete;
         Entity& operator= (const Entity&) = delete;
         Entity& operator= (Entity&&)      = delete;
 
-        virtual void                            tick()       = 0;
-        virtual std::vector<const gfx::Object*> draw() const = 0;
+        virtual void                                          tick()       = 0;
+        [[nodiscard]] virtual std::vector<const gfx::Object*> draw() const = 0;
 
         virtual explicit operator std::string () const;
 
     protected:
-        gfx::Renderer&   renderer;
-        const util::UUID uuid;
+        const gfx::Renderer& renderer;
+        const util::UUID     uuid;
     };
 } // namespace game::entity
 

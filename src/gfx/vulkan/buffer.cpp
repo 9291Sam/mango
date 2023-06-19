@@ -25,7 +25,7 @@ namespace gfx::vulkan
     {
         if (this->size > MaxBufferSize)
         {
-            util::panic(
+            util::logWarn(
                 "Buffer of size {} requested, but that is larger than the {} "
                 "limit!",
                 this->size,

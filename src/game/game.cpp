@@ -1,9 +1,7 @@
 #include "game.hpp"
 #include "entity/cube.hpp"
 #include "entity/disk_entity.hpp"
-#include "game/world/voxel_octree.hpp"
 #include <gfx/renderer.hpp>
-#include <numbers>
 #include <util/log.hpp>
 
 namespace game
@@ -24,7 +22,8 @@ namespace game
         this->player.getCamera().addYaw(2.19911486f);
     }
 
-    Game::~Game() {}
+    Game::~Game() {} // NOLINT: entity::Entity is predeclared in the header file
+                     // and its destructor needs to fire
 
     void Game::tick()
     {
@@ -44,7 +43,8 @@ namespace game
 
         this->player.tick();
 
-        auto worldObjects = this->world.draw();
+        std::vector<std::shared_ptr<gfx::Object>> worldObjects =
+            this->world.draw();
 
         for (std::shared_ptr<gfx::Object>& obj : worldObjects)
         {

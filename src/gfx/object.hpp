@@ -1,118 +1,110 @@
 #ifndef SRC_GFX_OBJECT_HPP
 #define SRC_GFX_OBJECT_HPP
 
-#include "transform.hpp"
+#include "camera.hpp"
 #include "vulkan/buffer.hpp"
-#include "vulkan/descriptors.hpp"
 #include "vulkan/gpu_data.hpp"
-#include "vulkan/includes.hpp"
 #include "vulkan/pipelines.hpp"
-#include <compare>
-#include <map>
-#include <memory>
-#include <ranges>
-#include <span>
-#include <vector>
+#include <optional>
+#include <util/uuid.hpp>
 
 namespace gfx
 {
-    class Camera;
+    class Renderer;
 
     namespace vulkan
     {
         class Allocator;
-        class Pipeline;
-        class DescriptorSet;
-        class Swapchain;
-        class Device;
-    } // namespace vulkan
+    }
 
-    struct BindState
+    struct ObjectBoundDescriptor
     {
-        BindState()
-            : current_pipeline {vulkan::PipelineType::None}
-            , current_descriptor_sets {}
-        {}
+        std::optional<util::UUID> id;
 
-        vulkan::PipelineType    current_pipeline;
-        vulkan::DescriptorState current_descriptor_sets;
+        [[nodiscard]] bool operator== (const ObjectBoundDescriptor&) const;
+        [[nodiscard]] std::strong_ordering
+        operator<=> (const ObjectBoundDescriptor&) const;
+    };
+
+    struct BindState // NOLINT: I want designated initialization
+    {
+        vulkan::PipelineType                 pipeline;
+        std::array<ObjectBoundDescriptor, 4> descriptors;
+
+        [[nodiscard]] std::strong_ordering operator<=> (const BindState&) const;
     };
 
     class Object
     {
     public:
-
         Object(
-            std::shared_ptr<vulkan::Device>,
+            const gfx::Renderer&,
             std::string name,
             vulkan::PipelineType,
-            vulkan::DescriptorState);
-        virtual ~Object();
+            std::array<ObjectBoundDescriptor, 4>);
+        virtual ~Object() = default;
 
         Object(const Object&)             = delete;
         Object(Object&&)                  = delete;
         Object& operator= (const Object&) = delete;
         Object& operator= (Object&&)      = delete;
 
-        virtual void bind(
-            vk::CommandBuffer,
-            BindState&,
-            const std::map<vulkan::PipelineType, vulkan::Pipeline>&) const = 0;
+        // internal
+        //
+        // renderer::getPipeline(vulkan::PipelineType)
+        // -> vulkan::Pipeline&
+        virtual void bind(vk::CommandBuffer, BindState&) const = 0;
 
-        virtual void setPushConstants(
-            vk::CommandBuffer,
-            const vulkan::Pipeline&,
-            const Camera&,
-            vk::Extent2D renderExtent) const = 0;
+        // these should all be optional parameters and checked incase of
+        // differing arguments
+        //
+        // or a variant of all the different argument types
+        // get pipeline + render extent via the Self::renderer
+        virtual void
+        setPushConstants(vk::CommandBuffer, const Camera&) const = 0;
 
         virtual void draw(vk::CommandBuffer) const = 0;
 
         std::strong_ordering operator<=> (const Object&) const;
-        operator std::string () const;
+        explicit operator std::string () const;
+
+        Transform transform;
 
     protected:
+        // friendship is neither mutual nor transitive but your friends can
+        // touch your privates
+        // Basically we need to poke in and get some renderer internals, but we
+        // dont want them fully exposed, so friending and a protected function
+        // for all subclasses it is
+        [[nodiscard]] std::shared_ptr<vulkan::Allocator>
+                                              getRendererAllocator() const;
+        [[nodiscard]] const vulkan::Pipeline& getRendererPipeline() const;
+
         void updateBindState(
             vk::CommandBuffer,
             BindState&,
-            const std::map<vulkan::PipelineType, vulkan::Pipeline>&,
-            std::span<const vulkan::DescriptorSet>) const;
+            std::array<vk::DescriptorSet, 4> setsToBindIfRequired) const;
 
-        const std::string               name;
-        const vulkan::PipelineType      required_pipeline;
-        const vulkan::DescriptorState   required_descriptor_sets;
-        std::shared_ptr<vulkan::Device> device;
+        const gfx::Renderer& renderer;
+        const std::string    name;
+        const util::UUID     id;
+        const BindState      bind_state;
     };
 
-    class TriangulatedObject : public Object
+    class SimpleTriangulatedObject final : public Object
     {
     public:
-        TriangulatedObject(
-            std::shared_ptr<vulkan::Device>,
-            std::shared_ptr<vulkan::Allocator>,
-            vulkan::PipelineType,
+        SimpleTriangulatedObject(
+            const gfx::Renderer&,
             std::span<const vulkan::Vertex>,
             std::span<const vulkan::Index>);
-        ~TriangulatedObject() override;
+        ~SimpleTriangulatedObject() override = default;
 
-        virtual void bind(
-            vk::CommandBuffer,
-            BindState&,
-            const std::map<vulkan::PipelineType, vulkan::Pipeline>&)
-            const override;
+        void bind(vk::CommandBuffer, BindState&) const override;
+        void setPushConstants(vk::CommandBuffer, const Camera&) const override;
+        void draw(vk::CommandBuffer) const override;
 
-        virtual void setPushConstants(
-            vk::CommandBuffer,
-            const vulkan::Pipeline&,
-            const Camera&,
-            vk::Extent2D renderExtent) const override;
-
-        virtual void draw(vk::CommandBuffer) const override;
-
-        Transform transform;
     private:
-
-        std::shared_ptr<vulkan::Allocator> allocator;
-
         std::size_t    number_of_vertices;
         vulkan::Buffer vertex_buffer;
 
@@ -120,42 +112,9 @@ namespace gfx
         vulkan::Buffer index_buffer;
     };
 
-    // class VoxelObject : public Object
-    // {
-    // public:
-
-    //     VoxelObject(
-    //         std::shared_ptr<vulkan::Device>,
-    //         std::shared_ptr<vulkan::Allocator>,
-    //         std::span<glm::vec3> voxelPositions);
-    //     ~VoxelObject() override;
-
-    //     void bind(
-    //         vk::CommandBuffer,
-    //         BindState&,
-    //         const std::map<vulkan::PipelineType, vulkan::Pipeline>&)
-    //         const override;
-
-    //     void setPushConstants(
-    //         vk::CommandBuffer,
-    //         const vulkan::Pipeline&,
-    //         const Camera&,
-    //         vk::Extent2D renderExtent) const override;
-
-    //     void draw(vk::CommandBuffer) const override;
-
-    //     Transform transform;
-    // private:
-    //     std::shared_ptr<vulkan::Allocator> allocator;
-
-    //     std::size_t           number_of_voxels;
-    //     vulkan::StagedBuffer  positions_buffer;
-    //     vulkan::StagedBuffer  sizes_buffer;
-    //     vulkan::StagedBuffer  colors_buffer;
-    //     vulkan::DescriptorSet voxel_set;
-
-    //     mutable bool have_buffers_staged;
-    // };
+    // TODO: floating origin + everything
+    //    class VoxelObject : public Object
+    //    {};
 
 } // namespace gfx
 

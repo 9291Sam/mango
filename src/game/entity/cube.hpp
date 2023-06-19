@@ -18,11 +18,11 @@ namespace game::entity
         Cube(gfx::Renderer&, glm::vec3 position);
         ~Cube() override = default;
 
-        void                            tick() override;
-        std::vector<const gfx::Object*> draw() const override;
+        void                                          tick() override;
+        [[nodiscard]] std::vector<const gfx::Object*> draw() const override;
 
     private:
-        std::unique_ptr<gfx::TriangulatedObject> object;
+        gfx::SimpleTriangulatedObject object;
     };
 } // namespace game::entity
 

@@ -22,7 +22,7 @@ namespace game
     {
     public:
 
-        Game(gfx::Renderer&);
+        explicit Game(gfx::Renderer&);
         ~Game();
 
         Game(const Game&)             = delete;

@@ -20,6 +20,7 @@ namespace util
         [[nodiscard]] bool operator== (const UUID&) const = default;
         [[nodiscard]] bool operator!= (const UUID&) const = default;
         [[nodiscard]] explicit operator std::string () const;
+        [[nodiscard]] std::strong_ordering operator<=> (const UUID&) const;
 
         friend std::hash<UUID>;
 

@@ -71,15 +71,6 @@ namespace gfx
         this->device->asLogicalDevice().waitIdle();
     }
 
-    std::unique_ptr<TriangulatedObject> Renderer::createTriangulatedObject(
-        vulkan::PipelineType            pipelineType,
-        std::span<const vulkan::Vertex> vertices,
-        std::span<const vulkan::Index>  indices) const
-    {
-        return std::make_unique<TriangulatedObject>(
-            this->device, this->allocator, pipelineType, vertices, indices);
-    }
-
     // VoxelObject
     // Renderer::createVoxelObject(std::span<glm::vec3> voxelPositions) const
     // {
@@ -268,5 +259,10 @@ namespace gfx
             f = std::make_unique<Frame>(
                 this->device, this->swapchain, this->render_pass, framebuffers);
         }
+    }
+
+    vk::Extent2D Renderer::getExtent() const
+    {
+        return this->swapchain->getExtent();
     }
 } // namespace gfx

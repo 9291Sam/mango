@@ -1,192 +1,187 @@
 #include "object.hpp"
-#include "camera.hpp"
+#include "renderer.hpp"
 #include "vulkan/allocator.hpp"
-#include "vulkan/device.hpp"
-#include "vulkan/pipelines.hpp"
-#include "vulkan/swapchain.hpp"
-#include <map>
 
-namespace gfx
+bool gfx::ObjectBoundDescriptor::operator== (
+    const gfx::ObjectBoundDescriptor& other) const
 {
-    Object::Object(
-        std::shared_ptr<vulkan::Device> device_,
-        std::string                     name_,
-        vulkan::PipelineType            pipeline,
-        vulkan::DescriptorState         state)
-        : name {std::move(name_)}
-        , required_pipeline {pipeline}
-        , required_descriptor_sets {state}
-        , device {std::move(device_)}
-    {}
+    return this->id == other.id;
+}
+std::strong_ordering gfx::ObjectBoundDescriptor::operator<=> (
+    const gfx::ObjectBoundDescriptor& other) const
+{
+    return this->id <=> other.id;
+}
 
-    Object::~Object() {}
-
-    std::strong_ordering Object::operator<=> (const Object& other) const
-    {
+std::strong_ordering gfx::BindState::operator<=> (const BindState& other) const
+{
 #define EMIT_ORDERING(field)                                                   \
     if (this->field <=> other.field != std::strong_ordering::equivalent)       \
     {                                                                          \
         return this->field <=> other.field;                                    \
     }
 
-        EMIT_ORDERING(required_pipeline)
-        EMIT_ORDERING(required_descriptor_sets.descriptors[0])
-        EMIT_ORDERING(required_descriptor_sets.descriptors[1])
-        EMIT_ORDERING(required_descriptor_sets.descriptors[2])
-        EMIT_ORDERING(required_descriptor_sets.descriptors[3])
+    EMIT_ORDERING(pipeline)       // NOLINT: shut the fuck up
+    EMIT_ORDERING(descriptors[0]) // NOLINT: shut the fuck up
+    EMIT_ORDERING(descriptors[1]) // NOLINT: shut the fuck up
+    EMIT_ORDERING(descriptors[2]) // NOLINT: shut the fuck up
+    EMIT_ORDERING(descriptors[3]) // NOLINT: shut the fuck up
 
-        return std::strong_ordering::equivalent;
+    return std::strong_ordering::equivalent;
 #undef EMIT_ORDERING
+}
+
+gfx::Object::Object(
+    const gfx::Renderer&                 renderer_,
+    std::string                          name_,
+    vulkan::PipelineType                 pipeline_,
+    std::array<ObjectBoundDescriptor, 4> descriptors_)
+    : renderer {renderer_}
+    , name {std::move(name_)}
+    , id {}
+    , bind_state {.pipeline {pipeline_}, .descriptors {descriptors_}}
+    , transform {
+          .translation {0.0f, 0.0f, 0.0f},
+          .rotation {1.0f, 0.0f, 0.0f, 0.0f},
+          .scale {1.0f, 1.0f, 1.0f}}
+{
+    util::logTrace("Constructed Object | {}", static_cast<std::string>(*this));
+}
+
+std::strong_ordering gfx::Object::operator<=> (const Object& other) const
+{
+    return this->bind_state <=> other.bind_state;
+}
+
+gfx::Object::operator std::string () const
+{
+    return fmt::format(
+        "Object {} | ID: {}", this->name, static_cast<std::string>(this->id));
+}
+
+std::shared_ptr<gfx::vulkan::Allocator>
+gfx::Object::getRendererAllocator() const
+{
+    return this->renderer.allocator;
+}
+
+const gfx::vulkan::Pipeline& gfx::Object::getRendererPipeline() const
+{
+    return this->renderer.pipeline_map.at(this->bind_state.pipeline);
+}
+
+void gfx::Object::updateBindState(
+    vk::CommandBuffer                commandBuffer,
+    gfx::BindState&                  bindState,
+    std::array<vk::DescriptorSet, 4> setsToBindIfRequired) const
+{
+    const vulkan::Pipeline& requiredPipeline =
+        this->renderer.pipeline_map.at(this->bind_state.pipeline);
+
+    if (bindState.pipeline != this->bind_state.pipeline)
+    {
+        bindState.pipeline = this->bind_state.pipeline;
+
+        commandBuffer.bindPipeline(
+            vk::PipelineBindPoint::eGraphics, *requiredPipeline);
+
+        // Binding a new pipeline also resets descriptor sets
+        bindState.descriptors = {
+            std::nullopt, std::nullopt, std::nullopt, std::nullopt};
     }
 
-    Object::operator std::string () const
+    for (std::size_t idx = 0; idx < bindState.descriptors.size(); ++idx)
     {
-        return fmt::format("Object {}", this->name);
-    }
-
-    void Object::updateBindState(
-        vk::CommandBuffer                                       commandBuffer,
-        BindState&                                              bindState,
-        const std::map<vulkan::PipelineType, vulkan::Pipeline>& pipelineMap,
-        std::span<const vulkan::DescriptorSet> descriptorSets) const
-    {
-        if (bindState.current_pipeline != this->required_pipeline)
+        // TODO: optimization for the currently bound but nullopt case, will be
+        // important later
+        if (bindState.descriptors[idx] != this->bind_state.descriptors[idx])
         {
-            // util::logTrace("looking up pipeline to bind");
-            commandBuffer.bindPipeline(
+            bindState.descriptors[idx] = this->bind_state.descriptors[idx];
+
+            util::assertFatal(
+                setsToBindIfRequired[idx] != vk::DescriptorSet {nullptr},
+                "Bind of nullptr set was requested!");
+
+            commandBuffer.bindDescriptorSets(
                 vk::PipelineBindPoint::eGraphics,
-                *pipelineMap.at(this->required_pipeline));
-
-            // util::logTrace("past looking up pipeline to bind");
-
-            bindState.current_pipeline = this->required_pipeline;
-
-            bindState.current_descriptor_sets.reset();
-        }
-
-        for (std::size_t i = 0;
-             i < bindState.current_descriptor_sets.descriptors.size();
-             ++i)
-        {
-            vulkan::DescriptorSetType& currentSet =
-                bindState.current_descriptor_sets.descriptors.at(i);
-            const vulkan::DescriptorSetType requiredSet =
-                this->required_descriptor_sets.descriptors.at(i);
-
-            if (requiredSet == vulkan::DescriptorSetType::None
-                || requiredSet == currentSet)
-            {
-                continue;
-            }
-            else
-            {
-                const vulkan::Pipeline& currentPipeline =
-                    pipelineMap.at(bindState.current_pipeline);
-
-                util::assertFatal(
-                    descriptorSets.size() > i,
-                    "Index {} out of bounds in span of size {}",
-                    i,
-                    descriptorSets.size());
-
-                commandBuffer.bindDescriptorSets(
-                    vk::PipelineBindPoint::eGraphics,
-                    currentPipeline.getLayout(),
-                    static_cast<std::uint32_t>(i),
-                    std::array<vk::DescriptorSet, 1> {*descriptorSets[i]},
-                    {});
-
-                currentSet = requiredSet;
-            }
+                requiredPipeline.getLayout(),
+                static_cast<std::uint32_t>(idx),
+                setsToBindIfRequired[idx],
+                {});
         }
     }
+}
 
-    // clang-format doesnt work below this line TODO: what
-    // clang-format on
-    TriangulatedObject::TriangulatedObject(
-        std::shared_ptr<vulkan::Device>    device_,
-        std::shared_ptr<vulkan::Allocator> allocator_,
-        vulkan::PipelineType               pipelineType,
-        std::span<const vulkan::Vertex>    vertices,
-        std::span<const vulkan::Index>     indices)
-        // clang-format off
-        : Object {
-            std::move(device_),
-            "Triangulated Object",
-            pipelineType,
-            {}
-        }
-        , transform {
-            .translation {0.0f, 0.0f, 0.0f},
-            .rotation {1.0f, 0.0f, 0.0f, 0.0f},
-            .scale {1.0f, 1.0f, 1.0f}
-            }
-        , allocator {std::move(allocator_)}
-        , number_of_vertices {vertices.size()}
-        , vertex_buffer {
-            this->allocator,
-            vertices.size_bytes(),
-            vk::BufferUsageFlagBits::eVertexBuffer,
-            vk::MemoryPropertyFlagBits::eHostVisible
-            | vk::MemoryPropertyFlagBits::eHostCoherent
-            | vk::MemoryPropertyFlagBits::eDeviceLocal
-        }
-        , number_of_indices {indices.size()}
-        , index_buffer {
-              this->allocator,
-              indices.size_bytes(),
-              vk::BufferUsageFlagBits::eIndexBuffer,
-              vk::MemoryPropertyFlagBits::eHostVisible
-                  | vk::MemoryPropertyFlagBits::eHostCoherent
-                  | vk::MemoryPropertyFlagBits::eDeviceLocal
-        }
-    // clang-format on
-    {
-        this->vertex_buffer.write(std::as_bytes(vertices));
-        this->index_buffer.write(std::as_bytes(indices));
-    }
+gfx::SimpleTriangulatedObject::SimpleTriangulatedObject(
+    const gfx::Renderer&      renderer_,
+    std::span<const vulkan::Vertex> vertices,
+    std::span<const vulkan::Index>  indices)
+    : Object {
+        renderer_,
+        fmt::format(
+            "SimpleTriangulatedObject | Vertices: {} | Indices: {}",
+            vertices.size(),
+            indices.size()),
+        vulkan::PipelineType::Flat,
+        std::array<gfx::ObjectBoundDescriptor, 4> {
+            ObjectBoundDescriptor {std::nullopt},
+            ObjectBoundDescriptor {std::nullopt},
+            ObjectBoundDescriptor {std::nullopt},
+            ObjectBoundDescriptor {std::nullopt}}}
+    , number_of_vertices {vertices.size()}
+    , vertex_buffer {this->getRendererAllocator(),
+                     vertices.size_bytes(),
+                     vk::BufferUsageFlagBits::eVertexBuffer,
+                     vk::MemoryPropertyFlagBits::eHostVisible
+                         | vk::MemoryPropertyFlagBits::eHostCoherent
+                         | vk::MemoryPropertyFlagBits::eDeviceLocal}
+    , number_of_indices {indices.size()}
+    , index_buffer {this->getRendererAllocator(),
+                    indices.size_bytes(),
+                    vk::BufferUsageFlagBits::eIndexBuffer,
+                    vk::MemoryPropertyFlagBits::eHostVisible
+                        | vk::MemoryPropertyFlagBits::eHostCoherent
+                        | vk::MemoryPropertyFlagBits::eDeviceLocal}
+{
+    this->vertex_buffer.write(std::as_bytes(vertices));
+    this->index_buffer.write(std::as_bytes(indices));
+}
 
-    TriangulatedObject::~TriangulatedObject() {}
+void gfx::SimpleTriangulatedObject::bind(
+    vk::CommandBuffer commandBuffer, gfx::BindState& bindState) const
+{
+    this->updateBindState(
+        commandBuffer, bindState, {nullptr, nullptr, nullptr, nullptr});
 
-    void TriangulatedObject::bind(
-        vk::CommandBuffer                                       commandBuffer,
-        BindState&                                              bindState,
-        const std::map<vulkan::PipelineType, vulkan::Pipeline>& pipelineMap)
-        const
-    {
-        this->updateBindState(commandBuffer, bindState, pipelineMap, {});
+    commandBuffer.bindVertexBuffers(0, *this->vertex_buffer, {0});
 
-        commandBuffer.bindVertexBuffers(0, *this->vertex_buffer, {0});
-        commandBuffer.bindIndexBuffer(
-            *this->index_buffer, 0, vk::IndexType::eUint32);
-    }
+    static_assert(sizeof(std::uint32_t) == sizeof(vulkan::Index));
 
-    void TriangulatedObject::setPushConstants(
-        vk::CommandBuffer       commandBuffer,
-        const vulkan::Pipeline& pipeline,
-        const Camera&           camera,
-        vk::Extent2D            renderExtent) const
-    {
-        vulkan::PushConstants pushConstants {.model_view_proj {
-            Camera::getPerspectiveMatrix(
-                glm::radians(70.f),
-                static_cast<float>(renderExtent.width)
-                    / static_cast<float>(renderExtent.height),
-                0.1f,
-                200000.0f)
-            * camera.getViewMatrix() * this->transform.asModelMatrix()}};
+    commandBuffer.bindIndexBuffer(
+        *this->index_buffer, 0, vk::IndexType::eUint32);
+}
 
-        commandBuffer.pushConstants<vulkan::PushConstants>(
-            pipeline.getLayout(),
-            vk::ShaderStageFlagBits::eVertex,
-            0,
-            pushConstants);
-    }
+void gfx::SimpleTriangulatedObject::setPushConstants(
+    vk::CommandBuffer commandBuffer, const gfx::Camera& camera) const
+{
+    vulkan::PushConstants pushConstants {.model_view_proj {
+        Camera::getPerspectiveMatrix(
+            glm::radians(70.f),
+            static_cast<float>(this->renderer.getExtent().width)
+                / static_cast<float>(this->renderer.getExtent().height),
+            0.1f,
+            200000.0f)
+        * camera.getViewMatrix() * this->transform.asModelMatrix()}};
 
-    void TriangulatedObject::draw(vk::CommandBuffer commandBuffer) const
-    {
-        commandBuffer.drawIndexed(
-            static_cast<std::uint32_t>(this->number_of_indices), 1, 0, 0, 0);
-    }
+    commandBuffer.pushConstants<vulkan::PushConstants>(
+        this->getRendererPipeline().getLayout(),
+        vk::ShaderStageFlagBits::eVertex,
+        0,
+        pushConstants);
+}
 
-} // namespace gfx
+void gfx::SimpleTriangulatedObject::draw(vk::CommandBuffer commandBuffer) const
+{
+    commandBuffer.drawIndexed(
+        static_cast<std::uint32_t>(this->number_of_indices), 1, 0, 0, 0);
+}

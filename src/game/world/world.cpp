@@ -5,6 +5,7 @@
 #include <gfx/renderer.hpp>
 #include <gfx/vulkan/pipelines.hpp>
 #include <numbers>
+#include <ranges>
 #include <util/noise.hpp>
 
 namespace game::world
@@ -96,10 +97,8 @@ namespace game::world
 
         auto [vertices, indices] = this->octree.draw();
 
-        this->objects.push_back(this->renderer.createTriangulatedObject(
-            gfx::vulkan::PipelineType::Flat,
-            std::move(vertices),
-            std::move(indices)));
+        this->objects.push_back(std::make_shared<gfx::SimpleTriangulatedObject>(
+            this->renderer, vertices, indices));
 
         util::logTrace("World initialization complete");
     }

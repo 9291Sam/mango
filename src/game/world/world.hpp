@@ -11,7 +11,7 @@ namespace game::world
     class World
     {
     public:
-        World(gfx::Renderer&);
+        explicit World(gfx::Renderer&);
         ~World() = default;
 
         World(const World&)             = delete;
@@ -19,7 +19,10 @@ namespace game::world
         World& operator= (const World&) = delete;
         World& operator= (World&&)      = delete;
 
-        std::vector<std::shared_ptr<gfx::Object>> draw() const;
+        // why the shared_ptr?
+        // these can fall off between frames and need to stay alive just long
+        // enough
+        [[nodiscard]] std::vector<std::shared_ptr<gfx::Object>> draw() const;
 
     private:
         std::vector<std::shared_ptr<gfx::Object>> objects;

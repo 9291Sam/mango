@@ -8,7 +8,7 @@ namespace gfx
 {
     class Renderer;
     class Object;
-    class TriangulatedObject;
+    class SimpleTriangulatedObject;
 } // namespace gfx
 
 namespace game::entity
@@ -20,11 +20,11 @@ namespace game::entity
         DiskEntity(gfx::Renderer&, const char* filepath);
         ~DiskEntity() override;
 
-        void                            tick() override;
-        std::vector<const gfx::Object*> draw() const override;
+        void                                          tick() override;
+        [[nodiscard]] std::vector<const gfx::Object*> draw() const override;
 
     public:
-        std::unique_ptr<gfx::TriangulatedObject> object;
+        std::unique_ptr<gfx::SimpleTriangulatedObject> object;
     }; // class DiskEntity
 
 } // namespace game::entity

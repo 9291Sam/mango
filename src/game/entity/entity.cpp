@@ -4,12 +4,10 @@
 namespace game::entity
 {
 
-    Entity::Entity(gfx::Renderer& renderer_)
+    Entity::Entity(const gfx::Renderer& renderer_)
         : renderer {renderer_}
         , uuid {}
     {}
-
-    Entity::~Entity() {}
 
     Entity::operator std::string () const
     {

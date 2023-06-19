@@ -104,11 +104,11 @@ namespace game::entity
             }
         }
 
-        this->object = this->renderer.createTriangulatedObject(
-            gfx::vulkan::PipelineType::Flat, vertices, indices);
+        this->object = std::make_unique<gfx::SimpleTriangulatedObject>(
+            this->renderer, vertices, indices);
     }
 
-    DiskEntity::~DiskEntity() {}
+    DiskEntity::~DiskEntity() {} // NOLINT pre declarations
 
     void DiskEntity::tick() {}
 

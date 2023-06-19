@@ -1,7 +1,7 @@
 #ifndef SRC_GFX_RENDERER_HPP
 #define SRC_GFX_RENDERER_HPP
 
-#include "object.hpp"
+#include "object.hpp" // TODO: remove?
 #include "vulkan/pipelines.hpp"
 #include "window.hpp"
 #include <map>
@@ -46,16 +46,6 @@ namespace gfx
 
         // TODO: make all of these methods thread safe
 
-        // TODO: replace this with a pipeline like thing with an enum an an
-        // abstract class
-        std::unique_ptr<TriangulatedObject> createTriangulatedObject(
-            vulkan::PipelineType,
-            std::span<const vulkan::Vertex>,
-            std::span<const vulkan::Index>) const;
-
-        // VoxelObject
-        // createVoxelObject(std::span<glm::vec3> voxelPositions) const;
-
         bool shouldClose() const;
 
         float         getDeltaTimeSeconds() const;
@@ -63,9 +53,13 @@ namespace gfx
         Window::Delta getMouseDelta() const;
         void          drawObjects(const Camera&, std::span<const Object*>);
 
+        vk::Extent2D getExtent() const;
+
     private:
         void resize();
         void initializeRenderer();
+
+        friend gfx::Object;
 
         Window window;
 

@@ -3,8 +3,6 @@
 #include <chrono>
 #include <functional>
 #include <gfx/renderer.hpp>
-#include <gfx/vulkan/pipelines.hpp>
-#include <numbers>
 #include <ranges>
 #include <util/noise.hpp>
 

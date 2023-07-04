@@ -61,7 +61,7 @@ namespace game::world
 
     struct VoxelVolume
     {
-        static constexpr std::size_t Extent {16};
+        static constexpr std::size_t Extent {32};
         static constexpr std::size_t Minimum {0};
         static constexpr std::size_t Maximum {Extent - 1};
 
@@ -85,7 +85,7 @@ namespace game::world
     class VoxelOctree
     {
     public:
-        static constexpr std::size_t TraversalSteps {7};
+        static constexpr std::size_t TraversalSteps {6};
 
         static constexpr std::size_t VolumeExtent {
             util::exp(static_cast<std::size_t>(2), TraversalSteps)
@@ -111,7 +111,7 @@ namespace game::world
         VoxelOctree& operator= (const VoxelOctree&) = delete;
         VoxelOctree& operator= (VoxelOctree&&)      = delete;
 
-        std::pair<
+        [[nodiscard]] std::pair<
             std::vector<gfx::vulkan::Vertex>,
             std::vector<gfx::vulkan::Index>>
         draw() const;

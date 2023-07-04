@@ -21,7 +21,8 @@ namespace util
         [[nodiscard]] constexpr Matrix() noexcept
             : data {ColumnType {}}
         {}
-        [[nodiscard]] constexpr Matrix(std::same_as<T> auto... args) noexcept
+        [[nodiscard]] explicit constexpr Matrix(
+            std::same_as<T> auto... args) noexcept
             requires (sizeof...(args) == C * R)
             : data {ColumnType {}}
         {
@@ -35,17 +36,17 @@ namespace util
                 }
             }
         }
-        [[nodiscard]] constexpr Matrix(
+        [[nodiscard]] explicit constexpr Matrix(
             std::same_as<ColumnType> auto... args) noexcept
             requires (sizeof...(args) == C)
             : data {args...}
         {}
         constexpr ~Matrix() = default;
 
-        [[nodiscard]] constexpr Matrix(const Matrix&) = default;
-        [[nodiscard]] constexpr Matrix(Matrix&&)      = default;
-        constexpr Matrix& operator= (const Matrix&)   = default;
-        constexpr Matrix& operator= (Matrix&&)        = default;
+        [[nodiscard]] constexpr Matrix(const Matrix&)     = default;
+        [[nodiscard]] constexpr Matrix(Matrix&&) noexcept = default;
+        constexpr Matrix& operator= (const Matrix&)       = default;
+        constexpr Matrix& operator= (Matrix&&) noexcept   = default;
 
         ///
         /// Comparison operators
@@ -80,7 +81,7 @@ namespace util
         [[nodiscard]] constexpr bool
         operator!= (const Matrix& other) const noexcept
         {
-            return !((*this) == other);
+            return (*this) != other;
         }
 
         ///
@@ -344,6 +345,8 @@ namespace util
                     370.0f,
                     518.0f};
 
+                static_assert(mat2 == mat3);
+
                 constexpr Matrix<float, 4, 4> mat4 {mat1};
                 constexpr Vector<float, 4>    vec0 {1.0f, 2.0f, 3.0f, 4.0f};
                 constexpr Vector<float, 4>    vec1 {mat4 * vec0};
@@ -414,6 +417,7 @@ namespace util
                     16.0f};
 
                 constexpr float det1 {mat1.determinant()};
+                static_assert(det1 == 0.0f);
 
                 constexpr Matrix<float, 3, 3> mat2 {
                     1.0f, 3.0f, -5.0f, 2.0f, 0.0f, 4.0f, -1.0f, 1.0f, 2.0f};
@@ -432,7 +436,7 @@ namespace util
 
                 static_assert(mat0.inverse() == mat0Inverse);
 
-                // non invertable
+                // non invertible
                 constexpr Matrix<float, 4, 4> mat1 {
                     1.0f,
                     2.0f,
@@ -461,8 +465,6 @@ namespace util
 
             return true;
         }
-
-        // determinant
 
         static_assert(test());
     } // namespace

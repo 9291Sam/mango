@@ -195,8 +195,10 @@ namespace gfx
         glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwSetCursorPos(
             this->window,
-            static_cast<double>(this->size().width / 2),
-            static_cast<double>(this->size().height / 2));
+            static_cast<double>(
+                this->size().width / 2), // NOLINT: Desired behavior
+            static_cast<double>(
+                this->size().height / 2)); // NOLINT: Desired behavior
 
         this->is_cursor_attached.store(false);
     }

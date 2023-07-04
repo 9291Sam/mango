@@ -148,6 +148,7 @@ namespace util
         requires !std::is_pointer_v<T>;
     };
 
+    // handle negative number cases
     template<Integer I>
     constexpr inline I exponentiate(I base, I power)
     {

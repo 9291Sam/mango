@@ -42,22 +42,21 @@ namespace util
         constexpr SourceLocation& operator= (const SourceLocation&) = default;
         constexpr SourceLocation& operator= (SourceLocation&&)      = default;
 
-        constexpr std::size_t line() const noexcept
+        [[nodiscard]] constexpr std::size_t line() const noexcept
         {
             return this->lineNumber;
         }
 
-        constexpr const char* file() const noexcept
+        [[nodiscard]] constexpr const char* file() const noexcept
         {
             return this->fileName;
         }
 
-        constexpr operator std::string () const noexcept
+        constexpr explicit operator std::string () const noexcept
         {
             std::string raw_file_name {this->fileName};
 
-            std::size_t index       = std::string::npos;
-            std::size_t removalSize = 0;
+            std::size_t index = std::string::npos;
 
             for (std::string_view str : FOLDER_IDENTIFIERS)
             {
@@ -66,8 +65,7 @@ namespace util
                     break;
                 }
 
-                index       = raw_file_name.find(str);
-                removalSize = str.size();
+                index = raw_file_name.find(str);
             }
 
             return fmt::format(
@@ -75,8 +73,8 @@ namespace util
         }
 
     private:
-        uint_least32_t lineNumber;
-        const char*    fileName;
+        std::size_t lineNumber;
+        const char* fileName;
     };
 
     enum class Level
@@ -89,17 +87,6 @@ namespace util
     };
 
     void logFormatted(Level, const util::SourceLocation&, std::string);
-
-    // template<class T..., Level l>
-    // void adf();
-
-    // template<class... T>
-    // using logFatal<T, Fatal> = asd;
-
-    // // global lambdas !
-
-    // template<class... T>
-    // auto logFatal = [] <
 
 /// Because C++ doesn't have partial template specification, this is the best we
 /// can do
@@ -123,11 +110,11 @@ namespace util
     template<class... J>                                                       \
     log##LEVEL(fmt::format_string<J...>, J&&...)->log##LEVEL<J...>;
 
-    MAKE_LOGGER(Trace)
-    MAKE_LOGGER(Debug)
-    MAKE_LOGGER(Log)
-    MAKE_LOGGER(Warn)
-    MAKE_LOGGER(Fatal)
+    MAKE_LOGGER(Trace) // NOLINT: We want implicit conversions
+    MAKE_LOGGER(Debug) // NOLINT: We want implicit conversions
+    MAKE_LOGGER(Log)   // NOLINT: We want implicit conversions
+    MAKE_LOGGER(Warn)  // NOLINT: We want implicit conversions
+    MAKE_LOGGER(Fatal) // NOLINT: We want implicit conversions
 
 #define MAKE_ASSERT(LEVEL, THROW_ON_FAIL)                                      \
     template<class... T>                                                       \
@@ -159,14 +146,16 @@ namespace util
     assert##LEVEL(bool, fmt::format_string<J...>, J&&...)                      \
         ->assert##LEVEL<J...>;
 
-    MAKE_ASSERT(Trace, false) MAKE_ASSERT(Debug, false);
-    MAKE_ASSERT(Log, false) MAKE_ASSERT(Warn, false);
-    MAKE_ASSERT(Fatal, true);
+    MAKE_ASSERT(Trace, false) // NOLINT: We want implicit conversions
+    MAKE_ASSERT(Debug, false) // NOLINT: We want implicit conversions
+    MAKE_ASSERT(Log, false)   // NOLINT: We want implicit conversions
+    MAKE_ASSERT(Warn, false)  // NOLINT: We want implicit conversions
+    MAKE_ASSERT(Fatal, true)  // NOLINT: We want implicit conversions
 
     template<class... T>
     struct panic
     {
-        [[noreturn]] panic(
+        [[noreturn]] panic( // NOLINT: implicit conversion
             fmt::format_string<T...> fmt,
             T&&... args,
             const util::SourceLocation& location =

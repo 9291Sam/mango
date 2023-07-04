@@ -1,6 +1,7 @@
 #include "swapchain.hpp"
 #include "device.hpp"
 #include "util/log.hpp"
+#include "vulkan/vulkan_enums.hpp"
 
 namespace gfx::vulkan
 {
@@ -64,6 +65,8 @@ namespace gfx::vulkan
             const auto availablePresentModes =
                 this->device->asPhysicalDevice().getSurfacePresentModesKHR(
                     **this->window_surface);
+
+            return vk::PresentModeKHR::eFifo;
 
             if (std::ranges::find(
                     availablePresentModes, vk::PresentModeKHR::eMailbox)

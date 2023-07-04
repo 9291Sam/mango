@@ -1,11 +1,13 @@
 #ifndef SRC_UTIL_MISC_HPP
 #define SRC_UTIL_MISC_HPP
 
+#include <algorithm>
 #include <array>
 #include <concepts>
 #include <cstdint>
 #include <exception>
 #include <fmt/format.h>
+#include <limits>
 #include <numeric>
 #include <stdexcept>
 #include <string>
@@ -142,6 +144,12 @@ namespace util
     };
 
     template<class T>
+    concept UnsignedInteger = requires {
+        requires Integer<T>;
+        requires std::is_unsigned_v<T>;
+    };
+
+    template<class T>
     concept Arithmetic = requires {
         requires std::integral<T> || std::floating_point<T>;
         requires !std::same_as<T, bool>;
@@ -241,6 +249,25 @@ namespace util
         hash_ += 0x9e3779b9 + (seed_ << 6) + (seed_ >> 2);
         seed_ ^= hash_;
     };
+
+    template<std::floating_point F>
+    constexpr inline std::uint8_t convertLinearToSRGB(F value) noexcept
+    {
+        const F ClampedValue =
+            std::clamp<F>(value, static_cast<F>(0.0), static_cast<F>(1.0));
+
+        return static_cast<uint8_t>(
+            255.0f * std::pow<F>(ClampedValue, 1.0f / 2.4f));
+    }
+
+    constexpr inline float convertSRGBToLinear(std::uint8_t integer) noexcept
+    {
+        const float IntegerAsFloatNormalized =
+            static_cast<float>(integer)
+            / static_cast<float>(std::numeric_limits<std::uint8_t>::max());
+
+        return std::pow<float>(IntegerAsFloatNormalized, 2.4f);
+    }
 
 } // namespace util
 

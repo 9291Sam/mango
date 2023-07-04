@@ -166,7 +166,7 @@ void gfx::SimpleTriangulatedObject::setPushConstants(
 {
     vulkan::PushConstants pushConstants {.model_view_proj {
         Camera::getPerspectiveMatrix(
-            glm::radians(70.f),
+            this->renderer.getFovYRadians(),
             static_cast<float>(this->renderer.getExtent().width)
                 / static_cast<float>(this->renderer.getExtent().height),
             0.1f,

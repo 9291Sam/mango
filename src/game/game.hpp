@@ -3,7 +3,6 @@
 
 #include "game/player.hpp"
 #include "game/world/world.hpp"
-#include "world/voxel_octree.hpp"
 #include <memory>
 
 namespace gfx

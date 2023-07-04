@@ -68,6 +68,9 @@ game::entity::Cube::Cube(gfx::Renderer& renderer_, glm::vec3 position)
 void game::entity::Cube::tick()
 {
     this->object.transform.yawBy(1.0f * this->renderer.getDeltaTimeSeconds());
+
+    this->object.transform.translation = {
+        10.0f * std::sin(this->renderer.getDeltaTimeSeconds()), 10.0f, 0.0f};
 }
 
 std::vector<const gfx::Object*> game::entity::Cube::draw() const

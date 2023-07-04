@@ -30,6 +30,7 @@ namespace game
         this->player.tick();
 
         std::vector<const gfx::Object*> objects {};
+        objects.reserve(this->entities.size() + 64); // world objects
 
         for (const std::unique_ptr<entity::Entity>& e : this->entities)
         {

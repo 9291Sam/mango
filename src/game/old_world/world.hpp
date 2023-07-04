@@ -1,14 +1,10 @@
 #ifndef SRC_GAME_WORLD_WORLD_HPP
 #define SRC_GAME_WORLD_WORLD_HPP
 
-#include <memory>
-#include <vector>
-
-namespace gfx
-{
-    class Renderer;
-    class Object;
-} // namespace gfx
+#include "game/world/voxel_octree.hpp"
+#include "gfx/object.hpp"
+#include "gfx/renderer.hpp"
+#include "voxel_octree.hpp"
 
 namespace game::world
 {
@@ -31,6 +27,7 @@ namespace game::world
     private:
         std::vector<std::shared_ptr<gfx::Object>> objects;
         gfx::Renderer&                            renderer;
+        VoxelOctree                               octree;
     };
 } // namespace game::world
 

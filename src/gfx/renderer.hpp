@@ -48,10 +48,12 @@ namespace gfx
 
         bool shouldClose() const;
 
-        float         getDeltaTimeSeconds() const;
-        float         getActionAmount(Window::Action) const;
-        Window::Delta getMouseDelta() const;
-        void          drawObjects(const Camera&, std::span<const Object*>);
+        [[nodiscard]] float         getDeltaTimeSeconds() const;
+        [[nodiscard]] float         getActionAmount(Window::Action) const;
+        [[nodiscard]] Window::Delta getMouseDeltaRadians() const;
+        [[nodiscard]] float         getFovYRadians() const;
+        [[nodiscard]] float         getFovXRadians() const;
+        void drawObjects(const Camera&, std::span<const Object*>);
 
         vk::Extent2D getExtent() const;
 

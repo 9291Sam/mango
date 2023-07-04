@@ -15,7 +15,7 @@ namespace game
             renderer.getActionAmount(gfx::Window::Action::PlayerSprint) != 0.0f
                 ? 100.0f
                 : 25.0f;
-        const float rotateSpeedScale = 150.255f;
+        const float rotateSpeedScale = 1.5f;
 
         if (this->renderer.getActionAmount(gfx::Window::Action::PrintLocation)
             != 0.0f)
@@ -54,7 +54,7 @@ namespace game
             * renderer.getActionAmount(gfx::Window::Action::PlayerMoveDown)
             * MoveScale);
 
-        auto [xDelta, yDelta] = renderer.getMouseDelta();
+        auto [xDelta, yDelta] = renderer.getMouseDeltaRadians();
 
         this->camera.addYaw(xDelta * rotateSpeedScale);
         this->camera.addPitch(yDelta * rotateSpeedScale);

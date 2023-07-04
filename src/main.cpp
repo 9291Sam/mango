@@ -5,7 +5,6 @@
 #include "util/threads.hpp"
 #include "util/uuid.hpp"
 #include "util/vector.hpp"
-#include <stdio.h>
 
 int main()
 {

@@ -61,3 +61,4 @@ gameplay?????
 
 Long term:
 Replace gcem with cmath once its constexpr
+replace glm with your own stuff

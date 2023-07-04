@@ -121,9 +121,9 @@ namespace gfx
         {
             return Delta {
                 .x {static_cast<float>(this->mouse_delta_pixels.first)
-                    / this->size().width},
+                    / static_cast<float>(this->size().width)},
                 .y {static_cast<float>(this->mouse_delta_pixels.second)
-                    / this->size().height},
+                    / static_cast<float>(this->size().height)},
             };
         }
         else

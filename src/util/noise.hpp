@@ -1,16 +1,10 @@
 #ifndef SRC_UTIL_NOISE_HPP
 #define SRC_UTIL_NOISE_HPP
 
-#include "util/misc.hpp"
+#include "misc.hpp"
 #include "vector.hpp"
 #include <cmath>
 #include <concepts>
-#include <cstddef>
-#include <cstdint>
-#include <numbers>
-#include <random>
-#include <tuple>
-#include <util/misc.hpp>
 
 ///
 /// This entire implementation is unceremoniously sz`tolen from the wikipedia
@@ -22,6 +16,8 @@ namespace util
 {
     // TODO: N dimensional noise
 
+    // TODO: implement
+    // https://en.cppreference.com/w/cpp/named_req/RandomNumberDistribution
     class FastMCG
     {
     public:
@@ -35,7 +31,7 @@ namespace util
         }
         constexpr ~FastMCG() = default;
 
-        constexpr explicit FastMCG(const FastMCG&)    = default;
+        constexpr explicit FastMCG(const FastMCG&)    = default; // NOLINT
         constexpr FastMCG(FastMCG&&)                  = default;
         constexpr FastMCG& operator= (const FastMCG&) = delete;
         constexpr FastMCG& operator= (FastMCG&&)      = default;
@@ -61,7 +57,7 @@ namespace util
             requires (std::convertible_to<T, long double>)
         {
             return static_cast<T>(util::map<long double>(
-                this->next(),
+                static_cast<long double>(this->next()),
                 static_cast<long double>(
                     std::numeric_limits<std::uint64_t>::min()),
                 static_cast<long double>(
@@ -92,17 +88,15 @@ namespace util
     }
 
     template<std::size_t N> // TODO: replace with some AbsolutePosition
-    constexpr inline Vec2 randomGradient(Vector<std::int64_t, N> vector)
+    constexpr inline Vec2
+    randomGradient(Vector<std::int64_t, N> vector, std::uint64_t seed)
     {
-        std::uint64_t workingSeed {
-            std::bit_cast<std::uint64_t>(78234748926789234)};
-
         for (std::int64_t i : vector.data)
         {
-            util::hashCombine(workingSeed, i);
+            util::hashCombine(seed, i);
         }
 
-        FastMCG engine {workingSeed};
+        FastMCG engine {seed};
 
         float random =
             engine.nextInRange<float>(0.0f, std::numbers::pi_v<float> * 2);
@@ -121,10 +115,11 @@ namespace util
     template<std::size_t N>
     constexpr inline float dotGridGradient(
         Vector<std::int64_t, N> position,
-        Vector<float, N>        perlinGridGranularity)
+        Vector<float, N>        perlinGridGranularity,
+        std::uint64_t           seed)
     {
         // Get gradient from integer coordinates
-        const Vec2 gradient = randomGradient(position);
+        const Vec2 gradient = randomGradient(position, seed);
 
         // Compute the distance vector
         const Vector<float, N> offset {
@@ -136,7 +131,8 @@ namespace util
     // Compute Perlin noise at coordinates x, y
     // TODO: replace with some AbsolutePosition with an int64 + a float
     // TODO: add seeds
-    constexpr inline float perlin(Vec2 vector) // TODO: make generic
+    constexpr inline float
+    perlin(Vec2 vector, std::uint64_t seed) // TODO: make generic
     {
         const Vector<std::int64_t, 2> BottomLeftGrid {
             static_cast<std::int64_t>(std::floor(vector.x())),
@@ -154,13 +150,13 @@ namespace util
         const Vec2 OffsetIntoGrid {vector - static_cast<Vec2>(BottomLeftGrid)};
 
         const float LeftGradient = quarticInterpolate(
-            dotGridGradient(BottomLeftGrid, vector),
-            dotGridGradient(TopLeftGrid, vector),
+            dotGridGradient(BottomLeftGrid, vector, seed),
+            dotGridGradient(TopLeftGrid, vector, seed),
             OffsetIntoGrid.x());
 
         const float RightGradient = quarticInterpolate(
-            dotGridGradient(BottomRightGrid, vector),
-            dotGridGradient(TopRightGrid, vector),
+            dotGridGradient(BottomRightGrid, vector, seed),
+            dotGridGradient(TopRightGrid, vector, seed),
             OffsetIntoGrid.x());
 
         return quarticInterpolate(

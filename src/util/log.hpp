@@ -20,6 +20,7 @@ namespace util
     static constexpr std::array<std::string_view, 2> FOLDER_IDENTIFIERS {
         "/src/", "/inc/"};
 
+    // I love reimplementing the stdlib!!!!!!
     class SourceLocation
     {
     public:

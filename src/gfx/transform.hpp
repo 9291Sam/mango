@@ -5,25 +5,15 @@
 
 namespace gfx
 {
-    enum class Direction
-    {
-        PositiveX,
-        PositiveY,
-        PositiveZ,
-        NegativeX,
-        NegativeY,
-        NegativeZ
-    };
-
     struct Transform
     {
         static constexpr glm::vec3 ForwardVector {0.0f, 0.0f, -1.0f};
         static constexpr glm::vec3 RightVector {1.0f, 0.0f, 0.0f};
         static constexpr glm::vec3 UpVector {0.0f, 1.0f, 0.0f};
 
-        glm::vec3 translation;
-        glm::quat rotation;
-        glm::vec3 scale;
+        glm::vec3 translation = {0.0f, 0.0f, 0.0f};
+        glm::quat rotation    = {1.0f, 0.0f, 0.0f, 0.0f};
+        glm::vec3 scale       = {1.0f, 1.0f, 1.0f};
 
         [[nodiscard]] glm::mat4 asModelMatrix() const;
         [[nodiscard]] glm::mat4 asTranslationMatrix() const;

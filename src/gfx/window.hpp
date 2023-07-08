@@ -100,6 +100,8 @@ namespace gfx
 
         void attachCursor() const;
         void detachCursor() const;
+
+        // This function should only ever be called once per frame!
         void pollEvents();
 
         void blockThisThreadWhileMinimized() const;

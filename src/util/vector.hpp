@@ -2,17 +2,13 @@
 #define SRC_UTIL_VECTOR_HPP
 
 #include "misc.hpp"
-#include "util/misc.hpp"
-#include <cmath>
-#include <compare>
 #include <concepts>
 #include <gcem.hpp>
-#include <limits>
 #include <numbers>
-#include <type_traits>
 
 namespace util
 {
+    // TODO: rotors && special matricies
     template<Arithmetic T, std::size_t N>
     class alignas(8) Vector
     {
@@ -27,16 +23,17 @@ namespace util
             std::fill(
                 this->data.begin(), this->data.end(), static_cast<T>(INFINITY));
         }
-        [[nodiscard]] constexpr Vector(std::same_as<T> auto... args) noexcept
+        [[nodiscard]] constexpr explicit Vector(
+            std::same_as<T> auto... args) noexcept
             requires (sizeof...(args) == N)
             : data {args...}
         {}
         constexpr ~Vector() = default;
 
         [[nodiscard]] constexpr Vector(const Vector&) = default;
-        [[nodiscard]] constexpr Vector(Vector&&)      = default;
-        constexpr Vector& operator= (const Vector&)   = default;
-        constexpr Vector& operator= (Vector&&)        = default;
+        [[nodiscard]] constexpr Vector(Vector&&) = default; // NOLINT: defaulted
+        constexpr Vector& operator= (const Vector&) = default;
+        constexpr Vector& operator= (Vector&&) = default; // NOLINT: defaulted
 
         ///
         /// Conversion operators
@@ -44,7 +41,7 @@ namespace util
 
         // noexcept false -> throwing
         template<class J>
-        [[nodiscard]] constexpr operator Vector<J, N> () const
+        [[nodiscard]] constexpr explicit operator Vector<J, N> () const
             noexcept(noexcept(std::is_nothrow_convertible_v<T, J>))
             requires std::is_convertible_v<T, J>
         {

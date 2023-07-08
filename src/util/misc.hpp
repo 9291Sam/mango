@@ -3,15 +3,8 @@
 
 #include <algorithm>
 #include <array>
-#include <concepts>
 #include <cstdint>
-#include <exception>
 #include <fmt/format.h>
-#include <limits>
-#include <numeric>
-#include <stdexcept>
-#include <string>
-#include <type_traits>
 #include <vector>
 
 namespace util
@@ -203,6 +196,8 @@ namespace util
         __builtin_unreachable();
 #elif defined(_MSC_VER) // MSVC
         __assume(false);
+#else
+#error unsupported compiler
 #endif
     }
 

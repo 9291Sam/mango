@@ -1,3 +1,12 @@
+## Build instructions
+
+The only external dependency required by this project is the vulkan SDK.
+It is downloadable here
+
+[![https://vulkan.lunarg.com/](https://vulkan.lunarg.com/)](https://vulkan.lunarg.com/)
+
+
+
 ## Demonstration video
 
 [![perlin_noise_test.mp4](perlin_noise_test.mp4)](perlin_noise_test.mp4)

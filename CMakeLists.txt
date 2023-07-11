@@ -194,10 +194,9 @@ find_package(Vulkan REQUIRED)
 include_directories("${Vulkan_INCLUDE_DIRS}")
 
 
-# VMA's cmakescript is terribly broken, doesnt work with fetchContent + 
-# **requires** static linking the
-# VMA_DYNAMIC_VULKAN_FUNCTIONS and VMA_STATIC_VULKAN_FUNCTIONS options do
-# nothing!!!!!
+# VMA's cmakescript is terribly broken, doesnt work with fetchContent, requies
+# the use of static linking, and doesnt include its headers with
+# add_subdirectory.
 
 # as a result the best solution is to just include it as a submodule and include
 # the damned header. 
@@ -207,6 +206,9 @@ include_directories("${Vulkan_INCLUDE_DIRS}")
 # I love C++'s tooling, it is perfect and has no flaws.
 # I love C++'s tooling, it is perfect and has no flaws.
 
+execute_process(COMMAND git submodule update --init --recursive -- inc/VulkanMemoryAllocator
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMAND_ERROR_IS_FATAL ANY)
 add_library(VulkanMemoryAllocator INTERFACE)
 set_target_properties(VulkanMemoryAllocator PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES 

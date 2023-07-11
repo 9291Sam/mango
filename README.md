@@ -1,11 +1,8 @@
 ## Build instructions
 
-The only external dependency required by this project is the vulkan SDK.
-It is downloadable here
-
-[![https://vulkan.lunarg.com/](https://vulkan.lunarg.com/)](https://vulkan.lunarg.com/)
-
-
+1. Download the vulkan sdk [![https://vulkan.lunarg.com/](https://vulkan.lunarg.com/)](https://vulkan.lunarg.com/)
+2. Enusure that VMA's submodules has been initalized and populated
+3. Configure cmake (other dependencies should be downloaded and automatically built)
 
 ## Demonstration video
 
